@@ -5,7 +5,7 @@ import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
-import 'package:web_terminal/src/blocs/ssh_host/ssh_host_bloc.dart';
+import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:web_terminal/src/components/destinations.dart';
 import 'package:web_terminal/src/components/setting/root_setting_list.dart';
 import 'package:web_terminal/src/components/setting/ssh_host_form.dart';
@@ -25,7 +25,7 @@ class SettingsHost extends StatelessWidget {
       context.read<SshHostBloc>().add(SshHostLoad());
     });
 
-    return GAdaptiveScaffold(
+    return AppAdaptiveScaffold(
       selectedIndex:
           Destinations.indexOf(const Key(SettingsScreen.name), context),
       onSelectedIndexChange: (idx) => Destinations.changeHandler(
@@ -222,9 +222,9 @@ class SettingsHost extends StatelessWidget {
 
   List<Widget> getActions(BuildContext context) {
     return [
-      GAdaptiveActionList(
+      AppAdaptiveActionList(
         actions: [
-          GAdaptiveAction(
+          AppAdaptiveAction(
             icon: Icons.add,
             title: context.l10n.add,
             onPressed: () {

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_app_template/screens/app/splash_screen.dart';
+import 'package:web_terminal/screens/splash/splash_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 // Test version of SplashScreen that doesn't use Timer

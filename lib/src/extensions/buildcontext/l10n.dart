@@ -1,7 +1,6 @@
+import 'package:app_locale/app_locale.dart' show AppLocalizations;
 import 'package:flutter/material.dart' show BuildContext;
-import 'package:web_terminal/l10n/gen_l10n/web_terminal_localizations.dart'
-    show WebTerminalLocalizations;
 
 extension Localization on BuildContext {
-  WebTerminalLocalizations get l10n => WebTerminalLocalizations.of(this);
+  AppLocalizations get l10n => AppLocalizations.of(this);
 }

@@ -14,6 +14,10 @@ workspace:
   - app_lib/provider
   - app_lib/logging
   - app_bloc/theme
+  - app_bloc/connection
+  - app_bloc/ssh_key
+  - app_bloc/ssh_host
+  - app_bloc/terminal_tab
   - app_widget/adaptive
   - app_widget/artwork
   - app_widget/feedback
@@ -73,10 +77,6 @@ dependencies:
   flutter_riverpod: ^2.0.0
   flutter_state_notifier: ^1.0.0
 
-  # Database (ObjectBox)
-  objectbox: ^4.3.0
-  objectbox_flutter_libs: ^4.3.0
-
   # Security
   flutter_secure_storage: ^9.0.0
 
@@ -100,6 +100,10 @@ dependencies:
   app_locale: any
   app_provider: any
   theme_bloc: any
+  connection_bloc: any
+  ssh_key_bloc: any
+  ssh_host_bloc: any
+  terminal_tab_bloc: any
   app_artwork: any
   app_client_info: any
   app_feedback: any
@@ -127,7 +131,6 @@ dev_dependencies:
 
   # Code generation
   go_router_builder: ^3.0.0
-  objectbox_generator: ^4.3.0
 
   # App packaging and icons
   flutter_launcher_icons: ^0.14.1
@@ -140,7 +143,7 @@ dev_dependencies:
   dependency_validator: ^5.0.2
 
 flutter:
-  generate: true
+  generate: false
   uses-material-design: true
 
 # generate icon with `dart run flutter_launcher_icons:main``

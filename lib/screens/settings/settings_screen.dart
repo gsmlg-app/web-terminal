@@ -12,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GAdaptiveScaffold(
+    return AppAdaptiveScaffold(
       selectedIndex: Destinations.indexOf(const Key(name), context),
       onSelectedIndexChange: (idx) => Destinations.changeHandler(
         idx,

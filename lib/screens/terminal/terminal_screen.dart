@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
-import 'package:web_terminal/src/blocs/terminal_tab/terminal_tab_bloc.dart';
+import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:web_terminal/src/components/destinations.dart';
 import 'package:web_terminal/src/core/plugin.dart';
 import 'package:web_terminal/src/core/service/tabs_service.dart';
@@ -110,7 +110,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
       widget = VirtualWindowFrame(child: widget);
     }
 
-    return GAdaptiveScaffold(
+    return AppAdaptiveScaffold(
       selectedIndex:
           Destinations.indexOf(const Key(TerminalScreen.name), context),
       onSelectedIndexChange: (idx) => Destinations.changeHandler(

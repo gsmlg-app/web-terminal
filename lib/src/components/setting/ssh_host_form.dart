@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:form_bloc/form_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:web_terminal/object/ssh_host.dart';
-import 'package:web_terminal/src/blocs/ssh_host/ssh_host_bloc.dart';
-import 'package:web_terminal/src/blocs/ssh_key/ssh_key_bloc.dart';
+import 'package:ssh_host_bloc/ssh_host_bloc.dart';
+import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
 
 void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
@@ -90,12 +89,12 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     selectFieldBloc: sshHostFormBloc.identityType,
                     itemBuilder: (context, value) {
                       return switch (value) {
-                        IdentityType.password => FieldItem(
+                        SshIdentityType.password => FieldItem(
                             child: Text(
                               context.l10n.sshHostIdentityTypePassword,
                             ),
                           ),
-                        IdentityType.key => FieldItem(
+                        SshIdentityType.key => FieldItem(
                               child: Text(
                             context.l10n.sshHostIdentityTypePrivateKey,
                           )),
@@ -106,12 +105,12 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  BlocBuilder<SelectFieldBloc<IdentityType, dynamic>,
+                  BlocBuilder<SelectFieldBloc<SshIdentityType, dynamic>,
                       SelectFieldBlocState>(
                     bloc: sshHostFormBloc.identityType,
                     builder: (context, state) {
                       final identityType = state.value;
-                      if (identityType == IdentityType.password) {
+                      if (identityType == SshIdentityType.password) {
                         return TextFieldBlocBuilder(
                           textFieldBloc: sshHostFormBloc.password,
                           suffixButton: SuffixButton.clearText,
@@ -124,7 +123,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                           ),
                         );
                       }
-                      if (identityType == IdentityType.key) {
+                      if (identityType == SshIdentityType.key) {
                         return DropdownFieldBlocBuilder(
                           selectFieldBloc: sshHostFormBloc.identityKeyId,
                           itemBuilder: (context, value) {

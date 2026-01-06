@@ -3,9 +3,15 @@ import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'tables/ssh_hosts.dart';
+import 'tables/ssh_keys.dart';
+
+export 'tables/ssh_hosts.dart' show SshIdentityType;
+export 'tables/ssh_keys.dart' show SshKeyAlgorithm;
+
 part 'database.g.dart';
 
-@DriftDatabase(tables: [])
+@DriftDatabase(tables: [SshKeys, SshHosts])
 class AppDatabase extends _$AppDatabase {
   // After generating code, this class needs to define a `schemaVersion` getter
   // and a constructor telling drift where the database should be stored.

@@ -5,6 +5,7 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:web_terminal/src/components/destinations.dart';
 import 'package:web_terminal/src/components/setting/root_setting_list.dart';
+import 'package:web_terminal/src/components/setting/settings_section_wifi_info.dart';
 import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
 
 class WifiInfoScreen extends ConsumerWidget {
@@ -16,7 +17,7 @@ class WifiInfoScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     const String title = 'Wifi Info';
 
-    return GAdaptiveScaffold(
+    return AppAdaptiveScaffold(
       selectedIndex:
           Destinations.indexOf(const Key(SettingsScreen.name), context),
       destinations: Destinations.navs(context),

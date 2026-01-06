@@ -4,8 +4,7 @@ import 'package:app_feedback/app_feedback.dart';
 import 'package:form_bloc/form_bloc.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:gsmlg_security/gsmlg_security.dart';
-import 'package:web_terminal/object/ssh_key.dart';
-import 'package:web_terminal/src/blocs/ssh_key/ssh_key_bloc.dart';
+import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
 
 void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {

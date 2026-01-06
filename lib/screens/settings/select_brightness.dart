@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:app_theme/app_theme.dart';
+import 'package:theme_bloc/theme_bloc.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:web_terminal/src/components/destinations.dart';
+import 'package:web_terminal/src/components/setting/bloc_settings_section_appearance.dart';
 import 'package:web_terminal/src/components/setting/root_setting_list.dart';
 import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
 
@@ -19,7 +20,7 @@ class SettingsSelectBrightness extends StatelessWidget {
   Widget build(BuildContext context) {
     final themeBloc = context.read<ThemeBloc>();
 
-    return GAdaptiveScaffold(
+    return AppAdaptiveScaffold(
       selectedIndex:
           Destinations.indexOf(const Key(SettingsScreen.name), context),
       onSelectedIndexChange: (idx) => Destinations.changeHandler(

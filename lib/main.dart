@@ -7,16 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gsmlg_security/gsmlg_security.dart';
 import 'package:app_theme/app_theme.dart';
+import 'package:theme_bloc/theme_bloc.dart';
 import 'package:gsmlg_utils/gsmlg_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_terminal/app.dart';
 import 'package:web_terminal/constant.dart';
-import 'package:web_terminal/objectbox_api.dart';
-import 'package:web_terminal/src/blocs/connection/connection_bloc.dart';
-import 'package:web_terminal/src/blocs/ssh_host/ssh_host_bloc.dart';
-import 'package:web_terminal/src/blocs/ssh_key/ssh_key_bloc.dart';
-import 'package:web_terminal/src/blocs/terminal_tab/terminal_tab_bloc.dart';
-import 'package:web_terminal/src/util/provider_logger.dart';
+import 'package:app_database/app_database.dart';
+import 'package:connection_bloc/connection_bloc.dart';
+import 'package:ssh_host_bloc/ssh_host_bloc.dart';
+import 'package:ssh_key_bloc/ssh_key_bloc.dart';
+import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
+import 'package:app_provider/app_provider.dart';
 import 'package:window_manager/window_manager.dart';
 
 Future<void> main() async {
@@ -27,7 +28,7 @@ Future<void> main() async {
   }
 
   final sharedPrefs = await SharedPreferences.getInstance();
-  final objectBox = await ObjectBox.create();
+  final database = AppDatabase();
 
   runApp(
     ProviderScope(
@@ -40,8 +41,8 @@ Future<void> main() async {
           RepositoryProvider<FlutterSecureStorage>(
             create: (BuildContext context) => const FlutterSecureStorage(),
           ),
-          RepositoryProvider<ObjectBox>(
-            create: (BuildContext context) => objectBox,
+          RepositoryProvider<AppDatabase>(
+            create: (BuildContext context) => database,
           ),
           RepositoryProvider<AesHelper>(
             create: (BuildContext context) => AesHelper(Constant.appName),
@@ -55,19 +56,23 @@ Future<void> main() async {
           ),
           BlocProvider<SshKeyBloc>(
             create: (BuildContext context) => SshKeyBloc(
-              objectBox,
+              database,
             ),
           ),
           BlocProvider<SshKeyFormBloc>(
-            create: (BuildContext context) => SshKeyFormBloc(objectBox),
+            create: (BuildContext context) => SshKeyFormBloc(
+              context.read<SshKeyBloc>(),
+            ),
           ),
           BlocProvider<SshHostBloc>(
             create: (BuildContext context) => SshHostBloc(
-              objectBox,
+              database,
             ),
           ),
           BlocProvider<SshHostFormBloc>(
-            create: (BuildContext context) => SshHostFormBloc(objectBox),
+            create: (BuildContext context) => SshHostFormBloc(
+              context.read<SshHostBloc>(),
+            ),
           ),
           BlocProvider<TerminalTabBloc>(
             create: (BuildContext context) => TerminalTabBloc(),

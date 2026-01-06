@@ -2,15 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
-import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
-import 'package:app_theme/app_theme.dart';
+import 'package:theme_bloc/theme_bloc.dart';
 import 'package:web_terminal/screens/settings/device/device_info_screen.dart';
 import 'package:web_terminal/screens/settings/device/wifi_info_screen.dart';
 import 'package:web_terminal/screens/settings/host_management.dart';
 import 'package:web_terminal/screens/settings/select_brightness.dart';
 import 'package:web_terminal/screens/settings/select_theme.dart';
 import 'package:web_terminal/screens/settings/ssh_key_management.dart';
+import 'package:web_terminal/src/components/setting/bloc_settings_section_accent_color.dart';
+import 'package:web_terminal/src/components/setting/bloc_settings_section_appearance.dart';
 import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
 
 class RootSettingList extends StatelessWidget {

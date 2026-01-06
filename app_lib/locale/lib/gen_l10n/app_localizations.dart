@@ -5,7 +5,18 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/intl.dart' as intl;
 
+import 'app_localizations_ar.dart';
+import 'app_localizations_cs.dart';
+import 'app_localizations_de.dart';
 import 'app_localizations_en.dart';
+import 'app_localizations_es.dart';
+import 'app_localizations_fr.dart';
+import 'app_localizations_it.dart';
+import 'app_localizations_ja.dart';
+import 'app_localizations_ko.dart';
+import 'app_localizations_ru.dart';
+import 'app_localizations_uk.dart';
+import 'app_localizations_zh.dart';
 
 // ignore_for_file: type=lint
 
@@ -92,37 +103,76 @@ abstract class AppLocalizations {
   ];
 
   /// A list of this localizations delegate's supported locales.
-  static const List<Locale> supportedLocales = <Locale>[Locale('en')];
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('cs'),
+    Locale('de'),
+    Locale('en'),
+    Locale('es'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('ja'),
+    Locale('ko'),
+    Locale('ru'),
+    Locale('uk'),
+    Locale('zh'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant')
+  ];
 
   /// No description provided for @appName.
   ///
   /// In en, this message translates to:
-  /// **'Flutter App Template'**
+  /// **'Web Terminal'**
   String get appName;
 
-  /// No description provided for @errorOccurred.
+  /// No description provided for @show.
   ///
   /// In en, this message translates to:
-  /// **'Error Occurred'**
-  String get errorOccurred;
+  /// **'Show'**
+  String get show;
 
-  /// No description provided for @backToHome.
+  /// No description provided for @hide.
   ///
   /// In en, this message translates to:
-  /// **'Back to Home'**
-  String get backToHome;
+  /// **'Hide'**
+  String get hide;
 
-  /// No description provided for @welcomeHome.
+  /// No description provided for @exit.
   ///
   /// In en, this message translates to:
-  /// **'Welcome to my app'**
-  String get welcomeHome;
+  /// **'Exit'**
+  String get exit;
 
-  /// No description provided for @ok.
+  /// No description provided for @add.
   ///
   /// In en, this message translates to:
-  /// **'OK'**
-  String get ok;
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 
   /// No description provided for @cancel.
   ///
@@ -130,47 +180,29 @@ abstract class AppLocalizations {
   /// **'Cancel'**
   String get cancel;
 
-  /// No description provided for @loading.
+  /// No description provided for @reload.
   ///
   /// In en, this message translates to:
-  /// **'Loading'**
-  String get loading;
+  /// **'Reload'**
+  String get reload;
 
-  /// No description provided for @success.
+  /// No description provided for @copy.
   ///
   /// In en, this message translates to:
-  /// **'Success'**
-  String get success;
+  /// **'Copy'**
+  String get copy;
 
-  /// No description provided for @error.
+  /// No description provided for @destinationTerminal.
   ///
   /// In en, this message translates to:
-  /// **'Error'**
-  String get error;
+  /// **'Terminal'**
+  String get destinationTerminal;
 
-  /// No description provided for @undo.
-  ///
-  /// In en, this message translates to:
-  /// **'Undo'**
-  String get undo;
-
-  /// No description provided for @navHome.
-  ///
-  /// In en, this message translates to:
-  /// **'Home'**
-  String get navHome;
-
-  /// No description provided for @navShowcase.
-  ///
-  /// In en, this message translates to:
-  /// **'Showcase'**
-  String get navShowcase;
-
-  /// No description provided for @navSetting.
+  /// No description provided for @destinationSetting.
   ///
   /// In en, this message translates to:
   /// **'Setting'**
-  String get navSetting;
+  String get destinationSetting;
 
   /// No description provided for @settingsTitle.
   ///
@@ -184,23 +216,167 @@ abstract class AppLocalizations {
   /// **'Theme'**
   String get smenuTheme;
 
-  /// No description provided for @appearance.
+  /// No description provided for @titleSelectAppearance.
   ///
   /// In en, this message translates to:
-  /// **'Appearance'**
-  String get appearance;
+  /// **'Select Appearance'**
+  String get titleSelectAppearance;
 
-  /// No description provided for @accentColor.
+  /// No description provided for @titleSelectColorTheme.
   ///
   /// In en, this message translates to:
-  /// **'Accent Color'**
-  String get accentColor;
+  /// **'Select Accent Color'**
+  String get titleSelectColorTheme;
 
-  /// No description provided for @language.
+  /// No description provided for @smenuSSH.
   ///
   /// In en, this message translates to:
-  /// **'Language'**
-  String get language;
+  /// **'SSH'**
+  String get smenuSSH;
+
+  /// No description provided for @sshHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get sshHost;
+
+  /// No description provided for @titleSSHHost.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH Host'**
+  String get titleSSHHost;
+
+  /// No description provided for @addSshHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Add SSH Host'**
+  String get addSshHost;
+
+  /// No description provided for @editSshHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit SSH Host'**
+  String get editSshHost;
+
+  /// No description provided for @sshKey.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH Key'**
+  String get sshKey;
+
+  /// No description provided for @titleSSHKey.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH Key'**
+  String get titleSSHKey;
+
+  /// No description provided for @addSshKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add SSH Key'**
+  String get addSshKey;
+
+  /// No description provided for @showPublicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Public Key'**
+  String get showPublicKey;
+
+  /// No description provided for @sshKeyNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sshKeyNameLabel;
+
+  /// No description provided for @sshKeyNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name of your SSH Key'**
+  String get sshKeyNameHint;
+
+  /// No description provided for @sshKeyContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Content'**
+  String get sshKeyContentLabel;
+
+  /// No description provided for @sshKeyGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate SSH Key'**
+  String get sshKeyGenerate;
+
+  /// No description provided for @deleteSshKeyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this SSH Key?'**
+  String get deleteSshKeyMessage;
+
+  /// No description provided for @publicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Key'**
+  String get publicKey;
+
+  /// No description provided for @sshHostHostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get sshHostHostLabel;
+
+  /// No description provided for @sshHostHostnameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname'**
+  String get sshHostHostnameLabel;
+
+  /// No description provided for @sshHostPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get sshHostPortLabel;
+
+  /// No description provided for @sshHostUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get sshHostUsernameLabel;
+
+  /// No description provided for @sshHostIdentifyTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify Type'**
+  String get sshHostIdentifyTypeLabel;
+
+  /// No description provided for @sshHostIdentityTypePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get sshHostIdentityTypePassword;
+
+  /// No description provided for @sshHostIdentityTypePrivateKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Key'**
+  String get sshHostIdentityTypePrivateKey;
+
+  /// No description provided for @sshHostPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get sshHostPasswordLabel;
+
+  /// No description provided for @sshHostPrivateKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Key'**
+  String get sshHostPrivateKeyLabel;
+
+  /// No description provided for @deleteSshHostMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this SSH Host?'**
+  String get deleteSshHostMessage;
 
   /// No description provided for @retry.
   ///
@@ -208,23 +384,23 @@ abstract class AppLocalizations {
   /// **'Retry'**
   String get retry;
 
-  /// No description provided for @lightTheme.
+  /// No description provided for @undo.
   ///
   /// In en, this message translates to:
-  /// **'Light'**
-  String get lightTheme;
+  /// **'Undo'**
+  String get undo;
 
-  /// No description provided for @darkTheme.
+  /// No description provided for @success.
   ///
   /// In en, this message translates to:
-  /// **'Dark'**
-  String get darkTheme;
+  /// **'Success'**
+  String get success;
 
-  /// No description provided for @systemTheme.
+  /// No description provided for @error.
   ///
   /// In en, this message translates to:
-  /// **'System'**
-  String get systemTheme;
+  /// **'Error'**
+  String get error;
 }
 
 class _AppLocalizationsDelegate
@@ -237,18 +413,66 @@ class _AppLocalizationsDelegate
   }
 
   @override
-  bool isSupported(Locale locale) =>
-      <String>['en'].contains(locale.languageCode);
+  bool isSupported(Locale locale) => <String>[
+        'ar',
+        'cs',
+        'de',
+        'en',
+        'es',
+        'fr',
+        'it',
+        'ja',
+        'ko',
+        'ru',
+        'uk',
+        'zh'
+      ].contains(locale.languageCode);
 
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
 
 AppLocalizations lookupAppLocalizations(Locale locale) {
+  // Lookup logic when language+script codes are specified.
+  switch (locale.languageCode) {
+    case 'zh':
+      {
+        switch (locale.scriptCode) {
+          case 'Hans':
+            return AppLocalizationsZhHans();
+          case 'Hant':
+            return AppLocalizationsZhHant();
+        }
+        break;
+      }
+  }
+
   // Lookup logic when only language code is specified.
   switch (locale.languageCode) {
+    case 'ar':
+      return AppLocalizationsAr();
+    case 'cs':
+      return AppLocalizationsCs();
+    case 'de':
+      return AppLocalizationsDe();
     case 'en':
       return AppLocalizationsEn();
+    case 'es':
+      return AppLocalizationsEs();
+    case 'fr':
+      return AppLocalizationsFr();
+    case 'it':
+      return AppLocalizationsIt();
+    case 'ja':
+      return AppLocalizationsJa();
+    case 'ko':
+      return AppLocalizationsKo();
+    case 'ru':
+      return AppLocalizationsRu();
+    case 'uk':
+      return AppLocalizationsUk();
+    case 'zh':
+      return AppLocalizationsZh();
   }
 
   throw FlutterError(

@@ -9,43 +9,46 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appName => 'Flutter App Template';
+  String get appName => 'Web Terminal';
 
   @override
-  String get errorOccurred => 'Error Occurred';
+  String get show => 'Show';
 
   @override
-  String get backToHome => 'Back to Home';
+  String get hide => 'Hide';
 
   @override
-  String get welcomeHome => 'Welcome to my app';
+  String get exit => 'Exit';
 
   @override
-  String get ok => 'OK';
+  String get add => 'Add';
+
+  @override
+  String get edit => 'Edit';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get save => 'Save';
+
+  @override
+  String get close => 'Close';
 
   @override
   String get cancel => 'Cancel';
 
   @override
-  String get loading => 'Loading';
+  String get reload => 'Reload';
 
   @override
-  String get success => 'Success';
+  String get copy => 'Copy';
 
   @override
-  String get error => 'Error';
+  String get destinationTerminal => 'Terminal';
 
   @override
-  String get undo => 'Undo';
-
-  @override
-  String get navHome => 'Home';
-
-  @override
-  String get navShowcase => 'Showcase';
-
-  @override
-  String get navSetting => 'Setting';
+  String get destinationSetting => 'Setting';
 
   @override
   String get settingsTitle => 'Setting';
@@ -54,23 +57,97 @@ class AppLocalizationsEn extends AppLocalizations {
   String get smenuTheme => 'Theme';
 
   @override
-  String get appearance => 'Appearance';
+  String get titleSelectAppearance => 'Select Appearance';
 
   @override
-  String get accentColor => 'Accent Color';
+  String get titleSelectColorTheme => 'Select Accent Color';
 
   @override
-  String get language => 'Language';
+  String get smenuSSH => 'SSH';
+
+  @override
+  String get sshHost => 'Host';
+
+  @override
+  String get titleSSHHost => 'SSH Host';
+
+  @override
+  String get addSshHost => 'Add SSH Host';
+
+  @override
+  String get editSshHost => 'Edit SSH Host';
+
+  @override
+  String get sshKey => 'SSH Key';
+
+  @override
+  String get titleSSHKey => 'SSH Key';
+
+  @override
+  String get addSshKey => 'Add SSH Key';
+
+  @override
+  String get showPublicKey => 'Show Public Key';
+
+  @override
+  String get sshKeyNameLabel => 'Name';
+
+  @override
+  String get sshKeyNameHint => 'Name of your SSH Key';
+
+  @override
+  String get sshKeyContentLabel => 'Key Content';
+
+  @override
+  String get sshKeyGenerate => 'Generate SSH Key';
+
+  @override
+  String get deleteSshKeyMessage =>
+      'Are you sure you want to delete this SSH Key?';
+
+  @override
+  String get publicKey => 'Public Key';
+
+  @override
+  String get sshHostHostLabel => 'Host';
+
+  @override
+  String get sshHostHostnameLabel => 'Hostname';
+
+  @override
+  String get sshHostPortLabel => 'Port';
+
+  @override
+  String get sshHostUsernameLabel => 'Username';
+
+  @override
+  String get sshHostIdentifyTypeLabel => 'Identify Type';
+
+  @override
+  String get sshHostIdentityTypePassword => 'Password';
+
+  @override
+  String get sshHostIdentityTypePrivateKey => 'Private Key';
+
+  @override
+  String get sshHostPasswordLabel => 'Password';
+
+  @override
+  String get sshHostPrivateKeyLabel => 'Private Key';
+
+  @override
+  String get deleteSshHostMessage =>
+      'Are you sure you want to delete this SSH Host?';
 
   @override
   String get retry => 'Retry';
 
   @override
-  String get lightTheme => 'Light';
+  String get undo => 'Undo';
 
   @override
-  String get darkTheme => 'Dark';
+  String get success => 'Success';
 
   @override
-  String get systemTheme => 'System';
+  String get error => 'Error';
 }

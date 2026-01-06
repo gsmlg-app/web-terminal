@@ -1,6 +1,6 @@
 import 'package:gsmlg_ssh/gsmlg_ssh.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:web_terminal/object/ssh_host.dart';
+import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:web_terminal/src/core/conn.dart';
 import 'package:web_terminal/src/hosts/ssh_host.dart';
 

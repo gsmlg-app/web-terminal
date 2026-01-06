@@ -5,7 +5,7 @@ import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
-import 'package:web_terminal/src/blocs/ssh_key/ssh_key_bloc.dart';
+import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:web_terminal/src/components/destinations.dart';
 import 'package:web_terminal/src/components/setting/root_setting_list.dart';
 import 'package:web_terminal/src/components/setting/ssh_key_form.dart';
@@ -34,7 +34,7 @@ class _SettingsSSHKeyState extends State<SettingsSSHKey> {
 
   @override
   Widget build(BuildContext context) {
-    return GAdaptiveScaffold(
+    return AppAdaptiveScaffold(
       selectedIndex:
           Destinations.indexOf(const Key(SettingsScreen.name), context),
       onSelectedIndexChange: (idx) => Destinations.changeHandler(
@@ -266,9 +266,9 @@ class _SettingsSSHKeyState extends State<SettingsSSHKey> {
 
   List<Widget> getActions(BuildContext context) {
     return [
-      GAdaptiveActionList(
+      AppAdaptiveActionList(
         actions: [
-          GAdaptiveAction(
+          AppAdaptiveAction(
             icon: Icons.add,
             title: context.l10n.add,
             onPressed: () {
