@@ -4,15 +4,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
-import 'package:web_terminal/src/components/destinations.dart';
-import 'package:web_terminal/src/components/setting/root_setting_list.dart';
-import 'package:web_terminal/src/components/setting/ssh_key_form.dart';
-import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
+import 'package:terminal_settings/terminal_settings.dart';
+import 'package:app_locale/app_locale.dart';
 
 class SettingsSSHKey extends StatefulWidget {
-  static const name = 'SSH Key Management';
+  static const name = SettingsScreenNames.sshKeyManagement;
   static const path = 'ssh_key_management';
 
   static const String fullPath = '${SettingsScreen.path}/$path';
@@ -72,8 +71,8 @@ class _SettingsSSHKeyState extends State<SettingsSSHKey> {
               title: Text(context.l10n.settingsTitle),
               automaticallyImplyLeading: false,
             ),
-            const SliverFillRemaining(
-              child: RootSettingList(),
+            SliverFillRemaining(
+              child: RootSettingList(config: rootSettingListConfig),
             ),
           ],
         ),

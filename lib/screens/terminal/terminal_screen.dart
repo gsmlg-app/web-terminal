@@ -9,17 +9,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
-import 'package:web_terminal/src/components/destinations.dart';
-import 'package:web_terminal/src/core/plugin.dart';
-import 'package:web_terminal/src/core/service/tabs_service.dart';
-import 'package:web_terminal/src/hosts/local_spec.dart';
-import 'package:web_terminal/src/plugins/terminal/terminal_plugin.dart';
-import 'package:web_terminal/src/ui/context_menu.dart';
-import 'package:web_terminal/src/ui/platform_menu.dart';
-import 'package:web_terminal/src/ui/shared/app_menu_card.dart';
-import 'package:web_terminal/src/ui/shortcut/global_actions.dart';
-import 'package:web_terminal/src/ui/shortcut/global_shortcuts.dart';
-import 'package:web_terminal/src/ui/tabs/plugin_tab.dart';
+import 'package:terminal_settings/terminal_settings.dart';
+import 'package:terminal_core/terminal_core.dart';
+import 'package:terminal_hosts/terminal_hosts.dart';
+import 'package:web_terminal/plugins/terminal/terminal_plugin.dart';
+import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:window_manager/window_manager.dart';
 
 class TerminalScreen extends ConsumerStatefulWidget {
@@ -51,7 +45,11 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
   Future<void> initTabs() async {
     final root = Tabs();
 
-    ref.read(tabsServiceProvider).openTerminal(LocalHostSpec(), tabs: root);
+    ref.read(tabsServiceProvider).openPlugin(
+          LocalHostSpec(),
+          TerminalPlugin(),
+          tabs: root,
+        );
   }
 
   @override

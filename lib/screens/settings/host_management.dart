@@ -4,15 +4,14 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
-import 'package:web_terminal/src/components/destinations.dart';
-import 'package:web_terminal/src/components/setting/root_setting_list.dart';
-import 'package:web_terminal/src/components/setting/ssh_host_form.dart';
-import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
+import 'package:terminal_settings/terminal_settings.dart';
+import 'package:app_locale/app_locale.dart';
 
 class SettingsHost extends StatelessWidget {
-  static const name = 'SSH Host Management';
+  static const name = SettingsScreenNames.hostManagement;
   static const path = 'ssh_host_management';
 
   static const String fullPath = '${SettingsScreen.path}/$path';
@@ -63,8 +62,8 @@ class SettingsHost extends StatelessWidget {
               title: Text(context.l10n.settingsTitle),
               automaticallyImplyLeading: false,
             ),
-            const SliverFillRemaining(
-              child: RootSettingList(),
+            SliverFillRemaining(
+              child: RootSettingList(config: rootSettingListConfig),
             ),
           ],
         ),

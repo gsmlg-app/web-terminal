@@ -3,14 +3,13 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:theme_bloc/theme_bloc.dart';
+import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
-import 'package:web_terminal/src/components/destinations.dart';
-import 'package:web_terminal/src/components/setting/bloc_settings_section_appearance.dart';
-import 'package:web_terminal/src/components/setting/root_setting_list.dart';
-import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
+import 'package:terminal_settings/terminal_settings.dart';
+import 'package:app_locale/app_locale.dart';
 
 class SettingsSelectBrightness extends StatelessWidget {
-  static const name = 'Select Brightness';
+  static const name = SettingsScreenNames.selectBrightness;
   static const path = 'select_brightness';
 
   static const String fullPath = '${SettingsScreen.path}/$path';
@@ -58,8 +57,8 @@ class SettingsSelectBrightness extends StatelessWidget {
               title: Text(context.l10n.settingsTitle),
               automaticallyImplyLeading: false,
             ),
-            const SliverFillRemaining(
-              child: RootSettingList(),
+            SliverFillRemaining(
+              child: RootSettingList(config: rootSettingListConfig),
             ),
           ],
         ),

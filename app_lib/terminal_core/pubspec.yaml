@@ -1,0 +1,25 @@
+name: terminal_core
+description: Core terminal abstractions for web_terminal application.
+version: 0.0.1
+publish_to: none
+
+environment:
+  sdk: ^3.8.0
+  flutter: ">=3.32.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: any
+  state_notifier: any
+  flex_tabs: any
+  window_manager: any
+  equatable: any
+  path: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any

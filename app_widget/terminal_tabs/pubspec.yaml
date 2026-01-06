@@ -1,0 +1,33 @@
+name: terminal_tabs
+description: Tab UI components for the terminal application
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.8.0 <4.0.0"
+  flutter: ">=3.29.0"
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flex_tabs: any
+  flutter_riverpod: ^2.0.0
+  state_notifier: any
+  xterm: ^4.0.0
+  code_text_field: ^1.0.2
+  highlight: ^0.7.0
+  context_menus: ^2.0.0+1
+  macos_ui: ^2.0.5
+  window_manager: ^0.5.0
+  terminal_core: any
+  terminal_hosts: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

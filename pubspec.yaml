@@ -13,6 +13,8 @@ workspace:
   - app_lib/locale
   - app_lib/provider
   - app_lib/logging
+  - app_lib/terminal_core
+  - app_lib/terminal_hosts
   - app_bloc/theme
   - app_bloc/connection
   - app_bloc/ssh_key
@@ -22,6 +24,8 @@ workspace:
   - app_widget/artwork
   - app_widget/feedback
   - app_widget/web_view
+  - app_widget/terminal_settings
+  - app_widget/terminal_tabs
   - app_plugin/client_info/client_info
   - app_plugin/client_info/client_info_platform_interface
   - app_plugin/client_info/client_info_android
@@ -113,6 +117,10 @@ dependencies:
   app_web_view: any
   form_bloc: any
   flutter_form_bloc: any
+  terminal_core: any
+  terminal_hosts: any
+  terminal_tabs: any
+  terminal_settings: any
 
   # External packages from original monorepo (copied to third_party)
   gsmlg_security: any

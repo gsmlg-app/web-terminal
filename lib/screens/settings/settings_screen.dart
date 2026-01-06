@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
-import 'package:web_terminal/src/components/destinations.dart';
-import 'package:web_terminal/src/components/setting/root_setting_list.dart';
-import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
+import 'package:terminal_settings/terminal_settings.dart';
+import 'package:app_locale/app_locale.dart';
+import 'package:web_terminal/screens/settings/_setting_config.dart';
 
 class SettingsScreen extends StatelessWidget {
-  static const name = 'Settings';
+  static const name = SettingsScreenNames.settings;
   static const path = '/settings';
 
   const SettingsScreen({super.key});
@@ -26,7 +26,7 @@ class SettingsScreen extends StatelessWidget {
               title: Text(context.l10n.settingsTitle),
             ),
             const SliverFillRemaining(
-              child: RootSettingList(),
+              child: RootSettingList(config: rootSettingListConfig),
             ),
           ],
         ),
@@ -40,7 +40,7 @@ class SettingsScreen extends StatelessWidget {
               title: Text(context.l10n.settingsTitle),
             ),
             const SliverFillRemaining(
-              child: RootSettingList(),
+              child: RootSettingList(config: rootSettingListConfig),
             ),
           ],
         ),

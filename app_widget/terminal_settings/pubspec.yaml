@@ -1,0 +1,36 @@
+name: terminal_settings
+description: Terminal settings UI components
+version: 1.0.0
+publish_to: "none"
+
+environment:
+  sdk: ">=3.6.0 <4.0.0"
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  flutter_bloc: any
+  settings_ui: any
+  flutter_form_bloc: any
+  app_theme: any
+  app_feedback: any
+  ssh_host_bloc: any
+  ssh_key_bloc: any
+  gsmlg_security: any
+  go_router: any
+  google_fonts: any
+  font_awesome_flutter: any
+  app_locale: any
+  theme_bloc: any
+  flutter_riverpod: any
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  lint: ^2.0.1
+
+flutter:
+  uses-material-design: true
