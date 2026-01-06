@@ -1,24 +1,12 @@
-import 'package:app_locale/app_locale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:theme_bloc/theme_bloc.dart';
+import 'package:app_feedback/app_feedback.dart';
+import 'package:app_theme/app_theme.dart';
+import 'package:web_terminal/l10n/l10n.dart';
+import 'package:web_terminal/router.dart';
 
-import 'router.dart';
-
-class App extends StatefulWidget {
+class App extends StatelessWidget {
   const App({super.key});
-
-  @override
-  State<App> createState() => _AppState();
-}
-
-class _AppState extends State<App> {
-  bool isOpenWindow = true;
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,17 +15,15 @@ class _AppState extends State<App> {
     return BlocBuilder<ThemeBloc, ThemeState>(
       bloc: themeBloc,
       builder: (context, state) {
-        final router = AppRouter.router;
         return MaterialApp.router(
-          key: const Key('app'),
+          scaffoldMessengerKey: scaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
           routerConfig: router,
-          onGenerateTitle: (context) => context.l10n.appName,
+          themeMode: state.themeMode,
           theme: state.theme.lightTheme,
           darkTheme: state.theme.darkTheme,
-          themeMode: state.themeMode,
-          localizationsDelegates: AppLocale.localizationsDelegates,
-          supportedLocales: AppLocale.supportedLocales,
+          localizationsDelegates: L10n.localizationsDelegates,
+          supportedLocales: L10n.supportedLocales,
         );
       },
     );

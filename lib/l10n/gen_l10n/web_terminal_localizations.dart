@@ -1,0 +1,465 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/intl.dart' as intl;
+
+import 'web_terminal_localizations_ar.dart';
+import 'web_terminal_localizations_cs.dart';
+import 'web_terminal_localizations_de.dart';
+import 'web_terminal_localizations_en.dart';
+import 'web_terminal_localizations_es.dart';
+import 'web_terminal_localizations_fr.dart';
+import 'web_terminal_localizations_it.dart';
+import 'web_terminal_localizations_ja.dart';
+import 'web_terminal_localizations_ko.dart';
+import 'web_terminal_localizations_ru.dart';
+import 'web_terminal_localizations_uk.dart';
+import 'web_terminal_localizations_zh.dart';
+
+// ignore_for_file: type=lint
+
+/// Callers can lookup localized strings with an instance of WebTerminalLocalizations
+/// returned by `WebTerminalLocalizations.of(context)`.
+///
+/// Applications need to include `WebTerminalLocalizations.delegate()` in their app's
+/// `localizationDelegates` list, and the locales they support in the app's
+/// `supportedLocales` list. For example:
+///
+/// ```dart
+/// import 'gen_l10n/web_terminal_localizations.dart';
+///
+/// return MaterialApp(
+///   localizationsDelegates: WebTerminalLocalizations.localizationsDelegates,
+///   supportedLocales: WebTerminalLocalizations.supportedLocales,
+///   home: MyApplicationHome(),
+/// );
+/// ```
+///
+/// ## Update pubspec.yaml
+///
+/// Please make sure to update your pubspec.yaml to include the following
+/// packages:
+///
+/// ```yaml
+/// dependencies:
+///   # Internationalization support.
+///   flutter_localizations:
+///     sdk: flutter
+///   intl: any # Use the pinned version from flutter_localizations
+///
+///   # Rest of dependencies
+/// ```
+///
+/// ## iOS Applications
+///
+/// iOS applications define key application metadata, including supported
+/// locales, in an Info.plist file that is built into the application bundle.
+/// To configure the locales supported by your app, you’ll need to edit this
+/// file.
+///
+/// First, open your project’s ios/Runner.xcworkspace Xcode workspace file.
+/// Then, in the Project Navigator, open the Info.plist file under the Runner
+/// project’s Runner folder.
+///
+/// Next, select the Information Property List item, select Add Item from the
+/// Editor menu, then select Localizations from the pop-up menu.
+///
+/// Select and expand the newly-created Localizations item then, for each
+/// locale your application supports, add a new item and select the locale
+/// you wish to add from the pop-up menu in the Value field. This list should
+/// be consistent with the languages listed in the WebTerminalLocalizations.supportedLocales
+/// property.
+abstract class WebTerminalLocalizations {
+  WebTerminalLocalizations(String locale)
+    : localeName = intl.Intl.canonicalizedLocale(locale.toString());
+
+  final String localeName;
+
+  static WebTerminalLocalizations of(BuildContext context) {
+    return Localizations.of<WebTerminalLocalizations>(
+      context,
+      WebTerminalLocalizations,
+    )!;
+  }
+
+  static const LocalizationsDelegate<WebTerminalLocalizations> delegate =
+      _WebTerminalLocalizationsDelegate();
+
+  /// A list of this localizations delegate along with the default localizations
+  /// delegates.
+  ///
+  /// Returns a list of localizations delegates containing this delegate along with
+  /// GlobalMaterialLocalizations.delegate, GlobalCupertinoLocalizations.delegate,
+  /// and GlobalWidgetsLocalizations.delegate.
+  ///
+  /// Additional delegates can be added by appending to this list in
+  /// MaterialApp. This list does not have to be used at all if a custom list
+  /// of delegates is preferred or required.
+  static const List<LocalizationsDelegate<dynamic>> localizationsDelegates =
+      <LocalizationsDelegate<dynamic>>[
+        delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ];
+
+  /// A list of this localizations delegate's supported locales.
+  static const List<Locale> supportedLocales = <Locale>[
+    Locale('ar'),
+    Locale('cs'),
+    Locale('de'),
+    Locale('en'),
+    Locale('es'),
+    Locale('fr'),
+    Locale('it'),
+    Locale('ja'),
+    Locale('ko'),
+    Locale('ru'),
+    Locale('uk'),
+    Locale('zh'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+    Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hant'),
+  ];
+
+  /// No description provided for @appName.
+  ///
+  /// In en, this message translates to:
+  /// **'Web Terminal'**
+  String get appName;
+
+  /// No description provided for @show.
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get show;
+
+  /// No description provided for @hide.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get hide;
+
+  /// No description provided for @exit.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit'**
+  String get exit;
+
+  /// No description provided for @add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get add;
+
+  /// No description provided for @edit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get edit;
+
+  /// No description provided for @delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get delete;
+
+  /// No description provided for @save.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @reload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get reload;
+
+  /// No description provided for @copy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get copy;
+
+  /// No description provided for @destinationTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal'**
+  String get destinationTerminal;
+
+  /// No description provided for @destinationSetting.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting'**
+  String get destinationSetting;
+
+  /// No description provided for @settingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setting'**
+  String get settingsTitle;
+
+  /// No description provided for @smenuTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get smenuTheme;
+
+  /// No description provided for @titleSelectAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Appearance'**
+  String get titleSelectAppearance;
+
+  /// No description provided for @titleSelectColorTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Accent Color'**
+  String get titleSelectColorTheme;
+
+  /// No description provided for @smenuSSH.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH'**
+  String get smenuSSH;
+
+  /// No description provided for @sshHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get sshHost;
+
+  /// No description provided for @titleSSHHost.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH Host'**
+  String get titleSSHHost;
+
+  /// No description provided for @addSshHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Add SSH Host'**
+  String get addSshHost;
+
+  /// No description provided for @editSshHost.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit SSH Host'**
+  String get editSshHost;
+
+  /// No description provided for @sshKey.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH Key'**
+  String get sshKey;
+
+  /// No description provided for @titleSSHKey.
+  ///
+  /// In en, this message translates to:
+  /// **'SSH Key'**
+  String get titleSSHKey;
+
+  /// No description provided for @addSshKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Add SSH Key'**
+  String get addSshKey;
+
+  /// No description provided for @showPublicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Public Key'**
+  String get showPublicKey;
+
+  /// No description provided for @sshKeyNameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get sshKeyNameLabel;
+
+  /// No description provided for @sshKeyNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Name of your SSH Key'**
+  String get sshKeyNameHint;
+
+  /// No description provided for @sshKeyContentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Key Content'**
+  String get sshKeyContentLabel;
+
+  /// No description provided for @sshKeyGenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Generate SSH Key'**
+  String get sshKeyGenerate;
+
+  /// No description provided for @deleteSshKeyMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this SSH Key?'**
+  String get deleteSshKeyMessage;
+
+  /// No description provided for @publicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Public Key'**
+  String get publicKey;
+
+  /// No description provided for @sshHostHostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Host'**
+  String get sshHostHostLabel;
+
+  /// No description provided for @sshHostHostnameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Hostname'**
+  String get sshHostHostnameLabel;
+
+  /// No description provided for @sshHostPortLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Port'**
+  String get sshHostPortLabel;
+
+  /// No description provided for @sshHostUsernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get sshHostUsernameLabel;
+
+  /// No description provided for @sshHostIdentifyTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Identify Type'**
+  String get sshHostIdentifyTypeLabel;
+
+  /// No description provided for @sshHostIdentityTypePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get sshHostIdentityTypePassword;
+
+  /// No description provided for @sshHostIdentityTypePrivateKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Key'**
+  String get sshHostIdentityTypePrivateKey;
+
+  /// No description provided for @sshHostPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get sshHostPasswordLabel;
+
+  /// No description provided for @sshHostPrivateKeyLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Private Key'**
+  String get sshHostPrivateKeyLabel;
+
+  /// No description provided for @deleteSshHostMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this SSH Host?'**
+  String get deleteSshHostMessage;
+}
+
+class _WebTerminalLocalizationsDelegate
+    extends LocalizationsDelegate<WebTerminalLocalizations> {
+  const _WebTerminalLocalizationsDelegate();
+
+  @override
+  Future<WebTerminalLocalizations> load(Locale locale) {
+    return SynchronousFuture<WebTerminalLocalizations>(
+      lookupWebTerminalLocalizations(locale),
+    );
+  }
+
+  @override
+  bool isSupported(Locale locale) => <String>[
+    'ar',
+    'cs',
+    'de',
+    'en',
+    'es',
+    'fr',
+    'it',
+    'ja',
+    'ko',
+    'ru',
+    'uk',
+    'zh',
+  ].contains(locale.languageCode);
+
+  @override
+  bool shouldReload(_WebTerminalLocalizationsDelegate old) => false;
+}
+
+WebTerminalLocalizations lookupWebTerminalLocalizations(Locale locale) {
+  // Lookup logic when language+script codes are specified.
+  switch (locale.languageCode) {
+    case 'zh':
+      {
+        switch (locale.scriptCode) {
+          case 'Hans':
+            return WebTerminalLocalizationsZhHans();
+          case 'Hant':
+            return WebTerminalLocalizationsZhHant();
+        }
+        break;
+      }
+  }
+
+  // Lookup logic when only language code is specified.
+  switch (locale.languageCode) {
+    case 'ar':
+      return WebTerminalLocalizationsAr();
+    case 'cs':
+      return WebTerminalLocalizationsCs();
+    case 'de':
+      return WebTerminalLocalizationsDe();
+    case 'en':
+      return WebTerminalLocalizationsEn();
+    case 'es':
+      return WebTerminalLocalizationsEs();
+    case 'fr':
+      return WebTerminalLocalizationsFr();
+    case 'it':
+      return WebTerminalLocalizationsIt();
+    case 'ja':
+      return WebTerminalLocalizationsJa();
+    case 'ko':
+      return WebTerminalLocalizationsKo();
+    case 'ru':
+      return WebTerminalLocalizationsRu();
+    case 'uk':
+      return WebTerminalLocalizationsUk();
+    case 'zh':
+      return WebTerminalLocalizationsZh();
+  }
+
+  throw FlutterError(
+    'WebTerminalLocalizations.delegate failed to load unsupported locale "$locale". This is likely '
+    'an issue with the localizations generation tool. Please file an issue '
+    'on GitHub with a reproducible sample app and the gen-l10n configuration '
+    'that was used.',
+  );
+}

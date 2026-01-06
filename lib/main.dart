@@ -1,52 +1,105 @@
-import 'dart:io';
+import 'dart:async';
 
-import 'package:app_database/app_database.dart';
-import 'package:app_locale/app_locale.dart';
-import 'package:app_logging/app_logging.dart';
-import 'package:app_provider/app_provider.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:gsmlg_security/gsmlg_security.dart';
+import 'package:app_theme/app_theme.dart';
+import 'package:gsmlg_utils/gsmlg_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:web_terminal/app.dart';
+import 'package:web_terminal/constant.dart';
+import 'package:web_terminal/objectbox_api.dart';
+import 'package:web_terminal/src/blocs/connection/connection_bloc.dart';
+import 'package:web_terminal/src/blocs/ssh_host/ssh_host_bloc.dart';
+import 'package:web_terminal/src/blocs/ssh_key/ssh_key_bloc.dart';
+import 'package:web_terminal/src/blocs/terminal_tab/terminal_tab_bloc.dart';
+import 'package:web_terminal/src/util/provider_logger.dart';
+import 'package:window_manager/window_manager.dart';
 
-import 'app.dart';
-
-void main(List<String> args) async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  final applicationSupportDirectory = await getApplicationSupportDirectory();
-
-  // Initialize logging
-  final logger = AppLogger();
-  logger.initialize(level: LogLevel.debug);
-  final directory = Directory(
-    path.join(applicationSupportDirectory.path, 'appName'),
-  );
-  await directory.create(recursive: true);
-  final logFile = File(
-    path.join(applicationSupportDirectory.path, 'appName', 'app.log'),
-  );
-  logger.logStream.listen((record) {
-    final log =
-        '${record.loggerName} ${record.level.name} [${record.time}]: ${record.message}';
-    logFile.writeAsString(log, mode: FileMode.append);
-  });
-  // Use logger
-  logger.i('App started');
+  if (PlatformExt.isDesktop) {
+    await initWindow();
+  }
 
   final sharedPrefs = await SharedPreferences.getInstance();
-  final database = AppDatabase();
+  final objectBox = await ObjectBox.create();
 
   runApp(
-    MainProvider(
-      sharedPrefs: sharedPrefs,
-      database: database,
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        localizationsDelegates: AppLocale.localizationsDelegates,
-        supportedLocales: AppLocale.supportedLocales,
-        home: CrashReportingWidget(child: const App()),
+    ProviderScope(
+      observers: const [ProviderLogger()],
+      child: MultiRepositoryProvider(
+        providers: [
+          RepositoryProvider<SharedPreferences>(
+            create: (BuildContext context) => sharedPrefs,
+          ),
+          RepositoryProvider<FlutterSecureStorage>(
+            create: (BuildContext context) => const FlutterSecureStorage(),
+          ),
+          RepositoryProvider<ObjectBox>(
+            create: (BuildContext context) => objectBox,
+          ),
+          RepositoryProvider<AesHelper>(
+            create: (BuildContext context) => AesHelper(Constant.appName),
+          ),
+        ],
+        child: MultiBlocProvider(providers: [
+          BlocProvider<ThemeBloc>(
+            create: (BuildContext context) => ThemeBloc(
+              sharedPrefs,
+            ),
+          ),
+          BlocProvider<SshKeyBloc>(
+            create: (BuildContext context) => SshKeyBloc(
+              objectBox,
+            ),
+          ),
+          BlocProvider<SshKeyFormBloc>(
+            create: (BuildContext context) => SshKeyFormBloc(objectBox),
+          ),
+          BlocProvider<SshHostBloc>(
+            create: (BuildContext context) => SshHostBloc(
+              objectBox,
+            ),
+          ),
+          BlocProvider<SshHostFormBloc>(
+            create: (BuildContext context) => SshHostFormBloc(objectBox),
+          ),
+          BlocProvider<TerminalTabBloc>(
+            create: (BuildContext context) => TerminalTabBloc(),
+          ),
+          BlocProvider<ConnectionBloc>(
+            create: (BuildContext context) => ConnectionBloc(),
+          ),
+        ], child: const App()),
       ),
     ),
   );
+}
+
+Future<void> initWindow() async {
+  await windowManager.ensureInitialized();
+  // await windowManager.setTitle('Web Terminal');
+
+  if (defaultTargetPlatform != TargetPlatform.macOS) {
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+  }
+
+  WindowOptions windowOptions = const WindowOptions(
+    size: Size(800, 600),
+    center: true,
+    // backgroundColor: Colors.transparent,
+    skipTaskbar: false,
+    titleBarStyle: TitleBarStyle.normal,
+    minimumSize: Size(360, 720),
+  );
+
+  windowManager.waitUntilReadyToShow(windowOptions, () async {
+    await windowManager.show();
+    await windowManager.focus();
+  });
 }

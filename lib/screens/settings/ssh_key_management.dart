@@ -1,0 +1,282 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
+import 'package:app_feedback/app_feedback.dart';
+import 'package:settings_ui/settings_ui.dart';
+import 'package:web_terminal/screens/settings/settings_screen.dart';
+import 'package:web_terminal/src/blocs/ssh_key/ssh_key_bloc.dart';
+import 'package:web_terminal/src/components/destinations.dart';
+import 'package:web_terminal/src/components/setting/root_setting_list.dart';
+import 'package:web_terminal/src/components/setting/ssh_key_form.dart';
+import 'package:web_terminal/src/extensions/buildcontext/l10n.dart';
+
+class SettingsSSHKey extends StatefulWidget {
+  static const name = 'SSH Key Management';
+  static const path = 'ssh_key_management';
+
+  static const String fullPath = '${SettingsScreen.path}/$path';
+
+  const SettingsSSHKey({super.key});
+
+  @override
+  State<SettingsSSHKey> createState() => _SettingsSSHKeyState();
+}
+
+class _SettingsSSHKeyState extends State<SettingsSSHKey> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SshKeyBloc>().add(SshKeyLoad());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GAdaptiveScaffold(
+      selectedIndex:
+          Destinations.indexOf(const Key(SettingsScreen.name), context),
+      onSelectedIndexChange: (idx) => Destinations.changeHandler(
+        idx,
+        context,
+      ),
+      destinations: Destinations.navs(context),
+      body: (context) => SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: <Widget>[
+            SliverAppBar(
+              title: Text(context.l10n.titleSSHKey),
+              actions: getActions(context),
+            ),
+            BlocBuilder<SshKeyBloc, SshKeyState>(
+              builder: (context, state) {
+                return SliverFillRemaining(
+                  child: SettingsList(
+                    sections: [
+                      buildSection(context, state),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      largeBody: (context) => SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: <Widget>[
+            SliverAppBar(
+              title: Text(context.l10n.settingsTitle),
+              automaticallyImplyLeading: false,
+            ),
+            const SliverFillRemaining(
+              child: RootSettingList(),
+            ),
+          ],
+        ),
+      ),
+      largeSecondaryBody: (_) => SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: <Widget>[
+            SliverAppBar(
+              title: Text(context.l10n.titleSSHKey),
+              automaticallyImplyLeading: false,
+              actions: getActions(context),
+            ),
+            BlocBuilder<SshKeyBloc, SshKeyState>(
+              builder: (context, state) {
+                return SliverFillRemaining(
+                  child: SettingsList(
+                    sections: [
+                      buildSection(context, state),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  SettingsSection buildSection(BuildContext context, SshKeyState state) {
+    if (state is SshKeyInitial) {
+      return SettingsSection(
+        title: Text(context.l10n.sshKey),
+        tiles: <SettingsTile>[
+          SettingsTile(
+            title: const Text('...'),
+            leading: const Icon(Icons.vpn_key),
+          ),
+        ],
+      );
+    }
+    if (state is SshKeyError) {
+      return SettingsSection(
+        title: Text(context.l10n.sshKey),
+        tiles: <SettingsTile>[
+          SettingsTile(
+            title: Text('Error',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.error,
+                    )),
+            leading: const Icon(Icons.error),
+            description: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Theme.of(context).colorScheme.errorContainer,
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    state.error.toString(),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onErrorContainer,
+                        ),
+                  ),
+                  ElevatedButton(
+                    child: Text(context.l10n.reload),
+                    onPressed: () {
+                      context.read<SshKeyBloc>().add(SshKeyLoad());
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+    final sshKeys = (state as SshKeyLoaded).sshKeys;
+    return sshKeys.isNotEmpty
+        ? SettingsSection(
+            title: Text(context.l10n.sshKey),
+            tiles: <SettingsTile>[
+              for (final sshKey in sshKeys)
+                SettingsTile(
+                  title: Text(sshKey.name ?? 'N/A'),
+                  leading: const Icon(Icons.vpn_key),
+                  onPressed: (c) {
+                    showBottomSheetActionList(
+                      showBackdrop: false,
+                      context: c,
+                      actions: [
+                        BottomSheetAction(
+                          title: Text(context.l10n.showPublicKey),
+                          onTap: () {
+                            showAdaptiveDialog(
+                                context: context,
+                                builder: (_) {
+                                  String content = '';
+                                  try {
+                                    content = sshKey.getPublicKeyPem();
+                                  } catch (e) {
+                                    content = e.toString();
+                                  }
+                                  return AlertDialog.adaptive(
+                                    title: Text(context.l10n.publicKey),
+                                    content: SingleChildScrollView(
+                                      child: SelectionArea(
+                                        child: Text(content),
+                                      ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop();
+                                        },
+                                        child: Text(context.l10n.close),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          await Clipboard.setData(
+                                              ClipboardData(text: content));
+                                          if (context.mounted) {
+                                            Navigator.of(context).pop();
+                                          }
+                                        },
+                                        child: Text(context.l10n.copy),
+                                      ),
+                                    ],
+                                  );
+                                });
+                          },
+                        ),
+                        BottomSheetAction(
+                          title: Text(context.l10n.delete),
+                          onTap: () {
+                            showAdaptiveDialog(
+                              context: context,
+                              builder: (_) {
+                                return AlertDialog.adaptive(
+                                  title: Text(context.l10n.delete),
+                                  content:
+                                      Text(context.l10n.deleteSshKeyMessage),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(context.l10n.cancel),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        context.read<SshKeyBloc>().add(
+                                              SshKeyDelete(sshKey),
+                                            );
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(context.l10n.delete),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        BottomSheetAction(
+                          title: Text(context.l10n.cancel),
+                          onTap: () {},
+                        ),
+                      ],
+                    );
+                  },
+                ),
+            ],
+          )
+        : SettingsSection(
+            title: Text(context.l10n.sshKey),
+            tiles: <SettingsTile>[
+              SettingsTile(
+                title: Text(context.l10n.add),
+                leading: const Icon(Icons.add),
+                onPressed: (context) {
+                  showSshKeyForm(context: context);
+                },
+              ),
+            ],
+          );
+  }
+
+  List<Widget> getActions(BuildContext context) {
+    return [
+      GAdaptiveActionList(
+        actions: [
+          GAdaptiveAction(
+            icon: Icons.add,
+            title: context.l10n.add,
+            onPressed: () {
+              showSshKeyForm(context: context);
+            },
+          ),
+        ],
+      ),
+    ];
+  }
+}
