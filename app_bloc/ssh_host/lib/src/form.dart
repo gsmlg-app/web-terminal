@@ -88,7 +88,8 @@ class SshHostFormBloc extends FormBloc<String, String> {
     password.updateValue('');
     identityKeyId.updateItems(_sshKeys);
     if (sshHost?.identityKeyId != null) {
-      final sshKey = _sshKeys.where((k) => k.id == sshHost!.identityKeyId!).firstOrNull;
+      final sshKey =
+          _sshKeys.where((k) => k.id == sshHost!.identityKeyId!).firstOrNull;
       identityKeyId.updateValue(sshKey);
     }
   }
@@ -102,8 +103,12 @@ class SshHostFormBloc extends FormBloc<String, String> {
         port: int.parse(port.value),
         username: username.value,
         identityType: identityType.value?.value,
-        password: identityType.value == SshIdentityType.password ? password.value : null,
-        identityKeyId: identityType.value == SshIdentityType.key ? identityKeyId.value?.id : null,
+        password: identityType.value == SshIdentityType.password
+            ? password.value
+            : null,
+        identityKeyId: identityType.value == SshIdentityType.key
+            ? identityKeyId.value?.id
+            : null,
       ));
       emitSuccess(
         successResponse: 'Host created',

@@ -13,7 +13,7 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabOpenTab>(_onTerminalTabOpenTab);
   }
 
-  _onTerminalTabStart(TerminalTabStart event, Emitter<TerminalTabState> emit) {
+  void _onTerminalTabStart(TerminalTabStart event, Emitter<TerminalTabState> emit) {
     if (state is TerminalTabLoaded) {
       emit((state as TerminalTabLoaded).copyWith(isMounted: true));
     } else {
@@ -28,7 +28,7 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     }
   }
 
-  _onTerminalTabStop(TerminalTabStop event, Emitter<TerminalTabState> emit) {
+  void _onTerminalTabStop(TerminalTabStop event, Emitter<TerminalTabState> emit) {
     if (state is TerminalTabLoaded) {
       emit((state as TerminalTabLoaded).copyWith(isMounted: false));
     } else {
@@ -36,7 +36,7 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     }
   }
 
-  _onTerminalTabOpenTab(
+  void _onTerminalTabOpenTab(
       TerminalTabOpenTab event, Emitter<TerminalTabState> emit) {
     if (state is TerminalTabLoaded) {
       final tabs = (state as TerminalTabLoaded).tabs;

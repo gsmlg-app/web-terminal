@@ -12,7 +12,7 @@ void main() {
     test('test get material color', () {
       final MaterialColor materialColor =
           GColorUtils.getMaterialColor(mainColor);
-      expect(materialColor.value, equals(mainColor.value));
+      expect(materialColor.toARGB32(), equals(mainColor.toARGB32()));
     });
 
     test('test lighten color', () {
