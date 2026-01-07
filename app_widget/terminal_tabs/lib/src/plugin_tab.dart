@@ -19,10 +19,7 @@ class PluginTab extends TabItem {
 
     manager.addListener(_onPluginManagerChanged);
 
-    content.value = PluginTabView(
-      key: ValueKey(plugin),
-      plugin,
-    );
+    content.value = PluginTabView(key: ValueKey(plugin), plugin);
   }
 
   @override
@@ -41,12 +38,7 @@ class PluginTab extends TabItem {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (titleWidget != null)
-          Flexible(
-            child: Text(
-              titleWidget,
-              softWrap: false,
-            ),
-          ),
+          Flexible(child: Text(titleWidget, softWrap: false)),
         if (titleWidget != null) const SizedBox(width: 4),
         Text(
           manager.hostSpec.name,

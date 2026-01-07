@@ -6,11 +6,7 @@ class FluentFormDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Column(
-      children: [
-        SizedBox(height: 8),
-        Divider(),
-        SizedBox(height: 8),
-      ],
+      children: [SizedBox(height: 8), Divider(), SizedBox(height: 8)],
     );
   }
 }
@@ -22,12 +18,7 @@ class FluentFormHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(header),
-        const SizedBox(height: 8),
-      ],
-    );
+    return Column(children: [Text(header), const SizedBox(height: 8)]);
   }
 }
 

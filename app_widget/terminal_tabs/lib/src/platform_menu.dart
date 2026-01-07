@@ -51,14 +51,16 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
           label: 'Web Terminal',
           menus: [
             if (PlatformProvidedMenuItem.hasMenu(
-                PlatformProvidedMenuItemType.about))
+              PlatformProvidedMenuItemType.about,
+            ))
               const PlatformProvidedMenuItem(
                 type: PlatformProvidedMenuItemType.about,
               ),
             PlatformMenuItemGroup(
               members: [
                 if (PlatformProvidedMenuItem.hasMenu(
-                    PlatformProvidedMenuItemType.servicesSubmenu))
+                  PlatformProvidedMenuItemType.servicesSubmenu,
+                ))
                   const PlatformProvidedMenuItem(
                     type: PlatformProvidedMenuItemType.servicesSubmenu,
                   ),
@@ -67,19 +69,22 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
             PlatformMenuItemGroup(
               members: [
                 if (PlatformProvidedMenuItem.hasMenu(
-                    PlatformProvidedMenuItemType.hide))
+                  PlatformProvidedMenuItemType.hide,
+                ))
                   const PlatformProvidedMenuItem(
                     type: PlatformProvidedMenuItemType.hide,
                   ),
                 if (PlatformProvidedMenuItem.hasMenu(
-                    PlatformProvidedMenuItemType.hideOtherApplications))
+                  PlatformProvidedMenuItemType.hideOtherApplications,
+                ))
                   const PlatformProvidedMenuItem(
                     type: PlatformProvidedMenuItemType.hideOtherApplications,
                   ),
               ],
             ),
             if (PlatformProvidedMenuItem.hasMenu(
-                PlatformProvidedMenuItemType.quit))
+              PlatformProvidedMenuItemType.quit,
+            ))
               const PlatformProvidedMenuItem(
                 type: PlatformProvidedMenuItemType.quit,
               ),
@@ -130,7 +135,8 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                       Actions.maybeFind<Intent>(
                         primaryContext,
                         intent: const SelectAllTextIntent(
-                            SelectionChangedCause.keyboard),
+                          SelectionChangedCause.keyboard,
+                        ),
                       );
                     } catch (e, st) {
                       debugPrint('$e');
@@ -145,9 +151,11 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
               ],
             ),
             if (PlatformProvidedMenuItem.hasMenu(
-                PlatformProvidedMenuItemType.quit))
+              PlatformProvidedMenuItemType.quit,
+            ))
               const PlatformProvidedMenuItem(
-                  type: PlatformProvidedMenuItemType.quit),
+                type: PlatformProvidedMenuItemType.quit,
+              ),
           ],
         ),
         PlatformMenu(
@@ -167,9 +175,11 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
                   },
                 ),
                 if (PlatformProvidedMenuItem.hasMenu(
-                    PlatformProvidedMenuItemType.toggleFullScreen))
+                  PlatformProvidedMenuItemType.toggleFullScreen,
+                ))
                   const PlatformProvidedMenuItem(
-                      type: PlatformProvidedMenuItemType.toggleFullScreen),
+                    type: PlatformProvidedMenuItemType.toggleFullScreen,
+                  ),
               ],
             ),
             PlatformMenuItem(

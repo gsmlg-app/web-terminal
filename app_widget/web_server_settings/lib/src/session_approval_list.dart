@@ -102,7 +102,9 @@ class SessionApprovalCard extends StatelessWidget {
               children: [
                 TextButton.icon(
                   onPressed: () {
-                    context.read<WebSessionBloc>().add(RejectSession(session.id));
+                    context
+                        .read<WebSessionBloc>()
+                        .add(RejectSession(session.id));
                   },
                   icon: const Icon(Icons.close),
                   label: const Text('Reject'),
@@ -113,7 +115,9 @@ class SessionApprovalCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 FilledButton.icon(
                   onPressed: () {
-                    context.read<WebSessionBloc>().add(ApproveSession(session.id));
+                    context
+                        .read<WebSessionBloc>()
+                        .add(ApproveSession(session.id));
                   },
                   icon: const Icon(Icons.check),
                   label: const Text('Approve'),

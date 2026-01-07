@@ -9,14 +9,14 @@ final connectorProvider = Provider.family(
 
 final connectorStatusProvider =
     StateNotifierProvider.family<HostConnector, HostConnectorStatus, HostSpec>(
-  name: 'connectorStatusProvider',
-  (ref, HostSpec config) => ref.watch(connectorProvider(config)),
-);
+      name: 'connectorStatusProvider',
+      (ref, HostSpec config) => ref.watch(connectorProvider(config)),
+    );
 
-final hostProvider = Provider.family<Host?, HostSpec>(
-  name: 'hostProvider',
-  (ref, spec) {
-    ref.watch(connectorStatusProvider(spec));
-    return ref.watch(connectorProvider(spec)).host;
-  },
-);
+final hostProvider = Provider.family<Host?, HostSpec>(name: 'hostProvider', (
+  ref,
+  spec,
+) {
+  ref.watch(connectorStatusProvider(spec));
+  return ref.watch(connectorProvider(spec)).host;
+});

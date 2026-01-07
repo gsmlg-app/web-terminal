@@ -18,8 +18,9 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(isEditing ? 'Edit Host' : 'Add Host'),
-        leading:
-            Navigator.of(context).canPop() ? const FluentBackButton() : null,
+        leading: Navigator.of(context).canPop()
+            ? const FluentBackButton()
+            : null,
         actions: [
           if (isEditing)
             TextButton.icon(
@@ -34,11 +35,7 @@ class _HostEditDialogState extends ConsumerState<HostEditPage> {
       body: const Column(
         children: [
           Row(
-            children: [
-              Icon(Icons.computer),
-              SizedBox(width: 8),
-              Text('Host'),
-            ],
+            children: [Icon(Icons.computer), SizedBox(width: 8), Text('Host')],
           ),
         ],
       ),

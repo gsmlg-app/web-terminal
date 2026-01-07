@@ -20,23 +20,20 @@ class DropdownContextMenuState extends ConsumerState<DropdownContextMenu>
 
   @override
   Widget build(BuildContext context) {
-    return cardBuilder(
-      context,
-      [
-        buttonBuilder(
-          context,
-          ContextMenuButtonConfig(
-            'Local',
-            icon: const Icon(Icons.tablet),
-            iconHover: const Icon(Icons.tablet_outlined),
-            onPressed: () => handlePressed(context, () {
-              // TODO: Integrate with app's tabs service
-              // final tabsService = ref.read(tabsServiceProvider);
-              // tabsService.openTerminal(LocalHostSpec());
-            }),
-          ),
+    return cardBuilder(context, [
+      buttonBuilder(
+        context,
+        ContextMenuButtonConfig(
+          'Local',
+          icon: const Icon(Icons.tablet),
+          iconHover: const Icon(Icons.tablet_outlined),
+          onPressed: () => handlePressed(context, () {
+            // TODO: Integrate with app's tabs service
+            // final tabsService = ref.read(tabsServiceProvider);
+            // tabsService.openTerminal(LocalHostSpec());
+          }),
         ),
-      ],
-    );
+      ),
+    ]);
   }
 }

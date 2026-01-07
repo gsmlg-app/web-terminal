@@ -12,10 +12,7 @@ class SSHConnector extends HostConnector<SSHHost> {
   @override
   Future<SSHHost> createHost() async {
     final socket = await AsyncValue.guard(
-      () => SSHSocket.connect(
-        record.hostname!,
-        record.port!,
-      ),
+      () => SSHSocket.connect(record.hostname!, record.port!),
     );
 
     if (socket.hasError) {

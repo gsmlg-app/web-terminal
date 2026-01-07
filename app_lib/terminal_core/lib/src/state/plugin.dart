@@ -8,26 +8,19 @@ final pluginManagerProvider = Provider.family<PluginManager, HostSpec>(
   (ref, spec) {
     final manager = PluginManager(spec);
 
-    ref.listen(
-      hostProvider(spec),
-      (last, current) {
-        if (last == null && current != null) {
-          manager.didConnected(current);
-        }
+    ref.listen(hostProvider(spec), (last, current) {
+      if (last == null && current != null) {
+        manager.didConnected(current);
+      }
 
-        if (last != null && current == null) {
-          manager.didDisconnected();
-        }
-      },
-      fireImmediately: true,
-    );
+      if (last != null && current == null) {
+        manager.didDisconnected();
+      }
+    }, fireImmediately: true);
 
-    ref.listen(
-      connectorStatusProvider(spec),
-      (last, current) {
-        manager.didConnectionStatusChanged(current);
-      },
-    );
+    ref.listen(connectorStatusProvider(spec), (last, current) {
+      manager.didConnectionStatusChanged(current);
+    });
 
     return manager;
   },

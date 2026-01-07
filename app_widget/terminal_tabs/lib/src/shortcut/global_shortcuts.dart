@@ -10,9 +10,7 @@ class GlobalShortcuts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shortcuts(
-      shortcuts: {
-        shortcuts.openNewWindow: const NewWindowIntent(),
-      },
+      shortcuts: {shortcuts.openNewWindow: const NewWindowIntent()},
       child: child,
     );
   }

@@ -18,7 +18,8 @@ class FieldThemeResolver {
     if (fieldDecorationTheme != null) {
       return fieldDecorationTheme;
     }
-    final InputDecorationThemeData? formDecorationTheme = formTheme.decorationTheme;
+    final InputDecorationThemeData? formDecorationTheme =
+        formTheme.decorationTheme;
     if (formDecorationTheme != null) {
       return formDecorationTheme;
     }

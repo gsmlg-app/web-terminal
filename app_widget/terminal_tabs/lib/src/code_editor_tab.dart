@@ -94,9 +94,7 @@ class CodeEditorView extends StatelessWidget {
       valueListenable: tab.codeController,
       builder: (context, codeController, child) {
         if (codeController == null) {
-          return const Center(
-            child: CircularProgressIndicator.adaptive(),
-          );
+          return const Center(child: CircularProgressIndicator.adaptive());
         }
 
         return SingleChildScrollView(

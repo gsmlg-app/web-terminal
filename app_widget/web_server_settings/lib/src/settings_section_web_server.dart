@@ -34,16 +34,21 @@ class WebServerSettingsSection extends StatelessWidget {
                   ? null
                   : (value) {
                       if (value) {
-                        context.read<WebSessionBloc>().add(const StartWebServer());
+                        context
+                            .read<WebSessionBloc>()
+                            .add(const StartWebServer());
                       } else {
-                        context.read<WebSessionBloc>().add(const StopWebServer());
+                        context
+                            .read<WebSessionBloc>()
+                            .add(const StopWebServer());
                       }
                     },
             ),
             if (state.serverRunning) ...[
               SettingsTile(
                 title: const Text('Server Address'),
-                description: Text('http://${state.serverAddress}:${state.serverPort}'),
+                description:
+                    Text('http://${state.serverAddress}:${state.serverPort}'),
                 leading: const Icon(Icons.link),
               ),
               SettingsTile.navigation(
@@ -59,13 +64,17 @@ class WebServerSettingsSection extends StatelessWidget {
                         child: const Icon(Icons.chevron_right),
                       )
                     : null,
-                onPressed: onManageSessions != null ? (_) => onManageSessions!() : null,
+                onPressed: onManageSessions != null
+                    ? (_) => onManageSessions!()
+                    : null,
               ),
               SettingsTile.navigation(
                 title: const Text('Access Tokens'),
                 description: Text('${state.tokens.length} tokens'),
                 leading: const Icon(Icons.key),
-                onPressed: onManageSessions != null ? (_) => onManageSessions!() : null,
+                onPressed: onManageSessions != null
+                    ? (_) => onManageSessions!()
+                    : null,
               ),
             ],
             if (state.error != null)

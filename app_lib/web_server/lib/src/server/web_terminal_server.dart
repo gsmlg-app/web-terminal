@@ -80,8 +80,7 @@ class WebTerminalServer {
         .addHandler(Cascade().add(router.call).add(staticHandler).handler);
 
     // Start server
-    final bindAddress =
-        config.bindAddress ?? InternetAddress.anyIPv4.address;
+    final bindAddress = config.bindAddress ?? InternetAddress.anyIPv4.address;
     _server = await shelf_io.serve(
       handler,
       bindAddress,
@@ -154,8 +153,9 @@ class WebTerminalServer {
   }
 
   Map<String, String> get _corsHeaders => {
-        'Access-Control-Allow-Origin':
-            config.allowedOrigins.contains('*') ? '*' : config.allowedOrigins.join(', '),
+        'Access-Control-Allow-Origin': config.allowedOrigins.contains('*')
+            ? '*'
+            : config.allowedOrigins.join(', '),
         'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
         'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       };

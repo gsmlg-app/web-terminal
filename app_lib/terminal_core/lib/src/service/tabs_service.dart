@@ -5,7 +5,8 @@ import 'package:terminal_core/src/fs.dart';
 import 'package:terminal_core/src/plugin.dart';
 
 /// Callback type for creating a tab from a plugin.
-typedef PluginTabFactory = TabItem Function(Plugin plugin, PluginManager manager);
+typedef PluginTabFactory =
+    TabItem Function(Plugin plugin, PluginManager manager);
 
 /// Callback type for creating a tab from a file.
 typedef FileTabFactory = TabItem Function(File file);
@@ -33,14 +34,12 @@ class TabsService {
     bool activate = true,
   }) {
     if (pluginTabFactory == null) {
-      throw StateError('pluginTabFactory must be set before calling openPlugin');
+      throw StateError(
+        'pluginTabFactory must be set before calling openPlugin',
+      );
     }
     final manager = PluginManager(host);
-    openTab(
-      pluginTabFactory!(plugin, manager),
-      tabs: tabs,
-      activate: activate,
-    );
+    openTab(pluginTabFactory!(plugin, manager), tabs: tabs, activate: activate);
   }
 
   void openFile(File file, {Tabs? tabs, bool activate = true}) {

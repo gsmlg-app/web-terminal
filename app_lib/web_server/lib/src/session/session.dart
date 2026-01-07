@@ -72,7 +72,8 @@ class WebSession {
   Stream<WsSessionInternalEvent> get events => _eventController.stream;
 
   /// Whether the session is connected.
-  bool get isConnected => _channel != null && status == WebSessionStatus.connected;
+  bool get isConnected =>
+      _channel != null && status == WebSessionStatus.connected;
 
   /// Number of active PTY sessions.
   int get ptyCount => ptySessions.length;

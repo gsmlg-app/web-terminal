@@ -58,9 +58,7 @@ class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
             ),
 
             const SizedBox(height: 16),
-            Expanded(
-              child: TerminalView(tab.terminal),
-            ),
+            Expanded(child: TerminalView(tab.terminal)),
             // const PlayGround(),
           ],
         ),

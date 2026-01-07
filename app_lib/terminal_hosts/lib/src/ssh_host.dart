@@ -36,10 +36,7 @@ class SSHHost implements Host {
   }) async {
     final session = await client.shell(
       environment: environment,
-      pty: SSHPtyConfig(
-        height: height,
-        width: width,
-      ),
+      pty: SSHPtyConfig(height: height, width: width),
     );
     return _SSHExecutionSession(session);
   }

@@ -32,7 +32,8 @@ class AppMenuCard extends StatelessWidget {
             color: bgColor ?? Theme.of(context).cardColor,
             border: border ?? Border.all(color: Colors.grey),
             borderRadius: radius,
-            boxShadow: shadows ??
+            boxShadow:
+                shadows ??
                 [
                   BoxShadow(
                     color: shadowColor.withValues(alpha: .05),

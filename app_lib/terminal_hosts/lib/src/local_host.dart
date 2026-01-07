@@ -14,8 +14,11 @@ class LocalHost implements Host {
     bool root = false,
     Map<String, String>? environment,
   }) async {
-    final result =
-        await Process.run(executable, args, environment: environment);
+    final result = await Process.run(
+      executable,
+      args,
+      environment: environment,
+    );
     return LocalExecutionResult(result);
   }
 

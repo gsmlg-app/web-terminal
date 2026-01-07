@@ -30,13 +30,8 @@ class MacosFormRow extends StatelessWidget {
               alignment: Alignment.centerRight,
               child: label,
             ),
-          if (label != null)
-            SizedBox(
-              width: spaceBetween,
-            ),
-          Expanded(
-            child: child,
-          ),
+          if (label != null) SizedBox(width: spaceBetween),
+          Expanded(child: child),
         ],
       ),
     );

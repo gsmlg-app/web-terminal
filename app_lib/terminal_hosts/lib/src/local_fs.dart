@@ -160,12 +160,9 @@ class LocalDirectory extends Directory with LocalFileSystemEntity {
     bool recursive = false,
     bool followLinks = true,
   }) {
-    return delegate
-        .list(
-      recursive: recursive,
-      followLinks: followLinks,
-    )
-        .map((entity) {
+    return delegate.list(recursive: recursive, followLinks: followLinks).map((
+      entity,
+    ) {
       if (entity is io.File) {
         return LocalFile(fileSystem, entity);
       } else if (entity is io.Directory) {

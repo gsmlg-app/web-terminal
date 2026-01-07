@@ -22,11 +22,7 @@ class _PlaygroundViewState extends State<PlaygroundView> {
   Widget build(BuildContext context) {
     return const Stack(
       children: [
-        SizedBox(
-          width: 300,
-          height: 300,
-          child: Text('Hello'),
-        ),
+        SizedBox(width: 300, height: 300, child: Text('Hello')),
         // Acrylic(),
       ],
     );
