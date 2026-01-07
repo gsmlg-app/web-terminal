@@ -1,6 +1,3 @@
-/// Host implementations (local and SSH) for terminal emulation.
-library terminal_hosts;
-
 // Local host implementations
 export 'src/local_conn.dart';
 export 'src/local_fs.dart';
