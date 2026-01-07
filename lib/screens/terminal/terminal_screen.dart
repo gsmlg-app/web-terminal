@@ -31,21 +31,31 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
       GlobalKey<ContextMenuOverlayState>();
 
   late final TerminalTabBloc _terminalTabBloc;
+  StreamSubscription<TerminalTabState>? _stateSubscription;
+  bool _initialTabOpened = false;
 
   @override
   void initState() {
     super.initState();
     _terminalTabBloc = context.read<TerminalTabBloc>();
     _terminalTabBloc.add(TerminalTabStart());
-    // Open initial terminal tab after frame is rendered
+    // Listen for state changes to open initial tab when loaded
+    _stateSubscription = _terminalTabBloc.stream.listen(_onStateChanged);
+    // Also check immediately in case state is already loaded
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _openInitialTab();
+      _tryOpenInitialTab();
     });
   }
 
-  void _openInitialTab() {
+  void _onStateChanged(TerminalTabState state) {
+    _tryOpenInitialTab();
+  }
+
+  void _tryOpenInitialTab() {
+    if (_initialTabOpened) return;
     final state = _terminalTabBloc.state;
     if (state is TerminalTabLoaded && state.tabs.children.isEmpty) {
+      _initialTabOpened = true;
       final plugin = TerminalPlugin();
       final manager = PluginManager(LocalHostSpec());
       final tabItem = PluginTab(plugin, manager);
@@ -55,6 +65,7 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
 
   @override
   void dispose() {
+    _stateSubscription?.cancel();
     _terminalTabBloc.add(TerminalTabStop());
     super.dispose();
   }
