@@ -26,6 +26,7 @@ workspace:
   - app_widget/web_view
   - app_widget/terminal_settings
   - app_widget/terminal_tabs
+  - app_widget/xterm
   - app_plugin/client_info/client_info
   - app_plugin/client_info/client_info_platform_interface
   - app_plugin/client_info/client_info_android
@@ -33,6 +34,7 @@ workspace:
   - app_plugin/client_info/client_info_linux
   - app_plugin/client_info/client_info_macos
   - app_plugin/client_info/client_info_windows
+  - app_plugin/pty
   - third_party/form_bloc
   - third_party/flutter_form_bloc
   - third_party/flutter_adaptive_scaffold
@@ -66,7 +68,7 @@ dependencies:
   google_fonts: ^6.2.1
 
   # Terminal emulation
-  xterm: ^4.0.0
+  xterm: any
   flutter_pty: any
 
   # Code editor and highlighting
@@ -93,7 +95,7 @@ dependencies:
   flutter_acrylic: ^1.0.0+2
 
   # Utilities
-  file: ^7.0.0
+  file: any
   uuid: any
   meta: any
   collection: ^1.16.0
