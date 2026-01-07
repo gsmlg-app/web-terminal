@@ -37,6 +37,20 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
     super.initState();
     _terminalTabBloc = context.read<TerminalTabBloc>();
     _terminalTabBloc.add(TerminalTabStart());
+    // Open initial terminal tab after frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _openInitialTab();
+    });
+  }
+
+  void _openInitialTab() {
+    final state = _terminalTabBloc.state;
+    if (state is TerminalTabLoaded && state.tabs.children.isEmpty) {
+      final plugin = TerminalPlugin();
+      final manager = PluginManager(LocalHostSpec());
+      final tabItem = PluginTab(plugin, manager);
+      _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+    }
   }
 
   @override

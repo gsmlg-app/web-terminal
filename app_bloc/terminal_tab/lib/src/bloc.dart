@@ -45,12 +45,12 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
   void _onTerminalTabOpenTab(
       TerminalTabOpenTab event, Emitter<TerminalTabState> emit) {
     if (state is TerminalTabLoaded) {
-      final tabs = (state as TerminalTabLoaded).tabs;
-      tabs.add(event.tabItem);
+      final currentState = state as TerminalTabLoaded;
+      currentState.tabs.add(event.tabItem);
       if (event.activate) {
         event.tabItem.activate();
       }
-      emit((state as TerminalTabLoaded).copyWith(tabs: tabs));
+      emit(currentState.copyWith(incrementVersion: true));
     }
   }
 }

@@ -24,26 +24,30 @@ final class TerminalTabLoaded extends TerminalTabState {
   final Tabs tabs;
   final TabsDocument tabsDocument;
   final bool isMounted;
+  final int version; // Force state change detection on tab operations
 
   const TerminalTabLoaded({
     required this.tabs,
     required this.tabsDocument,
     required this.isMounted,
+    this.version = 0,
   });
 
   @override
-  List<Object?> get props => [tabs, tabsDocument, isMounted];
+  List<Object?> get props => [tabs, tabsDocument, isMounted, version];
 
   @override
   TerminalTabLoaded copyWith({
     Tabs? tabs,
     TabsDocument? tabsDocument,
     bool? isMounted,
+    bool incrementVersion = false,
   }) {
     return TerminalTabLoaded(
       tabs: tabs ?? this.tabs,
       tabsDocument: tabsDocument ?? this.tabsDocument,
       isMounted: isMounted ?? this.isMounted,
+      version: incrementVersion ? version + 1 : version,
     );
   }
 }
