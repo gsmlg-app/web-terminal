@@ -2,8 +2,6 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:terminal_core/terminal_core.dart';
-import 'package:terminal_hosts/terminal_hosts.dart';
 
 class DropdownContextMenu extends ConsumerStatefulWidget {
   const DropdownContextMenu(this.tabs, {super.key});
