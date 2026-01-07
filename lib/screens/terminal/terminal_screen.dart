@@ -30,15 +30,18 @@ class _TerminalScreenState extends ConsumerState<TerminalScreen> {
   GlobalKey<ContextMenuOverlayState> contextMenuOverlayKey =
       GlobalKey<ContextMenuOverlayState>();
 
+  late final TerminalTabBloc _terminalTabBloc;
+
   @override
   void initState() {
     super.initState();
-    context.read<TerminalTabBloc>().add(TerminalTabStart());
+    _terminalTabBloc = context.read<TerminalTabBloc>();
+    _terminalTabBloc.add(TerminalTabStart());
   }
 
   @override
   void dispose() {
-    context.read<TerminalTabBloc>().add(TerminalTabStop());
+    _terminalTabBloc.add(TerminalTabStop());
     super.dispose();
   }
 

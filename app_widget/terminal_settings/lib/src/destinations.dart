@@ -8,10 +8,10 @@ import 'package:app_locale/app_locale.dart';
 /// navigation changes. Screen names and paths should be provided by the app.
 class Destinations {
   /// Terminal screen name constant - should match the app's routing configuration.
-  static const String terminalScreenName = 'terminal';
+  static const String terminalScreenName = 'TerminalScreen';
 
   /// Settings screen name constant - should match the app's routing configuration.
-  static const String settingsScreenName = 'settings';
+  static const String settingsScreenName = 'Settings';
 
   /// Builds navigation destinations for the app.
   ///

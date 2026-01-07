@@ -15,8 +15,8 @@ void main() {
     });
 
     test('Destinations constants are defined', () {
-      expect(Destinations.terminalScreenName, equals('terminal'));
-      expect(Destinations.settingsScreenName, equals('settings'));
+      expect(Destinations.terminalScreenName, equals('TerminalScreen'));
+      expect(Destinations.settingsScreenName, equals('Settings'));
     });
   });
 }
