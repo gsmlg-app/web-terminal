@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +7,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:gsmlg_security/gsmlg_security.dart';
-import 'package:app_theme/app_theme.dart';
 import 'package:theme_bloc/theme_bloc.dart';
 import 'package:gsmlg_utils/gsmlg_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +19,9 @@ import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:app_provider/app_provider.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:web_session_bloc/web_session_bloc.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +32,23 @@ Future<void> main() async {
 
   final sharedPrefs = await SharedPreferences.getInstance();
   final database = AppDatabase();
+
+  // Get static files path for web server
+  // In debug mode, use the source directory directly for hot reload
+  String staticFilesPath;
+  if (kDebugMode) {
+    // Use the source web client directory during development
+    staticFilesPath = path.join(
+      Directory.current.path,
+      'web',
+      'terminal-client',
+      'dist',
+    );
+  } else {
+    // In release mode, use the app's data directory
+    final appDir = await getApplicationSupportDirectory();
+    staticFilesPath = path.join(appDir.path, 'web-terminal-client');
+  }
 
   runApp(
     ProviderScope(
@@ -79,6 +99,12 @@ Future<void> main() async {
           ),
           BlocProvider<ConnectionBloc>(
             create: (BuildContext context) => ConnectionBloc(),
+          ),
+          BlocProvider<WebSessionBloc>(
+            create: (BuildContext context) => WebSessionBloc(
+              staticFilesPath: staticFilesPath,
+              debugMode: kDebugMode,
+            ),
           ),
         ], child: const App()),
       ),

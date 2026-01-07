@@ -9,6 +9,7 @@ class SettingsScreenNames {
   static const wifiInfo = 'Wifi Info';
   static const selectBrightness = 'Select Brightness';
   static const selectTheme = 'Select Theme';
+  static const webServer = 'web-server';
 }
 
 /// Shared configuration for RootSettingList navigation
@@ -19,4 +20,5 @@ const rootSettingListConfig = RootSettingListConfig(
   wifiInfoScreenName: SettingsScreenNames.wifiInfo,
   selectBrightnessScreenName: SettingsScreenNames.selectBrightness,
   selectThemeScreenName: SettingsScreenNames.selectTheme,
+  webServerScreenName: SettingsScreenNames.webServer,
 );

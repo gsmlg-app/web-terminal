@@ -7,6 +7,7 @@ import 'package:theme_bloc/theme_bloc.dart';
 import 'package:terminal_settings/src/bloc_settings_section_accent_color.dart';
 import 'package:terminal_settings/src/bloc_settings_section_appearance.dart';
 import 'package:app_locale/app_locale.dart';
+import 'package:web_session_bloc/web_session_bloc.dart';
 
 /// Configuration for root settings list screen routing.
 class RootSettingListConfig {
@@ -28,6 +29,9 @@ class RootSettingListConfig {
   /// Screen name for the theme selection screen.
   final String selectThemeScreenName;
 
+  /// Screen name for the web server settings screen.
+  final String webServerScreenName;
+
   const RootSettingListConfig({
     required this.hostScreenName,
     required this.sshKeyScreenName,
@@ -35,6 +39,7 @@ class RootSettingListConfig {
     required this.wifiInfoScreenName,
     required this.selectBrightnessScreenName,
     required this.selectThemeScreenName,
+    required this.webServerScreenName,
   });
 }
 
@@ -95,6 +100,9 @@ class RootSettingList extends StatelessWidget {
                   ),
                 ],
               ),
+              _WebServerSection(
+                webServerScreenName: config.webServerScreenName,
+              ),
               SettingsSection(
                 title: Text(context.l10n.smenuTheme),
                 tiles: <SettingsTile>[
@@ -114,5 +122,40 @@ class RootSettingList extends StatelessWidget {
             ],
           );
         });
+  }
+}
+
+/// Web server settings section that rebuilds when server state changes.
+class _WebServerSection extends AbstractSettingsSection {
+  final String webServerScreenName;
+
+  const _WebServerSection({required this.webServerScreenName});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<WebSessionBloc, WebSessionState>(
+      builder: (context, webState) {
+        return SettingsSection(
+          title: const Text('Web Server'),
+          tiles: <SettingsTile>[
+            SettingsTile.navigation(
+              leading: Icon(
+                Icons.public,
+                color: webState.serverRunning ? Colors.green : null,
+              ),
+              title: const Text('Web Server'),
+              description: Text(
+                webState.serverRunning
+                    ? 'Running on port ${webState.serverPort}'
+                    : 'Not running',
+              ),
+              onPressed: (context) {
+                context.goNamed(webServerScreenName);
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 }

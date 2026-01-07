@@ -20,6 +20,8 @@ workspace:
   - app_bloc/ssh_key
   - app_bloc/ssh_host
   - app_bloc/terminal_tab
+  - app_bloc/web_session
+  - app_lib/web_server
   - app_widget/adaptive
   - app_widget/artwork
   - app_widget/feedback
@@ -30,6 +32,7 @@ workspace:
   - app_widget/terminal_plugin
   - app_widget/starter_plugin
   - app_widget/file_manager_plugin
+  - app_widget/web_server_settings
   - app_plugin/client_info/client_info
   - app_plugin/client_info/client_info_platform_interface
   - app_plugin/client_info/client_info_android
@@ -129,6 +132,9 @@ dependencies:
   terminal_plugin: any
   starter_plugin: any
   file_manager_plugin: any
+  web_server: any
+  web_session_bloc: any
+  web_server_settings: any
 
   # External packages from original monorepo (copied to third_party)
   gsmlg_security: any

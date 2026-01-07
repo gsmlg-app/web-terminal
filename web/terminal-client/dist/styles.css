@@ -1,0 +1,353 @@
+/* Web Terminal Client Styles */
+/* Catppuccin Mocha color scheme */
+
+:root {
+  --ctp-rosewater: #f5e0dc;
+  --ctp-flamingo: #f2cdcd;
+  --ctp-pink: #f5c2e7;
+  --ctp-mauve: #cba6f7;
+  --ctp-red: #f38ba8;
+  --ctp-maroon: #eba0ac;
+  --ctp-peach: #fab387;
+  --ctp-yellow: #f9e2af;
+  --ctp-green: #a6e3a1;
+  --ctp-teal: #94e2d5;
+  --ctp-sky: #89dceb;
+  --ctp-sapphire: #74c7ec;
+  --ctp-blue: #89b4fa;
+  --ctp-lavender: #b4befe;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext1: #bac2de;
+  --ctp-subtext0: #a6adc8;
+  --ctp-overlay2: #9399b2;
+  --ctp-overlay1: #7f849c;
+  --ctp-overlay0: #6c7086;
+  --ctp-surface2: #585b70;
+  --ctp-surface1: #45475a;
+  --ctp-surface0: #313244;
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background-color: var(--ctp-base);
+  color: var(--ctp-text);
+}
+
+/* Screen Layout */
+.screen {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+
+/* Auth Screen */
+.auth-screen {
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--ctp-crust) 0%, var(--ctp-base) 50%, var(--ctp-mantle) 100%);
+}
+
+.auth-card {
+  background: var(--ctp-surface0);
+  border-radius: 16px;
+  padding: 48px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--ctp-surface1);
+}
+
+.auth-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.auth-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--ctp-mauve);
+}
+
+.auth-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ctp-text);
+}
+
+.auth-header p {
+  color: var(--ctp-subtext0);
+  font-size: 14px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.token-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--ctp-surface2);
+  border-radius: 8px;
+  background: var(--ctp-base);
+  color: var(--ctp-text);
+  font-size: 14px;
+  font-family: 'Fira Code', 'SF Mono', Monaco, monospace;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.token-input:focus {
+  outline: none;
+  border-color: var(--ctp-mauve);
+  box-shadow: 0 0 0 3px rgba(203, 166, 247, 0.2);
+}
+
+.token-input::placeholder {
+  color: var(--ctp-overlay0);
+}
+
+.connect-btn {
+  width: 100%;
+  padding: 14px 24px;
+  background: var(--ctp-mauve);
+  color: var(--ctp-base);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+}
+
+.connect-btn:hover {
+  background: var(--ctp-lavender);
+}
+
+.connect-btn:active {
+  transform: scale(0.98);
+}
+
+.connect-btn:disabled {
+  background: var(--ctp-surface2);
+  cursor: not-allowed;
+}
+
+.status-text {
+  margin-top: 16px;
+  text-align: center;
+  color: var(--ctp-subtext0);
+  font-size: 14px;
+}
+
+.error-text {
+  margin-top: 12px;
+  text-align: center;
+  color: var(--ctp-red);
+  font-size: 14px;
+  display: none;
+}
+
+.auth-footer {
+  margin-top: 24px;
+  text-align: center;
+  color: var(--ctp-overlay0);
+  font-size: 12px;
+}
+
+/* Pending Screen */
+.pending-screen {
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, var(--ctp-crust) 0%, var(--ctp-base) 50%, var(--ctp-mantle) 100%);
+}
+
+.pending-card {
+  text-align: center;
+  padding: 48px;
+}
+
+.spinner {
+  width: 64px;
+  height: 64px;
+  border: 4px solid var(--ctp-surface2);
+  border-top-color: var(--ctp-mauve);
+  border-radius: 50%;
+  margin: 0 auto 24px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.pending-card h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: var(--ctp-text);
+}
+
+.pending-card p {
+  color: var(--ctp-subtext0);
+  font-size: 16px;
+}
+
+.pending-hint {
+  margin-top: 24px;
+  font-size: 14px !important;
+  color: var(--ctp-overlay0) !important;
+}
+
+/* Terminal Screen */
+.terminal-screen {
+  flex-direction: column;
+}
+
+/* Tabs Container */
+.tabs-container {
+  display: flex;
+  align-items: center;
+  background: var(--ctp-mantle);
+  padding: 8px 8px 0;
+  gap: 2px;
+  overflow-x: auto;
+  min-height: 44px;
+  border-bottom: 1px solid var(--ctp-surface0);
+}
+
+.tabs-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs-container::-webkit-scrollbar-thumb {
+  background: var(--ctp-surface2);
+  border-radius: 2px;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: var(--ctp-surface0);
+  border: none;
+  border-radius: 8px 8px 0 0;
+  color: var(--ctp-subtext0);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+  min-width: 100px;
+  max-width: 200px;
+}
+
+.tab:hover {
+  background: var(--ctp-surface1);
+  color: var(--ctp-text);
+}
+
+.tab.active {
+  background: var(--ctp-base);
+  color: var(--ctp-text);
+}
+
+.tab-title {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tab-close {
+  background: none;
+  border: none;
+  color: var(--ctp-overlay0);
+  font-size: 16px;
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.tab-close:hover {
+  background: var(--ctp-surface2);
+  color: var(--ctp-red);
+}
+
+.new-tab-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--ctp-overlay1);
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  margin-left: 4px;
+}
+
+.new-tab-btn:hover {
+  background: var(--ctp-surface1);
+  color: var(--ctp-text);
+}
+
+/* Terminal Container */
+.terminal-container {
+  flex: 1;
+  background: var(--ctp-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 8px;
+}
+
+.terminal-panel .xterm {
+  height: 100%;
+}
+
+.terminal-panel .xterm-viewport {
+  overflow-y: auto !important;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-card {
+    margin: 16px;
+    padding: 32px 24px;
+  }
+
+  .auth-header h1 {
+    font-size: 24px;
+  }
+
+  .tab {
+    min-width: 80px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+}

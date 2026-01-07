@@ -25,6 +25,7 @@ dependencies:
   app_locale: any
   theme_bloc: any
   flutter_riverpod: any
+  web_session_bloc: any
 
 dev_dependencies:
   flutter_test:

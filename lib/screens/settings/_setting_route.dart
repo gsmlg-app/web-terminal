@@ -6,6 +6,7 @@ import 'package:web_terminal/screens/settings/select_brightness.dart';
 import 'package:web_terminal/screens/settings/select_theme.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:web_terminal/screens/settings/ssh_key_management.dart';
+import 'package:web_terminal/screens/settings/web_server/web_server_screen.dart';
 
 final settingRoute = GoRoute(
   name: SettingsScreen.name,
@@ -74,6 +75,16 @@ final settingRoute = GoRoute(
         return NoTransitionPage<void>(
           key: state.pageKey,
           child: const SettingsHost(),
+        );
+      },
+    ),
+    GoRoute(
+      name: WebServerScreen.name,
+      path: WebServerScreen.path,
+      pageBuilder: (context, state) {
+        return NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const WebServerScreen(),
         );
       },
     ),
