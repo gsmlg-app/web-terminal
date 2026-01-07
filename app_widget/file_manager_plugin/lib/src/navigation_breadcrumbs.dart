@@ -69,7 +69,6 @@ class BreadcrumbSeprator extends StatelessWidget {
     return const Icon(
       Icons.chevron_right,
       size: 8,
-      // color: CupertinoColors.secondaryLabel,
     );
   }
 }

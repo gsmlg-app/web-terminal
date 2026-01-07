@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:terminal_core/terminal_core.dart';
-import 'package:web_terminal/plugins/file_manager/navigation_breadcrumbs.dart';
-import 'package:web_terminal/plugins/file_manager/navigation_stack.dart';
+import 'package:file_manager_plugin/src/navigation_breadcrumbs.dart';
+import 'package:file_manager_plugin/src/navigation_stack.dart';
 
 class FileManagerPlugin with Plugin {
   late FileSystem fs;

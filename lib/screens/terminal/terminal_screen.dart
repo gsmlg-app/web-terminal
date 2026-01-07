@@ -12,7 +12,7 @@ import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_settings/terminal_settings.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/terminal_hosts.dart';
-import 'package:web_terminal/plugins/terminal/terminal_plugin.dart';
+import 'package:terminal_plugin/terminal_plugin.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:window_manager/window_manager.dart';
 

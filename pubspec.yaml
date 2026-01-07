@@ -27,6 +27,9 @@ workspace:
   - app_widget/terminal_settings
   - app_widget/terminal_tabs
   - app_widget/xterm
+  - app_widget/terminal_plugin
+  - app_widget/starter_plugin
+  - app_widget/file_manager_plugin
   - app_plugin/client_info/client_info
   - app_plugin/client_info/client_info_platform_interface
   - app_plugin/client_info/client_info_android
@@ -123,6 +126,9 @@ dependencies:
   terminal_hosts: any
   terminal_tabs: any
   terminal_settings: any
+  terminal_plugin: any
+  starter_plugin: any
+  file_manager_plugin: any
 
   # External packages from original monorepo (copied to third_party)
   gsmlg_security: any

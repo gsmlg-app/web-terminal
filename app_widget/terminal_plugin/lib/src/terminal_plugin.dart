@@ -5,7 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:terminal_core/terminal_core.dart';
-import 'package:web_terminal/plugins/terminal/terminal_menu.dart';
+import 'package:terminal_plugin/src/terminal_menu.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {

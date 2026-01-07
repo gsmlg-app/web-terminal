@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_core/terminal_core.dart';
-import 'package:web_terminal/plugins/file_manager/file_manager_plugin.dart';
-import 'package:web_terminal/plugins/starter/starter_plugin.dart';
-import 'package:web_terminal/plugins/terminal/terminal_plugin.dart';
+import 'package:file_manager_plugin/file_manager_plugin.dart';
+import 'package:starter_plugin/starter_plugin.dart';
+import 'package:terminal_plugin/src/terminal_plugin.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalContextMenu extends ConsumerStatefulWidget {
