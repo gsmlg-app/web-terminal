@@ -8,46 +8,27 @@
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
-  <!-- Authentication Screen -->
-  <div id="auth-screen" class="screen auth-screen">
-    <div class="auth-card">
-      <div class="auth-header">
-        <svg class="auth-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-        </svg>
-        <h1>Web Terminal</h1>
-        <p>Enter your access token to connect</p>
-      </div>
-
-      <div class="auth-form">
-        <input
-          type="text"
-          id="token-input"
-          class="token-input"
-          placeholder="Paste your access token here"
-          autocomplete="off"
-          spellcheck="false"
-        >
-        <button id="connect-btn" class="connect-btn">Connect</button>
-      </div>
-
-      <p id="status-text" class="status-text"></p>
-      <p id="error-text" class="error-text"></p>
-
-      <div class="auth-footer">
-        <p>Get a token from the Web Terminal app on your device</p>
-      </div>
-    </div>
-  </div>
-
   <!-- Pending Approval Screen -->
   <div id="pending-screen" class="screen pending-screen">
     <div class="pending-card">
+      <div class="pending-header">
+        <svg class="pending-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <h1>Web Terminal</h1>
+        <p>Waiting for approval</p>
+      </div>
+
+      <div class="approval-section">
+        <p class="approval-label">Enter this code in the WebTerminal app:</p>
+        <div id="approval-code" class="approval-code">------</div>
+        <p class="approval-hint">Open the app and approve this session to connect</p>
+      </div>
+
       <div class="spinner"></div>
-      <h2>Waiting for Approval</h2>
-      <p>Please approve this connection in the Web Terminal app</p>
-      <p class="pending-hint">Check your device for the approval notification</p>
+      <p id="status-text" class="status-text">Waiting for approval in the app...</p>
+      <p id="error-text" class="error-text"></p>
     </div>
   </div>
 

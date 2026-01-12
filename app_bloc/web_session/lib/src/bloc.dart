@@ -40,9 +40,9 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     // Register event handlers
     on<StartWebServer>(_onStartServer);
     on<StopWebServer>(_onStopServer);
-    on<CreateToken>(_onCreateToken);
-    on<RevokeToken>(_onRevokeToken);
+    on<ApproveSessionByCode>(_onApproveSessionByCode);
     on<ApproveSession>(_onApproveSession);
+    on<RejectSessionByCode>(_onRejectSessionByCode);
     on<RejectSession>(_onRejectSession);
     on<DisconnectSession>(_onDisconnectSession);
     on<SessionManagerEventReceived>(_onSessionManagerEvent);
@@ -117,32 +117,17 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     }
   }
 
-  void _onCreateToken(
-    CreateToken event,
+  void _onApproveSessionByCode(
+    ApproveSessionByCode event,
     Emitter<WebSessionState> emit,
   ) {
-    final token = _sessionManager.createToken(
-      label: event.label,
-      validity: event.validity ?? const Duration(hours: 24),
-    );
-
-    emit(state.copyWith(
-      tokens: [...state.tokens, token],
-    ));
-  }
-
-  void _onRevokeToken(
-    RevokeToken event,
-    Emitter<WebSessionState> emit,
-  ) {
-    _sessionManager.revokeToken(event.tokenId);
-
-    emit(state.copyWith(
-      tokens: state.tokens.where((t) => t.id != event.tokenId).toList(),
-    ));
-
-    // Refresh sessions as some may have been invalidated
-    add(const RefreshStateEvent());
+    final success = _sessionManager.approveByCode(event.approvalCode);
+    if (!success) {
+      emit(state.copyWith(
+        error: 'No pending session found with code: ${event.approvalCode}',
+      ));
+    }
+    // State will be updated via SessionManagerEventReceived
   }
 
   void _onApproveSession(
@@ -150,7 +135,20 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     Emitter<WebSessionState> emit,
   ) {
     _sessionManager.approveSession(event.sessionId);
-    // State will be updated via _SessionManagerEvent
+    // State will be updated via SessionManagerEventReceived
+  }
+
+  void _onRejectSessionByCode(
+    RejectSessionByCode event,
+    Emitter<WebSessionState> emit,
+  ) {
+    final success = _sessionManager.rejectByCode(event.approvalCode);
+    if (!success) {
+      emit(state.copyWith(
+        error: 'No pending session found with code: ${event.approvalCode}',
+      ));
+    }
+    // State will be updated via SessionManagerEventReceived
   }
 
   void _onRejectSession(
@@ -158,7 +156,7 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     Emitter<WebSessionState> emit,
   ) {
     _sessionManager.rejectSession(event.sessionId);
-    // State will be updated via _SessionManagerEvent
+    // State will be updated via SessionManagerEventReceived
   }
 
   void _onDisconnectSession(
@@ -166,7 +164,7 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     Emitter<WebSessionState> emit,
   ) {
     _sessionManager.disconnectSession(event.sessionId);
-    // State will be updated via _SessionManagerEvent
+    // State will be updated via SessionManagerEventReceived
   }
 
   void _onSessionManagerEvent(
@@ -185,10 +183,11 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
   }
 
   void _refreshState(Emitter<WebSessionState> emit) {
+    final pending = _sessionManager.pendingSessions;
+    final active = _sessionManager.activeSessions;
     emit(state.copyWith(
-      tokens: _sessionManager.tokens,
-      pendingSessions: _sessionManager.pendingSessions,
-      activeSessions: _sessionManager.activeSessions,
+      pendingSessions: pending,
+      activeSessions: active,
     ));
   }
 

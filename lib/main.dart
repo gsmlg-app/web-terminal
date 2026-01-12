@@ -101,10 +101,14 @@ Future<void> main() async {
             create: (BuildContext context) => ConnectionBloc(),
           ),
           BlocProvider<WebSessionBloc>(
-            create: (BuildContext context) => WebSessionBloc(
-              staticFilesPath: staticFilesPath,
-              debugMode: kDebugMode,
-            ),
+            create: (BuildContext context) {
+              debugPrint('[Main] Creating WebSessionBloc with debugMode=$kDebugMode');
+              debugPrint('[Main] Static files path: $staticFilesPath');
+              return WebSessionBloc(
+                staticFilesPath: staticFilesPath,
+                debugMode: kDebugMode,
+              );
+            },
           ),
         ], child: const App()),
       ),

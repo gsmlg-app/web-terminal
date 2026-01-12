@@ -29,35 +29,20 @@ final class StopWebServer extends WebSessionEvent {
 }
 
 // ============================================================================
-// Token Management Events
-// ============================================================================
-
-/// Create a new session token.
-final class CreateToken extends WebSessionEvent {
-  final String? label;
-  final Duration? validity;
-
-  const CreateToken({this.label, this.validity});
-
-  @override
-  List<Object?> get props => [label, validity];
-}
-
-/// Revoke a token.
-final class RevokeToken extends WebSessionEvent {
-  final String tokenId;
-
-  const RevokeToken(this.tokenId);
-
-  @override
-  List<Object?> get props => [tokenId];
-}
-
-// ============================================================================
 // Session Approval Events
 // ============================================================================
 
-/// Approve a pending session.
+/// Approve a pending session by its 6-character approval code.
+final class ApproveSessionByCode extends WebSessionEvent {
+  final String approvalCode;
+
+  const ApproveSessionByCode(this.approvalCode);
+
+  @override
+  List<Object?> get props => [approvalCode];
+}
+
+/// Approve a pending session by session ID.
 final class ApproveSession extends WebSessionEvent {
   final String sessionId;
 
@@ -67,7 +52,17 @@ final class ApproveSession extends WebSessionEvent {
   List<Object?> get props => [sessionId];
 }
 
-/// Reject a pending session.
+/// Reject a pending session by its 6-character approval code.
+final class RejectSessionByCode extends WebSessionEvent {
+  final String approvalCode;
+
+  const RejectSessionByCode(this.approvalCode);
+
+  @override
+  List<Object?> get props => [approvalCode];
+}
+
+/// Reject a pending session by session ID.
 final class RejectSession extends WebSessionEvent {
   final String sessionId;
 

@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
-import 'package:terminal_settings/terminal_settings.dart';
+import 'package:web_terminal/destinations.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_plugin/terminal_plugin.dart';

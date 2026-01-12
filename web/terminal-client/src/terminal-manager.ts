@@ -225,6 +225,15 @@ export class TerminalManager {
     }
   }
 
+  handlePtyExited(ptyId: string, exitCode: number): void {
+    const tab = this.tabs.get(ptyId);
+    if (tab) {
+      tab.terminal.write(
+        `\r\n\x1b[33m[Process exited with code ${exitCode}]\x1b[0m\r\n`
+      );
+    }
+  }
+
   private getTabButton(id: string): HTMLElement | null {
     return this.tabsContainer.querySelector(`[data-tab-id="${id}"]`);
   }

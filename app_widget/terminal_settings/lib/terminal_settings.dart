@@ -1,6 +1,5 @@
 library;
 
-export 'src/destinations.dart';
 export 'src/bloc_settings_section_accent_color.dart';
 export 'src/bloc_settings_section_appearance.dart';
 export 'src/root_setting_list.dart';

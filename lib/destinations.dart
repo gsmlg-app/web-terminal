@@ -10,12 +10,15 @@ class Destinations {
   /// Terminal screen name constant - should match the app's routing configuration.
   static const String terminalScreenName = 'TerminalScreen';
 
+  /// Web Terminal screen name constant - should match the app's routing configuration.
+  static const String webTerminalScreenName = 'WebTerminalScreen';
+
   /// Settings screen name constant - should match the app's routing configuration.
   static const String settingsScreenName = 'Settings';
 
   /// Builds navigation destinations for the app.
   ///
-  /// Returns a list of [NavigationDestination] widgets for terminal and settings.
+  /// Returns a list of [NavigationDestination] widgets for terminal, web terminal, and settings.
   static List<NavigationDestination> navs(BuildContext context) =>
       <NavigationDestination>[
         NavigationDestination(
@@ -23,6 +26,12 @@ class Destinations {
           icon: const Icon(Icons.terminal_outlined),
           selectedIcon: const Icon(Icons.terminal),
           label: context.l10n.destinationTerminal,
+        ),
+        NavigationDestination(
+          key: const Key(webTerminalScreenName),
+          icon: const Icon(Icons.language_outlined),
+          selectedIcon: const Icon(Icons.language),
+          label: context.l10n.destinationWebTerminal,
         ),
         NavigationDestination(
           key: const Key(settingsScreenName),
@@ -47,7 +56,8 @@ class Destinations {
     BuildContext context, {
     List<String>? screenNames,
   }) {
-    final names = screenNames ?? [terminalScreenName, settingsScreenName];
+    final names = screenNames ??
+        [terminalScreenName, webTerminalScreenName, settingsScreenName];
     if (idx >= 0 && idx < names.length) {
       context.goNamed(names[idx]);
     } else {

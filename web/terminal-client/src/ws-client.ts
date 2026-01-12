@@ -1,16 +1,19 @@
 /**
  * WebSocket client for communicating with the terminal server.
  * Handles both JSON control messages and binary terminal I/O.
+ *
+ * Authentication is now via HTTP-only session cookie - no token required.
  */
 
 export type MessageType =
-  | 'auth'
-  | 'auth_response'
   | 'session_status'
   | 'create_pty'
   | 'create_pty_response'
   | 'close_pty'
   | 'resize_pty'
+  | 'pty_exited'
+  | 'ping'
+  | 'pong'
   | 'error';
 
 export interface WsMessage {
@@ -18,28 +21,29 @@ export interface WsMessage {
   [key: string]: unknown;
 }
 
-export interface AuthResponse extends WsMessage {
-  type: 'auth_response';
-  success: boolean;
-  sessionId?: string;
-  message?: string;
-}
-
 export interface SessionStatusMessage extends WsMessage {
   type: 'session_status';
-  status: 'auth_required' | 'pending' | 'approved' | 'rejected';
+  status: 'pending' | 'approved' | 'connected' | 'rejected' | 'expired';
   message?: string;
+  approvalCode?: string;
 }
 
 export interface CreatePtyResponse extends WsMessage {
   type: 'create_pty_response';
+  ptyId: string;
   success: boolean;
-  ptyId?: string;
-  message?: string;
+  error?: string;
+}
+
+export interface PtyExitedMessage extends WsMessage {
+  type: 'pty_exited';
+  ptyId: string;
+  exitCode: number;
 }
 
 export interface ErrorMessage extends WsMessage {
   type: 'error';
+  code: string;
   message: string;
 }
 
@@ -55,9 +59,7 @@ export class WsClient {
   private ws: WebSocket | null = null;
   private url: string;
   private handlers: WsEventHandler = {};
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private pingInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(url: string) {
     this.url = url;
@@ -76,11 +78,12 @@ export class WsClient {
     this.ws.binaryType = 'arraybuffer';
 
     this.ws.onopen = () => {
-      this.reconnectAttempts = 0;
+      this.startPing();
       this.handlers.onOpen?.();
     };
 
     this.ws.onclose = (event) => {
+      this.stopPing();
       this.handlers.onClose?.(event.code, event.reason);
     };
 
@@ -109,6 +112,7 @@ export class WsClient {
   }
 
   disconnect(): void {
+    this.stopPing();
     if (this.ws) {
       this.ws.close(1000, 'Client disconnect');
       this.ws = null;
@@ -126,11 +130,6 @@ export class WsClient {
       return;
     }
     this.ws!.send(JSON.stringify(message));
-  }
-
-  // Send authentication
-  authenticate(token: string): void {
-    this.send({ type: 'auth', token });
   }
 
   // Request new PTY
@@ -155,6 +154,24 @@ export class WsClient {
     }
     const frame = this.encodeBinaryFrame(ptyId, data);
     this.ws!.send(frame);
+  }
+
+  // Send ping to keep connection alive
+  private sendPing(): void {
+    if (this.isConnected()) {
+      this.send({ type: 'ping' });
+    }
+  }
+
+  private startPing(): void {
+    this.pingInterval = setInterval(() => this.sendPing(), 30000);
+  }
+
+  private stopPing(): void {
+    if (this.pingInterval) {
+      clearInterval(this.pingInterval);
+      this.pingInterval = null;
+    }
   }
 
   // Encode binary frame: [ptyId length (1 byte)][ptyId bytes][data]

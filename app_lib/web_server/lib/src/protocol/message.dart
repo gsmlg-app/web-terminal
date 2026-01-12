@@ -13,69 +13,23 @@ sealed class WsMessage {
 }
 
 // ============================================================================
-// Authentication Messages
+// Session Status Messages
 // ============================================================================
-
-/// Client sends token for authentication.
-class AuthRequest extends WsMessage {
-  @override
-  final String type = 'auth';
-
-  final String token;
-
-  const AuthRequest({required this.token});
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        'token': token,
-      };
-
-  factory AuthRequest.fromJson(Map<String, dynamic> json) =>
-      AuthRequest(token: json['token'] as String);
-}
-
-/// Server response to authentication.
-class AuthResponse extends WsMessage {
-  @override
-  final String type = 'auth_response';
-
-  final bool success;
-  final String? sessionId;
-  final String? error;
-
-  const AuthResponse({
-    required this.success,
-    this.sessionId,
-    this.error,
-  });
-
-  @override
-  Map<String, dynamic> toJson() => {
-        'type': type,
-        'success': success,
-        if (sessionId != null) 'sessionId': sessionId,
-        if (error != null) 'error': error,
-      };
-
-  factory AuthResponse.fromJson(Map<String, dynamic> json) => AuthResponse(
-        success: json['success'] as bool,
-        sessionId: json['sessionId'] as String?,
-        error: json['error'] as String?,
-      );
-}
 
 /// Server notifies client about session status.
 class SessionStatus extends WsMessage {
   @override
   final String type = 'session_status';
 
-  final String status; // 'pending', 'approved', 'rejected', 'expired'
+  /// Status: 'pending', 'approved', 'connected', 'rejected', 'expired'
+  final String status;
   final String? message;
+  final String? approvalCode;
 
   const SessionStatus({
     required this.status,
     this.message,
+    this.approvalCode,
   });
 
   @override
@@ -83,11 +37,13 @@ class SessionStatus extends WsMessage {
         'type': type,
         'status': status,
         if (message != null) 'message': message,
+        if (approvalCode != null) 'approvalCode': approvalCode,
       };
 
   factory SessionStatus.fromJson(Map<String, dynamic> json) => SessionStatus(
         status: json['status'] as String,
         message: json['message'] as String?,
+        approvalCode: json['approvalCode'] as String?,
       );
 }
 
@@ -319,8 +275,6 @@ WsMessage? parseMessageFromJson(Map<String, dynamic> json) {
   if (type == null) return null;
 
   return switch (type) {
-    'auth' => AuthRequest.fromJson(json),
-    'auth_response' => AuthResponse.fromJson(json),
     'session_status' => SessionStatus.fromJson(json),
     'create_pty' => CreatePtyRequest.fromJson(json),
     'create_pty_response' => CreatePtyResponse.fromJson(json),

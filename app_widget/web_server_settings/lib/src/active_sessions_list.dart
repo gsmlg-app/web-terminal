@@ -5,7 +5,12 @@ import 'package:web_session_bloc/web_session_bloc.dart';
 
 /// List of active/connected sessions.
 class ActiveSessionsList extends StatelessWidget {
-  const ActiveSessionsList({super.key});
+  final OnAttachSession? onAttach;
+
+  const ActiveSessionsList({
+    super.key,
+    this.onAttach,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +36,10 @@ class ActiveSessionsList extends StatelessWidget {
           itemCount: state.activeSessions.length,
           itemBuilder: (context, index) {
             final session = state.activeSessions[index];
-            return ActiveSessionCard(session: session);
+            return ActiveSessionCard(
+              session: session,
+              onAttach: onAttach,
+            );
           },
         );
       },
@@ -39,45 +47,113 @@ class ActiveSessionsList extends StatelessWidget {
   }
 }
 
-/// Card for a single active session with disconnect button.
+/// Callback for when attach is requested on a session.
+typedef OnAttachSession = void Function(WebSession session);
+
+/// Card for a single active session with attach and disconnect buttons.
 class ActiveSessionCard extends StatelessWidget {
   final WebSession session;
+  final OnAttachSession? onAttach;
 
   const ActiveSessionCard({
     super.key,
     required this.session,
+    this.onAttach,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final duration = DateTime.now().difference(session.createdAt);
+    final hasTerminals = session.ptyCount > 0;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: const Icon(Icons.computer),
-        ),
-        title: Text(session.clientAddress),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Connected ${_formatDuration(duration)}'),
-            Text(
-              '${session.ptyCount} terminal${session.ptyCount == 1 ? '' : 's'}',
-              style: theme.textTheme.bodySmall,
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: theme.colorScheme.primaryContainer,
+                  child: const Icon(Icons.computer),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        session.clientAddress,
+                        style: theme.textTheme.titleMedium,
+                      ),
+                      Text(
+                        'Connected ${_formatDuration(duration)}',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Terminal list
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.terminal,
+                    size: 20,
+                    color: hasTerminals
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    hasTerminals
+                        ? '${session.ptyCount} active terminal${session.ptyCount == 1 ? '' : 's'}'
+                        : 'No active terminals',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: hasTerminals
+                          ? theme.colorScheme.onSurface
+                          : theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Action buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                if (hasTerminals && onAttach != null)
+                  OutlinedButton.icon(
+                    onPressed: () => onAttach!(session),
+                    icon: const Icon(Icons.visibility),
+                    label: const Text('Attach'),
+                  ),
+                if (hasTerminals && onAttach != null) const SizedBox(width: 8),
+                TextButton.icon(
+                  onPressed: () => _showDisconnectDialog(context, session),
+                  icon: const Icon(Icons.close),
+                  label: const Text('Disconnect'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: theme.colorScheme.error,
+                  ),
+                ),
+              ],
             ),
           ],
-        ),
-        isThreeLine: true,
-        trailing: IconButton(
-          icon: const Icon(Icons.close),
-          tooltip: 'Disconnect',
-          onPressed: () {
-            _showDisconnectDialog(context, session);
-          },
         ),
       ),
     );

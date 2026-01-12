@@ -68,14 +68,6 @@ class WebServerSettingsSection extends StatelessWidget {
                     ? (_) => onManageSessions!()
                     : null,
               ),
-              SettingsTile.navigation(
-                title: const Text('Access Tokens'),
-                description: Text('${state.tokens.length} tokens'),
-                leading: const Icon(Icons.key),
-                onPressed: onManageSessions != null
-                    ? (_) => onManageSessions!()
-                    : null,
-              ),
             ],
             if (state.error != null)
               SettingsTile(

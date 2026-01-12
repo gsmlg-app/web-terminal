@@ -3,23 +3,10 @@ import 'dart:async';
 import 'package:uuid/uuid.dart';
 
 import 'session.dart';
-import 'session_token.dart';
 
 /// Event types for session manager notifications.
 sealed class SessionManagerEvent {
   const SessionManagerEvent();
-}
-
-/// Event: A new token was created.
-class TokenCreatedEvent extends SessionManagerEvent {
-  final SessionToken token;
-  const TokenCreatedEvent(this.token);
-}
-
-/// Event: A token was revoked.
-class TokenRevokedEvent extends SessionManagerEvent {
-  final String tokenId;
-  const TokenRevokedEvent(this.tokenId);
 }
 
 /// Event: A new session is pending approval.
@@ -46,112 +33,136 @@ class SessionDisconnectedEvent extends SessionManagerEvent {
   const SessionDisconnectedEvent(this.session);
 }
 
-/// Manages session tokens and web sessions.
+/// Manages web terminal sessions.
+///
+/// Sessions are created when a browser first accesses the web terminal.
+/// Each session gets a unique ID (stored in HTTP-only cookie) and a
+/// 6-character approval code. The user must approve the session in the
+/// Flutter app before the browser can create PTY connections.
 class SessionManager {
   final _uuid = const Uuid();
-
-  /// All registered tokens.
-  final Map<String, SessionToken> _tokens = {};
 
   /// All sessions (by session ID).
   final Map<String, WebSession> _sessions = {};
 
-  /// Sessions indexed by token value for quick lookup.
-  final Map<String, List<String>> _sessionsByToken = {};
+  /// Sessions indexed by approval code for quick lookup.
+  final Map<String, String> _sessionsByApprovalCode = {};
 
   /// Event stream controller.
   final _eventController = StreamController<SessionManagerEvent>.broadcast();
 
+  /// Session expiry duration.
+  final Duration sessionExpiry;
+
+  /// Timer for cleanup.
+  Timer? _cleanupTimer;
+
+  SessionManager({
+    this.sessionExpiry = const Duration(hours: 24),
+  }) {
+    // Start periodic cleanup
+    _cleanupTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (_) => cleanup(),
+    );
+  }
+
   /// Stream of session manager events.
   Stream<SessionManagerEvent> get events => _eventController.stream;
 
-  /// Create a new session token.
-  SessionToken createToken({
-    String? label,
-    Duration validity = const Duration(hours: 24),
-  }) {
-    final token = SessionToken.generate(
-      label: label,
-      validity: validity,
-    );
-
-    _tokens[token.id] = token;
-    _sessionsByToken[token.token] = [];
-    _eventController.add(TokenCreatedEvent(token));
-
-    return token;
-  }
-
-  /// Revoke a token and invalidate all its sessions.
-  void revokeToken(String tokenId) {
-    final token = _tokens.remove(tokenId);
-    if (token != null) {
-      // Close all sessions using this token
-      final sessionIds = _sessionsByToken.remove(token.token) ?? [];
-      for (final sessionId in sessionIds) {
-        final session = _sessions.remove(sessionId);
-        session?.close();
-      }
-      _eventController.add(TokenRevokedEvent(tokenId));
-    }
-  }
-
-  /// Validate a token string and return the token if valid.
-  SessionToken? validateToken(String tokenString) {
-    for (final token in _tokens.values) {
-      if (token.token == tokenString && token.isValid) {
-        return token;
-      }
-    }
-    return null;
-  }
-
-  /// Create a new pending session for a valid token.
-  WebSession? createSession({
-    required String tokenString,
+  /// Create a new pending session.
+  ///
+  /// Returns the created session with its approval code.
+  /// The session ID should be stored in an HTTP-only cookie.
+  WebSession createSession({
     required String clientAddress,
     String? userAgent,
   }) {
-    final token = validateToken(tokenString);
-    if (token == null) {
-      return null;
-    }
-
     final sessionId = _uuid.v4();
+    final approvalCode = WebSession.generateApprovalCode();
+
     final session = WebSession(
       id: sessionId,
-      tokenId: token.id,
+      approvalCode: approvalCode,
       clientAddress: clientAddress,
       userAgent: userAgent,
       status: WebSessionStatus.pending,
     );
 
     _sessions[sessionId] = session;
-    _sessionsByToken[tokenString]?.add(sessionId);
+    _sessionsByApprovalCode[approvalCode] = sessionId;
+
+    print('[SessionManager] Created session: id=${sessionId.substring(0, 8)}..., '
+        'code=$approvalCode, total=${_sessions.length}');
+    print('[SessionManager] Emitting SessionPendingEvent');
+
     _eventController.add(SessionPendingEvent(session));
 
     return session;
   }
 
-  /// Approve a pending session.
-  void approveSession(String sessionId) {
+  /// Get or create a session for the given session ID.
+  ///
+  /// If the session ID exists and is valid, returns the existing session.
+  /// If not, creates a new session.
+  WebSession getOrCreateSession({
+    required String? existingSessionId,
+    required String clientAddress,
+    String? userAgent,
+  }) {
+    if (existingSessionId != null) {
+      final session = _sessions[existingSessionId];
+      if (session != null && !_isExpired(session)) {
+        return session;
+      }
+    }
+
+    return createSession(
+      clientAddress: clientAddress,
+      userAgent: userAgent,
+    );
+  }
+
+  /// Approve a pending session by its approval code.
+  ///
+  /// Returns true if the session was approved, false if not found or invalid.
+  bool approveByCode(String approvalCode) {
+    final sessionId = _sessionsByApprovalCode[approvalCode];
+    if (sessionId == null) return false;
+
+    return approveSession(sessionId);
+  }
+
+  /// Approve a pending session by its session ID.
+  bool approveSession(String sessionId) {
     final session = _sessions[sessionId];
     if (session != null && session.status == WebSessionStatus.pending) {
       session.status = WebSessionStatus.approved;
       _eventController.add(SessionApprovedEvent(session));
+      return true;
     }
+    return false;
   }
 
-  /// Reject a pending session.
-  void rejectSession(String sessionId) {
+  /// Reject a pending session by its approval code.
+  bool rejectByCode(String approvalCode) {
+    final sessionId = _sessionsByApprovalCode[approvalCode];
+    if (sessionId == null) return false;
+
+    return rejectSession(sessionId);
+  }
+
+  /// Reject a pending session by its session ID.
+  bool rejectSession(String sessionId) {
     final session = _sessions[sessionId];
     if (session != null && session.status == WebSessionStatus.pending) {
       session.status = WebSessionStatus.rejected;
       _eventController.add(SessionRejectedEvent(session));
       // Remove the session after rejection
-      _sessions.remove(sessionId);
-      session.close();
+      _removeSession(session);
+      return true;
     }
+    return false;
   }
 
   /// Disconnect an active session.
@@ -160,16 +171,19 @@ class SessionManager {
     if (session != null) {
       session.status = WebSessionStatus.disconnected;
       _eventController.add(SessionDisconnectedEvent(session));
-      _sessions.remove(sessionId);
-      session.close();
+      _removeSession(session);
     }
   }
 
   /// Get a session by ID.
   WebSession? getSession(String sessionId) => _sessions[sessionId];
 
-  /// Get all tokens.
-  List<SessionToken> get tokens => _tokens.values.toList();
+  /// Get a session by approval code.
+  WebSession? getSessionByApprovalCode(String approvalCode) {
+    final sessionId = _sessionsByApprovalCode[approvalCode];
+    if (sessionId == null) return null;
+    return _sessions[sessionId];
+  }
 
   /// Get all sessions.
   List<WebSession> get sessions => _sessions.values.toList();
@@ -186,27 +200,42 @@ class SessionManager {
   List<WebSession> get activeSessions =>
       sessionsByStatus(WebSessionStatus.connected);
 
-  /// Clean up expired tokens and sessions.
+  /// Get approved sessions (ready to connect).
+  List<WebSession> get approvedSessions =>
+      sessionsByStatus(WebSessionStatus.approved);
+
+  /// Check if a session is expired.
+  bool _isExpired(WebSession session) {
+    return DateTime.now().difference(session.createdAt) > sessionExpiry;
+  }
+
+  /// Remove a session and clean up indexes.
+  void _removeSession(WebSession session) {
+    _sessions.remove(session.id);
+    _sessionsByApprovalCode.remove(session.approvalCode);
+    session.close();
+  }
+
+  /// Clean up expired sessions.
   void cleanup() {
-    // Remove expired tokens
-    final expiredTokenIds = _tokens.entries
-        .where((e) => e.value.isExpired)
-        .map((e) => e.key)
+    final expiredSessions = _sessions.values
+        .where((s) => _isExpired(s))
         .toList();
 
-    for (final tokenId in expiredTokenIds) {
-      revokeToken(tokenId);
+    for (final session in expiredSessions) {
+      session.status = WebSessionStatus.expired;
+      _removeSession(session);
     }
   }
 
   /// Dispose of the session manager.
   Future<void> dispose() async {
+    _cleanupTimer?.cancel();
     for (final session in _sessions.values) {
       await session.close();
     }
     _sessions.clear();
-    _tokens.clear();
-    _sessionsByToken.clear();
+    _sessionsByApprovalCode.clear();
     await _eventController.close();
   }
 }

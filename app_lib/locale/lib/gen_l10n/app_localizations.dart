@@ -198,6 +198,12 @@ abstract class AppLocalizations {
   /// **'Terminal'**
   String get destinationTerminal;
 
+  /// No description provided for @destinationWebTerminal.
+  ///
+  /// In en, this message translates to:
+  /// **'Web Terminal'**
+  String get destinationWebTerminal;
+
   /// No description provided for @destinationSetting.
   ///
   /// In en, this message translates to:

@@ -1,39 +1,52 @@
 /**
  * Web Terminal Client
  * Main application entry point.
+ *
+ * Authentication flow:
+ * 1. Server injects session data via window.__SESSION__ on page load
+ * 2. If session is pending, show approval code for user to enter in Flutter app
+ * 3. Once approved, connect WebSocket (session ID in HTTP-only cookie)
+ * 4. Create PTY sessions for terminal tabs
  */
 
 import '@xterm/xterm/css/xterm.css';
 import {
   WsClient,
-  AuthResponse,
   SessionStatusMessage,
   CreatePtyResponse,
+  PtyExitedMessage,
   ErrorMessage,
   WsMessage,
 } from './ws-client';
 import { TerminalManager } from './terminal-manager';
 
+// Session data injected by server
+interface SessionData {
+  id: string;
+  approvalCode: string;
+  status: 'pending' | 'approved' | 'connected' | 'rejected' | 'expired';
+}
+
+declare global {
+  interface Window {
+    __SESSION__?: SessionData;
+  }
+}
+
 // Application state
-type AppState =
-  | 'disconnected'
-  | 'connecting'
-  | 'authenticating'
-  | 'pending_approval'
-  | 'connected';
+type AppState = 'pending' | 'connecting' | 'connected' | 'disconnected' | 'error';
 
 class TerminalApp {
   private wsClient: WsClient;
   private terminalManager: TerminalManager | null = null;
-  private state: AppState = 'disconnected';
-  private token: string = '';
+  private state: AppState = 'pending';
+  private session: SessionData | null = null;
+  private statusPollInterval: ReturnType<typeof setInterval> | null = null;
 
   // DOM elements
-  private authScreen!: HTMLElement;
   private pendingScreen!: HTMLElement;
   private terminalScreen!: HTMLElement;
-  private tokenInput!: HTMLInputElement;
-  private connectBtn!: HTMLButtonElement;
+  private approvalCodeEl!: HTMLElement;
   private statusText!: HTMLElement;
   private errorText!: HTMLElement;
 
@@ -47,20 +60,17 @@ class TerminalApp {
   }
 
   init(): void {
+    // Get session from injected data
+    this.session = window.__SESSION__ || null;
+
+    console.log('[TerminalApp] Initializing with session:', this.session);
+
     // Get DOM elements
-    this.authScreen = document.getElementById('auth-screen')!;
     this.pendingScreen = document.getElementById('pending-screen')!;
     this.terminalScreen = document.getElementById('terminal-screen')!;
-    this.tokenInput = document.getElementById('token-input') as HTMLInputElement;
-    this.connectBtn = document.getElementById('connect-btn') as HTMLButtonElement;
+    this.approvalCodeEl = document.getElementById('approval-code')!;
     this.statusText = document.getElementById('status-text')!;
     this.errorText = document.getElementById('error-text')!;
-
-    // Setup event listeners
-    this.connectBtn.onclick = () => this.connect();
-    this.tokenInput.onkeydown = (e) => {
-      if (e.key === 'Enter') this.connect();
-    };
 
     // Setup new tab button
     const newTabBtn = document.querySelector('.new-tab-btn');
@@ -81,38 +91,95 @@ class TerminalApp {
       terminalContainer
     );
 
-    // Check for token in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const urlToken = urlParams.get('token');
-    if (urlToken) {
-      this.tokenInput.value = urlToken;
-      // Clear URL
-      window.history.replaceState({}, '', window.location.pathname);
+    // Handle initial session state
+    if (!this.session) {
+      this.showError('No session. Please refresh the page.');
+      return;
     }
 
-    this.showScreen('auth');
+    // Display approval code
+    this.approvalCodeEl.textContent = this.session.approvalCode;
+
+    // Check session status and act accordingly
+    this.handleSessionState(this.session.status);
+  }
+
+  private handleSessionState(status: SessionData['status']): void {
+    console.log('[TerminalApp] Handling session state:', status);
+
+    switch (status) {
+      case 'pending':
+        this.state = 'pending';
+        this.showScreen('pending');
+        this.setStatus('Waiting for approval in the app...');
+        this.startStatusPolling();
+        break;
+      case 'approved':
+      case 'connected':
+        this.stopStatusPolling();
+        this.state = 'connecting';
+        this.setStatus('Connecting...');
+        this.wsClient.connect();
+        break;
+      case 'rejected':
+        this.state = 'error';
+        this.showError('Session was rejected by the app.');
+        break;
+      case 'expired':
+        this.state = 'error';
+        this.showError('Session expired. Please refresh the page.');
+        break;
+    }
+  }
+
+  private startStatusPolling(): void {
+    // Poll session status every 2 seconds
+    this.statusPollInterval = setInterval(async () => {
+      try {
+        const res = await fetch('/api/session');
+        const data = await res.json();
+        if (data.status !== 'pending') {
+          this.handleSessionState(data.status);
+        }
+      } catch (e) {
+        console.error('Failed to poll session status:', e);
+      }
+    }, 2000);
+  }
+
+  private stopStatusPolling(): void {
+    if (this.statusPollInterval) {
+      clearInterval(this.statusPollInterval);
+      this.statusPollInterval = null;
+    }
   }
 
   private setupWebSocketHandlers(): void {
     this.wsClient.setHandlers({
       onOpen: () => {
-        this.setStatus('Connected, authenticating...');
-        this.state = 'authenticating';
-        this.wsClient.authenticate(this.token);
+        this.setStatus('Connected');
+        // Server will send session_status message
       },
 
       onClose: (code, reason) => {
         console.log(`WebSocket closed: ${code} ${reason}`);
-        if (this.state !== 'disconnected') {
+        if (this.state === 'connected') {
           this.state = 'disconnected';
-          this.showError('Connection lost. Please reconnect.');
-          this.showScreen('auth');
+          this.showError('Connection lost. Reconnecting...');
+          // Try to reconnect after 3 seconds
+          setTimeout(() => {
+            if (this.state === 'disconnected') {
+              this.wsClient.connect();
+            }
+          }, 3000);
         }
       },
 
       onError: (error) => {
         console.error('WebSocket error:', error);
-        this.showError('Connection error. Please try again.');
+        if (this.state !== 'error') {
+          this.showError('Connection error. Retrying...');
+        }
       },
 
       onMessage: (message) => this.handleMessage(message),
@@ -125,99 +192,76 @@ class TerminalApp {
 
   private handleMessage(message: WsMessage): void {
     switch (message.type) {
-      case 'auth_response':
-        this.handleAuthResponse(message as AuthResponse);
-        break;
       case 'session_status':
         this.handleSessionStatus(message as SessionStatusMessage);
         break;
       case 'create_pty_response':
         this.handleCreatePtyResponse(message as CreatePtyResponse);
         break;
+      case 'pty_exited':
+        this.handlePtyExited(message as PtyExitedMessage);
+        break;
       case 'error':
         this.handleError(message as ErrorMessage);
+        break;
+      case 'pong':
+        // Heartbeat response, ignore
         break;
       default:
         console.log('Unknown message:', message);
     }
   }
 
-  private handleAuthResponse(response: AuthResponse): void {
-    if (response.success) {
-      this.setStatus('Authentication successful. Waiting for approval...');
-      this.state = 'pending_approval';
-      this.showScreen('pending');
-    } else {
-      this.showError(response.message || 'Authentication failed');
-      this.wsClient.disconnect();
-      this.state = 'disconnected';
-    }
-  }
-
   private handleSessionStatus(status: SessionStatusMessage): void {
     switch (status.status) {
-      case 'auth_required':
-        // Server is ready for authentication, this is handled by onOpen
-        console.log('Server ready for authentication');
-        break;
-      case 'approved':
+      case 'connected':
         this.state = 'connected';
+        this.clearError();
         this.showScreen('terminal');
-        // Create first terminal tab
+        // Create first terminal tab if none exist
         if (this.terminalManager?.getTabCount() === 0) {
           this.terminalManager.createTab();
         }
         break;
-      case 'rejected':
-        this.showError('Session was rejected by the app.');
-        this.wsClient.disconnect();
-        this.state = 'disconnected';
-        this.showScreen('auth');
+      case 'approved':
+        // Session approved, wait for connected status
+        this.setStatus('Session approved, connecting...');
         break;
       case 'pending':
-        this.setStatus('Waiting for approval in the app...');
+        this.setStatus(`Waiting for approval. Code: ${status.approvalCode || this.session?.approvalCode}`);
+        break;
+      case 'rejected':
+        this.state = 'error';
+        this.showError('Session was rejected by the app.');
+        this.wsClient.disconnect();
+        break;
+      case 'expired':
+        this.state = 'error';
+        this.showError('Session expired. Please refresh the page.');
+        this.wsClient.disconnect();
         break;
     }
   }
 
   private handleCreatePtyResponse(response: CreatePtyResponse): void {
-    if (response.ptyId) {
-      this.terminalManager?.handlePtyCreated(
-        response.ptyId,
-        response.success,
-        response.message
-      );
-    }
+    this.terminalManager?.handlePtyCreated(
+      response.ptyId,
+      response.success,
+      response.error
+    );
+  }
+
+  private handlePtyExited(message: PtyExitedMessage): void {
+    this.terminalManager?.handlePtyExited(message.ptyId, message.exitCode);
   }
 
   private handleError(error: ErrorMessage): void {
-    console.error('Server error:', error.message);
+    console.error('Server error:', error.code, error.message);
     this.showError(error.message);
   }
 
-  private connect(): void {
-    const token = this.tokenInput.value.trim();
-    if (!token) {
-      this.showError('Please enter a token');
-      return;
-    }
-
-    this.token = token;
-    this.clearError();
-    this.setStatus('Connecting...');
-    this.state = 'connecting';
-    this.connectBtn.disabled = true;
-
-    this.wsClient.connect();
-
-    // Re-enable button after timeout
-    setTimeout(() => {
-      this.connectBtn.disabled = false;
-    }, 3000);
-  }
-
-  private showScreen(screen: 'auth' | 'pending' | 'terminal'): void {
-    this.authScreen.style.display = screen === 'auth' ? 'flex' : 'none';
+  private showScreen(screen: 'pending' | 'terminal'): void {
+    console.log('[TerminalApp] Showing screen:', screen);
     this.pendingScreen.style.display = screen === 'pending' ? 'flex' : 'none';
     this.terminalScreen.style.display = screen === 'terminal' ? 'flex' : 'none';
   }

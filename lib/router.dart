@@ -5,6 +5,7 @@ import 'package:web_terminal/screens/error/error_screen.dart';
 import 'package:web_terminal/screens/settings/_setting_route.dart';
 import 'package:web_terminal/screens/splash/splash_screen.dart';
 import 'package:web_terminal/screens/terminal/terminal_screen.dart';
+import 'package:web_terminal/screens/web_terminal/web_terminal_screen.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>(debugLabel: 'routerKey');
 
@@ -50,6 +51,16 @@ List<GoRoute> routes = [
       return NoTransitionPage<void>(
         key: state.pageKey,
         child: const TerminalScreen(),
+      );
+    },
+  ),
+  GoRoute(
+    name: WebTerminalScreen.name,
+    path: WebTerminalScreen.path,
+    pageBuilder: (context, state) {
+      return NoTransitionPage<void>(
+        key: state.pageKey,
+        child: const WebTerminalScreen(),
       );
     },
   ),

@@ -15,15 +15,14 @@ class WebServerScreen extends StatelessWidget {
     return BlocBuilder<WebSessionBloc, WebSessionState>(
       builder: (context, state) {
         return DefaultTabController(
-          length: 3,
+          length: 2,
           child: Scaffold(
             appBar: AppBar(
               title: const Text('Web Server'),
               bottom: const TabBar(
                 tabs: [
-                  Tab(text: 'Tokens'),
-                  Tab(text: 'Sessions'),
                   Tab(text: 'Pending'),
+                  Tab(text: 'Active'),
                 ],
               ),
               actions: [
@@ -41,6 +40,13 @@ class WebServerScreen extends StatelessWidget {
                       ),
                       label: Text('Port ${state.serverPort}'),
                     ),
+                  ),
+                // Button to approve session by code
+                if (state.serverRunning)
+                  IconButton(
+                    icon: const Icon(Icons.dialpad),
+                    tooltip: 'Approve by code',
+                    onPressed: () => _showApproveByCodeDialog(context),
                   ),
               ],
             ),
@@ -135,11 +141,10 @@ class WebServerScreen extends StatelessWidget {
                 Expanded(
                   child: TabBarView(
                     children: [
-                      const TokenList(),
-                      const ActiveSessionsList(),
                       PendingSessionsBadge(
                         child: const SessionApprovalList(),
                       ),
+                      const ActiveSessionsList(),
                     ],
                   ),
                 ),
@@ -148,6 +153,13 @@ class WebServerScreen extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  void _showApproveByCodeDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => const ApproveByCodeDialog(),
     );
   }
 }

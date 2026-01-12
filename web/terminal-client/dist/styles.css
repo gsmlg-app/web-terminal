@@ -177,17 +177,78 @@ html, body {
 }
 
 .pending-card {
-  text-align: center;
+  background: var(--ctp-surface0);
+  border-radius: 16px;
   padding: 48px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--ctp-surface1);
+  text-align: center;
+}
+
+.pending-header {
+  margin-bottom: 32px;
+}
+
+.pending-icon {
+  width: 64px;
+  height: 64px;
+  margin-bottom: 16px;
+  color: var(--ctp-mauve);
+}
+
+.pending-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--ctp-text);
+}
+
+.pending-header p {
+  color: var(--ctp-subtext0);
+  font-size: 14px;
+}
+
+.approval-section {
+  margin-bottom: 32px;
+}
+
+.approval-label {
+  color: var(--ctp-subtext0);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.approval-code {
+  font-family: 'Fira Code', 'SF Mono', Monaco, 'Courier New', monospace;
+  font-size: 42px;
+  font-weight: bold;
+  letter-spacing: 12px;
+  color: var(--ctp-sky);
+  background: var(--ctp-base);
+  padding: 20px 28px;
+  border-radius: 12px;
+  border: 2px solid var(--ctp-surface2);
+  margin: 16px auto;
+  display: inline-block;
+  user-select: all;
+  cursor: text;
+}
+
+.approval-hint {
+  color: var(--ctp-overlay0);
+  font-size: 13px;
+  margin-top: 16px;
 }
 
 .spinner {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   border: 4px solid var(--ctp-surface2);
   border-top-color: var(--ctp-mauve);
   border-radius: 50%;
-  margin: 0 auto 24px;
+  margin: 24px auto 16px;
   animation: spin 1s linear infinite;
 }
 

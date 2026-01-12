@@ -6,6 +6,7 @@ import 'package:theme_bloc/theme_bloc.dart';
 import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:terminal_settings/terminal_settings.dart';
+import 'package:web_terminal/destinations.dart';
 import 'package:app_locale/app_locale.dart';
 
 class SettingsSelectTheme extends StatelessWidget {

@@ -12,9 +12,6 @@ class WebSessionState extends Equatable {
   /// Server address (if running).
   final String? serverAddress;
 
-  /// All active tokens.
-  final List<SessionToken> tokens;
-
   /// Sessions pending approval.
   final List<WebSession> pendingSessions;
 
@@ -31,7 +28,6 @@ class WebSessionState extends Equatable {
     this.serverRunning = false,
     this.serverPort,
     this.serverAddress,
-    this.tokens = const [],
     this.pendingSessions = const [],
     this.activeSessions = const [],
     this.error,
@@ -42,7 +38,6 @@ class WebSessionState extends Equatable {
   const WebSessionState.initial()
       : this(
           serverRunning: false,
-          tokens: const [],
           pendingSessions: const [],
           activeSessions: const [],
         );
@@ -52,7 +47,6 @@ class WebSessionState extends Equatable {
         serverRunning,
         serverPort,
         serverAddress,
-        tokens,
         pendingSessions,
         activeSessions,
         error,
@@ -63,7 +57,6 @@ class WebSessionState extends Equatable {
     bool? serverRunning,
     int? serverPort,
     String? serverAddress,
-    List<SessionToken>? tokens,
     List<WebSession>? pendingSessions,
     List<WebSession>? activeSessions,
     String? error,
@@ -77,7 +70,6 @@ class WebSessionState extends Equatable {
       serverPort: clearServerPort ? null : (serverPort ?? this.serverPort),
       serverAddress:
           clearServerAddress ? null : (serverAddress ?? this.serverAddress),
-      tokens: tokens ?? this.tokens,
       pendingSessions: pendingSessions ?? this.pendingSessions,
       activeSessions: activeSessions ?? this.activeSessions,
       error: clearError ? null : (error ?? this.error),

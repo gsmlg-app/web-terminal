@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -9,7 +10,7 @@ import 'pty_session.dart';
 
 /// Status of a web session.
 enum WebSessionStatus {
-  /// Token submitted, waiting for app approval.
+  /// Session created, waiting for app approval.
   pending,
 
   /// Session approved by user in Flutter app.
@@ -18,23 +19,27 @@ enum WebSessionStatus {
   /// Session rejected by user.
   rejected,
 
-  /// Token expired or session timed out.
+  /// Session expired.
   expired,
 
-  /// Session actively connected.
+  /// Session actively connected via WebSocket.
   connected,
 
   /// Session disconnected.
   disconnected,
 }
 
-/// A web terminal session representing a single WebSocket connection.
+/// A web terminal session representing a browser connection.
+///
+/// Sessions are created when a browser first accesses the web terminal.
+/// Each session gets a unique ID (stored in HTTP-only cookie) and a
+/// 6-character approval code that the user must approve in the Flutter app.
 class WebSession {
-  /// Unique identifier for this session.
+  /// Unique identifier for this session (stored in cookie).
   final String id;
 
-  /// ID of the token used to authenticate.
-  final String tokenId;
+  /// 6-character approval code shown to user for approval.
+  final String approvalCode;
 
   /// When the session was created.
   final DateTime createdAt;
@@ -55,25 +60,41 @@ class WebSession {
   WebSocketChannel? _channel;
 
   /// Stream controller for session events.
-  final _eventController = StreamController<WsSessionInternalEvent>.broadcast();
+  final _eventController =
+      StreamController<WsSessionInternalEvent>.broadcast();
 
   /// Host instance for creating PTY sessions.
   Host? _host;
 
   WebSession({
     required this.id,
-    required this.tokenId,
+    required this.approvalCode,
     required this.clientAddress,
     this.userAgent,
     this.status = WebSessionStatus.pending,
   }) : createdAt = DateTime.now();
 
+  /// Generate a random 6-character approval code.
+  static String generateApprovalCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclude confusing chars
+    final random = Random.secure();
+    return List.generate(6, (_) => chars[random.nextInt(chars.length)]).join();
+  }
+
   /// Stream of session events.
   Stream<WsSessionInternalEvent> get events => _eventController.stream;
 
-  /// Whether the session is connected.
+  /// Whether the session is connected via WebSocket.
   bool get isConnected =>
       _channel != null && status == WebSessionStatus.connected;
+
+  /// Whether the session is approved (can connect WebSocket).
+  bool get isApproved =>
+      status == WebSessionStatus.approved ||
+      status == WebSessionStatus.connected;
+
+  /// Whether the session is pending approval.
+  bool get isPending => status == WebSessionStatus.pending;
 
   /// Number of active PTY sessions.
   int get ptyCount => ptySessions.length;
@@ -174,7 +195,7 @@ class WebSession {
   /// Convert to JSON for serialization.
   Map<String, dynamic> toJson() => {
         'id': id,
-        'tokenId': tokenId,
+        'approvalCode': approvalCode,
         'createdAt': createdAt.toIso8601String(),
         'clientAddress': clientAddress,
         'userAgent': userAgent,

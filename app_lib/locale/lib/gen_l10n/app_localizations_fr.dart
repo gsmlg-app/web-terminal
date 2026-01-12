@@ -48,6 +48,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get destinationTerminal => 'Terminal';
 
   @override
+  String get destinationWebTerminal => 'Web Terminal';
+
+  @override
   String get destinationSetting => 'Paramètre';
 
   @override

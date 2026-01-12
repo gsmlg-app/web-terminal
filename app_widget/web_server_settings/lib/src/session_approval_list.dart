@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_server/web_server.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
@@ -11,6 +12,9 @@ class SessionApprovalList extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<WebSessionBloc, WebSessionState>(
       builder: (context, state) {
+        // Debug logging
+        debugPrint('[SessionApprovalList] Building with ${state.pendingSessions.length} pending sessions');
+
         if (state.pendingSessions.isEmpty) {
           return const Center(
             child: Column(
@@ -21,6 +25,12 @@ class SessionApprovalList extends StatelessWidget {
                 Text(
                   'No pending sessions',
                   style: TextStyle(color: Colors.grey),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Sessions will appear here when\nsomeone connects via web browser',
+                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  textAlign: TextAlign.center,
                 ),
               ],
             ),
@@ -60,9 +70,21 @@ class SessionApprovalCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Header with icon and timestamp
             Row(
               children: [
-                const Icon(Icons.pending_actions, color: Colors.orange),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    Icons.pending_actions,
+                    color: Colors.orange,
+                    size: 24,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -70,33 +92,92 @@ class SessionApprovalCard extends StatelessWidget {
                     children: [
                       Text(
                         'Connection Request',
-                        style: theme.textTheme.titleMedium,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         'From: ${session.clientAddress}',
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ],
                   ),
                 ),
                 Text(
                   _formatDuration(timeSinceCreated),
-                  style: theme.textTheme.bodySmall,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
+
+            const SizedBox(height: 16),
+
+            // Approval code display
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: theme.colorScheme.primaryContainer,
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                children: [
+                  Text(
+                    'Approval Code',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => _copyCode(context),
+                    child: Text(
+                      session.approvalCode,
+                      style: TextStyle(
+                        fontFamily: 'monospace',
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 8,
+                        color: theme.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tap to copy',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
             if (session.userAgent != null) ...[
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               Text(
                 session.userAgent!,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey,
+                  color: theme.colorScheme.onSurfaceVariant,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
+
             const SizedBox(height: 16),
+
+            // Action buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -130,6 +211,16 @@ class SessionApprovalCard extends StatelessWidget {
     );
   }
 
+  void _copyCode(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: session.approvalCode));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Approval code "${session.approvalCode}" copied'),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
   String _formatDuration(Duration duration) {
     if (duration.inMinutes < 1) {
       return 'Just now';
@@ -140,5 +231,85 @@ class SessionApprovalCard extends StatelessWidget {
     } else {
       return '${duration.inDays}d ago';
     }
+  }
+}
+
+/// Dialog for approving a session by entering its code manually.
+class ApproveByCodeDialog extends StatefulWidget {
+  const ApproveByCodeDialog({super.key});
+
+  @override
+  State<ApproveByCodeDialog> createState() => _ApproveByCodeDialogState();
+}
+
+class _ApproveByCodeDialogState extends State<ApproveByCodeDialog> {
+  final _codeController = TextEditingController();
+  String? _error;
+
+  @override
+  void dispose() {
+    _codeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Approve by Code'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text(
+            'Enter the 6-character code shown in the web browser:',
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _codeController,
+            textCapitalization: TextCapitalization.characters,
+            maxLength: 6,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              fontSize: 24,
+              letterSpacing: 8,
+              fontWeight: FontWeight.bold,
+            ),
+            decoration: InputDecoration(
+              hintText: 'ABC123',
+              hintStyle: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                letterSpacing: 8,
+              ),
+              errorText: _error,
+              counterText: '',
+            ),
+            onChanged: (value) {
+              setState(() => _error = null);
+            },
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _approve,
+          child: const Text('Approve'),
+        ),
+      ],
+    );
+  }
+
+  void _approve() {
+    final code = _codeController.text.trim().toUpperCase();
+    if (code.length != 6) {
+      setState(() => _error = 'Code must be 6 characters');
+      return;
+    }
+
+    context.read<WebSessionBloc>().add(ApproveSessionByCode(code));
+    Navigator.pop(context);
   }
 }
