@@ -24,6 +24,9 @@ class WebSessionState extends Equatable {
   /// Whether the server is starting.
   final bool isStarting;
 
+  /// Revision counter for session updates.
+  final int sessionsRevision;
+
   const WebSessionState({
     this.serverRunning = false,
     this.serverPort,
@@ -32,6 +35,7 @@ class WebSessionState extends Equatable {
     this.activeSessions = const [],
     this.error,
     this.isStarting = false,
+    this.sessionsRevision = 0,
   });
 
   /// Initial state.
@@ -51,6 +55,7 @@ class WebSessionState extends Equatable {
         activeSessions,
         error,
         isStarting,
+        sessionsRevision,
       ];
 
   WebSessionState copyWith({
@@ -61,6 +66,7 @@ class WebSessionState extends Equatable {
     List<WebSession>? activeSessions,
     String? error,
     bool? isStarting,
+    int? sessionsRevision,
     bool clearError = false,
     bool clearServerPort = false,
     bool clearServerAddress = false,
@@ -74,6 +80,7 @@ class WebSessionState extends Equatable {
       activeSessions: activeSessions ?? this.activeSessions,
       error: clearError ? null : (error ?? this.error),
       isStarting: isStarting ?? this.isStarting,
+      sessionsRevision: sessionsRevision ?? this.sessionsRevision,
     );
   }
 

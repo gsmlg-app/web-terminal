@@ -1,8 +1,12 @@
 import 'dart:async';
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
 import 'package:shelf/shelf.dart';
+
 import 'package:shelf/shelf_io.dart' as shelf_io;
 import 'package:shelf_router/shelf_router.dart';
 import 'package:shelf_static/shelf_static.dart';
@@ -94,14 +98,93 @@ class WebTerminalServer {
 
     // Start server
     final bindAddress = config.bindAddress ?? InternetAddress.anyIPv4.address;
+    final securityContext =
+        config.useSsl ? await _createSecurityContext() : null;
     _server = await shelf_io.serve(
       handler,
       bindAddress,
       config.port,
+      securityContext: securityContext,
     );
 
     // Subscribe to session manager events for approval notifications
     _subscribeToSessionEvents();
+  }
+
+  Future<SecurityContext> _createSecurityContext() async {
+    final certDir = Directory('${Directory.systemTemp.path}/web-terminal-cert');
+    if (!await certDir.exists()) {
+      await certDir.create(recursive: true);
+    }
+
+    final certFile = File('${certDir.path}/certificate.pem');
+    final keyFile = File('${certDir.path}/private_key.pem');
+    if (!await certFile.exists() || !await keyFile.exists()) {
+      await _generateSelfSignedCertificate(certFile, keyFile);
+    }
+
+    final context = SecurityContext();
+    context.useCertificateChain(certFile.path);
+    context.usePrivateKey(keyFile.path);
+    return context;
+  }
+
+  Future<void> _generateSelfSignedCertificate(
+    File certFile,
+    File keyFile,
+  ) async {
+    final sans = <String>['DNS:localhost', 'IP:127.0.0.1'];
+    final bindAddress = config.bindAddress;
+    if (bindAddress != null &&
+        bindAddress.isNotEmpty &&
+        bindAddress != '0.0.0.0' &&
+        bindAddress != '::') {
+      sans.add('IP:$bindAddress');
+    }
+
+    final args = [
+      'req',
+      '-x509',
+      '-nodes',
+      '-newkey',
+      'rsa:2048',
+      '-keyout',
+      keyFile.path,
+      '-out',
+      certFile.path,
+      '-days',
+      '365',
+      '-subj',
+      '/CN=web-terminal',
+      '-addext',
+      'subjectAltName=${sans.join(',')}',
+    ];
+
+    var result = await Process.run('openssl', args);
+    if (result.exitCode != 0) {
+      result = await Process.run(
+        'openssl',
+        [
+          'req',
+          '-x509',
+          '-nodes',
+          '-newkey',
+          'rsa:2048',
+          '-keyout',
+          keyFile.path,
+          '-out',
+          certFile.path,
+          '-days',
+          '365',
+          '-subj',
+          '/CN=web-terminal',
+        ],
+      );
+    }
+
+    if (result.exitCode != 0) {
+      throw StateError('Failed to generate SSL certificate: ${result.stderr}');
+    }
   }
 
   /// Handle main page request - creates session and sets cookie.
@@ -123,12 +206,14 @@ class WebTerminalServer {
     final isNewSession = existingSessionId != session.id;
     print('[WebServer] ===== Request to / =====');
     print('[WebServer] Client: $clientAddress');
-    print('[WebServer] Existing cookie: ${existingSessionId?.substring(0, 8) ?? 'none'}...');
+    print(
+        '[WebServer] Existing cookie: ${existingSessionId?.substring(0, 8) ?? 'none'}...');
     print('[WebServer] Session ID: ${session.id.substring(0, 8)}...');
     print('[WebServer] New session created: $isNewSession');
     print('[WebServer] Approval code: ${session.approvalCode}');
     print('[WebServer] Status: ${session.status.name}');
-    print('[WebServer] Injecting window.__SESSION__ = ${_sessionToJson(session)}');
+    print(
+        '[WebServer] Injecting window.__SESSION__ = ${_sessionToJson(session)}');
     print('[WebServer] ===========================');
 
     // Check if we have static files
@@ -202,8 +287,15 @@ class WebTerminalServer {
     if (forwarded != null) {
       return forwarded.split(',').first.trim();
     }
-    // Fall back to connection info
-    return request.headers['x-real-ip'] ?? 'unknown';
+
+    final realIp = request.headers['x-real-ip'];
+    if (realIp != null && realIp.isNotEmpty) {
+      return realIp;
+    }
+
+    final connectionInfo =
+        request.context['shelf.io.connection_info'] as HttpConnectionInfo?;
+    return connectionInfo?.remoteAddress.address ?? '0.0.0.0';
   }
 
   /// Convert session to JSON string for injection.
@@ -445,7 +537,7 @@ class WebTerminalServer {
   void _notifySessionApproved(WebSession session) {
     final conn = _connections[session.id];
     if (conn != null) {
-      session.status = WebSessionStatus.connected;
+      sessionManager.markConnected(session.id);
       conn.sendMessage(const SessionStatus(
         status: 'approved',
         message: 'Session approved',
@@ -485,6 +577,7 @@ class _WebSocketConnection {
   WebSession? _session;
   StreamSubscription? _channelSubscription;
   StreamSubscription? _sessionEventSubscription;
+  Timer? _pingTimer;
 
   _WebSocketConnection({
     required this.channel,
@@ -532,7 +625,7 @@ class _WebSocketConnection {
 
     // Send current status
     if (session.isApproved) {
-      session.status = WebSessionStatus.connected;
+      sessionManager.markConnected(session.id);
       sendMessage(const SessionStatus(
         status: 'connected',
         message: 'Session connected',
@@ -548,13 +641,17 @@ class _WebSocketConnection {
         message: 'Session status: ${session.status.name}',
       ));
     }
+
+    _startPing();
   }
 
   /// Handle incoming message.
   void _onMessage(dynamic data) {
     if (data is String) {
+      _recordIncomingBytes(data.length);
       _handleJsonMessage(data);
     } else if (data is List<int>) {
+      _recordIncomingBytes(data.length);
       _handleBinaryMessage(Uint8List.fromList(data));
     }
   }
@@ -577,8 +674,10 @@ class _WebSocketConnection {
         _handleClosePty(ptyId);
       case ResizePtyRequest(:final ptyId, :final cols, :final rows):
         _handleResizePty(ptyId, cols, rows);
-      case Ping():
-        sendMessage(const Pong());
+      case Ping(:final sentAt):
+        sendMessage(Pong(sentAt: sentAt));
+      case Pong(:final sentAt):
+        _recordLatency(sentAt);
       default:
         sendMessage(const ErrorMessage(
           code: 'unknown_message',
@@ -633,6 +732,8 @@ class _WebSocketConnection {
         environment: env,
       );
       sendMessage(CreatePtyResponse(ptyId: ptyId, success: true));
+      _session!.updatePtySize(ptyId, cols, rows);
+      _notifySessionUpdated();
     } catch (e) {
       sendMessage(CreatePtyResponse(
         ptyId: ptyId,
@@ -646,6 +747,7 @@ class _WebSocketConnection {
   void _handleClosePty(String ptyId) async {
     if (_session == null) return;
     await _session!.closePty(ptyId);
+    _notifySessionUpdated();
   }
 
   /// Handle PTY resize request.
@@ -653,25 +755,81 @@ class _WebSocketConnection {
     if (_session == null) return;
     final pty = _session!.ptySessions[ptyId];
     await pty?.resize(cols, rows);
+    _session!.updatePtySize(ptyId, cols, rows);
   }
 
   /// Handle session events.
   void _onSessionEvent(WsSessionInternalEvent event) {
     switch (event) {
+      case WsPtyCreatedEvent():
+        _notifySessionUpdated();
       case WsPtyOutputEvent(:final ptyId, :final data):
         // Send binary frame
         final frame = encodeBinaryFrame(ptyId, data);
+        _recordOutgoingBytes(frame.length);
         channel.sink.add(frame);
       case WsPtyClosedEvent(:final ptyId, :final exitCode):
         sendMessage(PtyExited(ptyId: ptyId, exitCode: exitCode));
+        _notifySessionUpdated();
       default:
         break;
     }
   }
 
+  void _recordIncomingBytes(int bytes) {
+    if (_session == null) return;
+    final updated = _session!.recordIncomingBytes(bytes);
+    if (updated) {
+      sessionManager.notifySessionUpdated(_session!);
+    }
+  }
+
+  void _recordOutgoingBytes(int bytes) {
+    if (_session == null) return;
+    final updated = _session!.recordOutgoingBytes(bytes);
+    if (updated) {
+      sessionManager.notifySessionUpdated(_session!);
+    }
+  }
+
+  void _recordLatency(int sentAt) {
+    if (_session == null) return;
+    final latency = DateTime.now().millisecondsSinceEpoch - sentAt;
+    if (latency < 0) return;
+    _session!.updateLatency(latency);
+    sessionManager.notifySessionUpdated(_session!);
+  }
+
+  void _notifySessionUpdated() {
+    if (_session == null) return;
+    sessionManager.notifySessionUpdated(_session!);
+  }
+
+  void _startPing() {
+    _stopPing();
+    _sendPing();
+    _pingTimer = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => _sendPing(),
+    );
+  }
+
+  void _stopPing() {
+    _pingTimer?.cancel();
+    _pingTimer = null;
+  }
+
+  void _sendPing() {
+    sendMessage(
+      Ping(sentAt: DateTime.now().millisecondsSinceEpoch),
+    );
+  }
+
   /// Send a JSON message.
   void sendMessage(WsMessage message) {
-    channel.sink.add(message.toJsonString());
+    final payload = message.toJsonString();
+    _recordOutgoingBytes(payload.length);
+    channel.sink.add(payload);
   }
 
   /// Handle error.
@@ -686,12 +844,14 @@ class _WebSocketConnection {
 
   /// Close the connection.
   Future<void> close() async {
+    _stopPing();
     await _channelSubscription?.cancel();
     await _sessionEventSubscription?.cancel();
 
     if (_session != null) {
       server._unregisterConnection(_session!.id);
       _session!.detach();
+      sessionManager.markDisconnected(_session!.id);
       // Don't disconnect the session - it can reconnect
       _session = null;
     }

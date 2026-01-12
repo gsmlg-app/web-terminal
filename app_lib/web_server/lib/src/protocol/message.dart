@@ -199,30 +199,46 @@ class ResizePtyRequest extends WsMessage {
 // Heartbeat Messages
 // ============================================================================
 
-/// Client ping.
+/// Client or server ping.
 class Ping extends WsMessage {
   @override
   final String type = 'ping';
 
-  const Ping();
+  final int sentAt;
+
+  const Ping({required this.sentAt});
 
   @override
-  Map<String, dynamic> toJson() => {'type': type};
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        'sentAt': sentAt,
+      };
 
-  factory Ping.fromJson(Map<String, dynamic> json) => const Ping();
+  factory Ping.fromJson(Map<String, dynamic> json) => Ping(
+        sentAt:
+            (json['sentAt'] as int?) ?? DateTime.now().millisecondsSinceEpoch,
+      );
 }
 
-/// Server pong.
+/// Ping response.
 class Pong extends WsMessage {
   @override
   final String type = 'pong';
 
-  const Pong();
+  final int sentAt;
+
+  const Pong({required this.sentAt});
 
   @override
-  Map<String, dynamic> toJson() => {'type': type};
+  Map<String, dynamic> toJson() => {
+        'type': type,
+        'sentAt': sentAt,
+      };
 
-  factory Pong.fromJson(Map<String, dynamic> json) => const Pong();
+  factory Pong.fromJson(Map<String, dynamic> json) => Pong(
+        sentAt:
+            (json['sentAt'] as int?) ?? DateTime.now().millisecondsSinceEpoch,
+      );
 }
 
 // ============================================================================

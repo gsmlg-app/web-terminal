@@ -28,6 +28,16 @@ export interface SessionStatusMessage extends WsMessage {
   approvalCode?: string;
 }
 
+export interface PingMessage extends WsMessage {
+  type: 'ping';
+  sentAt: number;
+}
+
+export interface PongMessage extends WsMessage {
+  type: 'pong';
+  sentAt: number;
+}
+
 export interface CreatePtyResponse extends WsMessage {
   type: 'create_pty_response';
   ptyId: string;
@@ -103,6 +113,11 @@ export class WsClient {
         // JSON control message
         try {
           const message = JSON.parse(event.data) as WsMessage;
+          if (message.type === 'ping') {
+            const sentAt =
+              typeof message.sentAt === 'number' ? message.sentAt : Date.now();
+            this.send({ type: 'pong', sentAt });
+          }
           this.handlers.onMessage?.(message);
         } catch {
           console.error('Failed to parse message:', event.data);
@@ -159,7 +174,7 @@ export class WsClient {
   // Send ping to keep connection alive
   private sendPing(): void {
     if (this.isConnected()) {
-      this.send({ type: 'ping' });
+      this.send({ type: 'ping', sentAt: Date.now() });
     }
   }
 

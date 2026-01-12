@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_server/web_server.dart';
 
 import 'event.dart';
@@ -11,18 +12,31 @@ export 'state.dart';
 
 /// BLoC for managing web terminal server and sessions.
 class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
+  static const String listenIpKey = 'web_server_listen_ip';
+  static const String portKey = 'web_server_port';
+  static const String sslKey = 'web_server_ssl';
+
   final String staticFilesPath;
   final int defaultPort;
   final bool debugMode;
+  final SharedPreferences? sharedPreferences;
 
-  ServerConfig get _config => ServerConfig(
-        staticFilesPath: staticFilesPath,
-        port: defaultPort,
-        debugMode: debugMode,
-      );
+  ServerConfig get _config {
+    final listenIp = sharedPreferences?.getString(listenIpKey);
+    final port = sharedPreferences?.getInt(portKey) ?? defaultPort;
+    final useSsl = sharedPreferences?.getBool(sslKey) ?? false;
+
+    return ServerConfig(
+      staticFilesPath: staticFilesPath,
+      port: port,
+      bindAddress: listenIp,
+      debugMode: debugMode,
+      useSsl: useSsl,
+    );
+  }
 
   late final SessionManager _sessionManager;
-  late final WebTerminalServer _server;
+  late WebTerminalServer _server;
 
   StreamSubscription? _sessionManagerSubscription;
 
@@ -30,6 +44,7 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     required this.staticFilesPath,
     this.defaultPort = 8080,
     this.debugMode = false,
+    this.sharedPreferences,
   }) : super(const WebSessionState.initial()) {
     _sessionManager = SessionManager();
     _server = WebTerminalServer(
@@ -52,11 +67,6 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     _sessionManagerSubscription = _sessionManager.events.listen((event) {
       add(SessionManagerEventReceived(event));
     });
-
-    // Auto-start server in debug mode
-    if (debugMode) {
-      add(const StartWebServer());
-    }
   }
 
   /// Get the session manager (for UI access).
@@ -74,11 +84,11 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     emit(state.copyWith(isStarting: true, clearError: true));
 
     try {
-      // Update config if port specified
-      if (event.port != null) {
-        // Note: In a real implementation, you'd recreate the server with new config
-        // For now, we use the initial config
-      }
+      // Recreate server with latest config settings.
+      _server = WebTerminalServer(
+        config: _config,
+        sessionManager: _sessionManager,
+      );
 
       await _server.start();
 
@@ -188,6 +198,7 @@ class WebSessionBloc extends Bloc<WebSessionEvent, WebSessionState> {
     emit(state.copyWith(
       pendingSessions: pending,
       activeSessions: active,
+      sessionsRevision: state.sessionsRevision + 1,
     ));
   }
 

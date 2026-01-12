@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_server/web_server.dart';
+import 'package:web_session_bloc/web_session_bloc.dart';
 import 'package:xterm/xterm.dart';
 
 /// Dialog that displays a read-only view of a connected session's terminals.
@@ -27,31 +29,93 @@ class ReadOnlyTerminalViewer extends StatefulWidget {
 
 class _ReadOnlyTerminalViewerState extends State<ReadOnlyTerminalViewer>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late WebSession _session;
   final Map<String, Terminal> _terminals = {};
+  final Map<String, String> _outputBuffers = {};
   StreamSubscription? _eventSubscription;
+  StreamSubscription? _managerSubscription;
+  Timer? _refreshTimer;
   List<String> _ptyIds = [];
+  static const int _maxBufferSize = 100000;
 
   @override
   void initState() {
     super.initState();
+    _session = widget.session;
     _initializePtyList();
-    _tabController = TabController(
-      length: _ptyIds.length,
-      vsync: this,
-    );
     _subscribeToEvents();
+    _managerSubscription = context
+        .read<WebSessionBloc>()
+        .sessionManager
+        .events
+        .listen((_) => _syncPtyList());
+    _refreshTimer = Timer.periodic(
+      const Duration(seconds: 1),
+      (_) => _syncPtyList(),
+    );
   }
 
-  void _initializePtyList() {
-    _ptyIds = widget.session.ptySessions.keys.toList();
-    for (final ptyId in _ptyIds) {
-      _terminals[ptyId] = Terminal(maxLines: 10000);
+  @override
+  void didUpdateWidget(covariant ReadOnlyTerminalViewer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session) {
+      _eventSubscription?.cancel();
+      _session = widget.session;
+      _initializePtyList();
+      _subscribeToEvents();
     }
   }
 
+  void _initializePtyList() {
+    _ptyIds = _session.ptySessions.keys.toList();
+    for (final ptyId in _ptyIds) {
+      _terminals[ptyId] = Terminal(maxLines: 10000);
+      final buffer = _getPtyBuffer(_session, ptyId);
+      _outputBuffers[ptyId] = buffer;
+      _applyPtySize(ptyId);
+      if (buffer.isNotEmpty) {
+        _terminals[ptyId]?.write(buffer);
+      }
+    }
+  }
+
+  void _syncPtyList() {
+    final latestSession =
+        context.read<WebSessionBloc>().sessionManager.getSession(_session.id) ??
+            _session;
+    if (!identical(latestSession, _session)) {
+      _eventSubscription?.cancel();
+      _session = latestSession;
+      _subscribeToEvents();
+    } else {
+      _session = latestSession;
+    }
+
+    final sessionIds = latestSession.ptySessions.keys.toSet();
+    final currentIds = _ptyIds.toSet();
+
+    setState(() {
+      for (final ptyId in currentIds.difference(sessionIds)) {
+        _ptyIds.remove(ptyId);
+        _terminals.remove(ptyId);
+        _outputBuffers.remove(ptyId);
+      }
+
+      for (final ptyId in sessionIds.difference(currentIds)) {
+        _ptyIds.add(ptyId);
+        _terminals[ptyId] = Terminal(maxLines: 10000);
+        final buffer = _getPtyBuffer(_session, ptyId);
+        _outputBuffers[ptyId] = buffer;
+        _applyPtySize(ptyId);
+        if (buffer.isNotEmpty) {
+          _terminals[ptyId]?.write(buffer);
+        }
+      }
+    });
+  }
+
   void _subscribeToEvents() {
-    _eventSubscription = widget.session.events.listen((event) {
+    _eventSubscription = _session.events.listen((event) {
       if (!mounted) return;
 
       switch (event) {
@@ -61,26 +125,30 @@ class _ReadOnlyTerminalViewerState extends State<ReadOnlyTerminalViewer>
             setState(() {
               _ptyIds.add(ptyId);
               _terminals[ptyId] = Terminal(maxLines: 10000);
-              _tabController.dispose();
-              _tabController = TabController(
-                length: _ptyIds.length,
-                vsync: this,
-              );
+              final buffer = _getPtyBuffer(_session, ptyId);
+              _outputBuffers[ptyId] = buffer;
+              _applyPtySize(ptyId);
+              if (buffer.isNotEmpty) {
+                _terminals[ptyId]?.write(buffer);
+              }
             });
+            return;
           }
-          // Write data to terminal
-          _terminals[ptyId]?.write(String.fromCharCodes(data));
+          final chunk = String.fromCharCodes(data);
+          _appendToBuffer(ptyId, chunk);
+          _terminals[ptyId]?.write(chunk);
 
         case WsPtyCreatedEvent(ptyId: final ptyId):
           if (!_terminals.containsKey(ptyId)) {
             setState(() {
               _ptyIds.add(ptyId);
               _terminals[ptyId] = Terminal(maxLines: 10000);
-              _tabController.dispose();
-              _tabController = TabController(
-                length: _ptyIds.length,
-                vsync: this,
-              );
+              final buffer = _getPtyBuffer(_session, ptyId);
+              _outputBuffers[ptyId] = buffer;
+              _applyPtySize(ptyId);
+              if (buffer.isNotEmpty) {
+                _terminals[ptyId]?.write(buffer);
+              }
             });
           }
 
@@ -88,47 +156,102 @@ class _ReadOnlyTerminalViewerState extends State<ReadOnlyTerminalViewer>
           setState(() {
             _ptyIds.remove(ptyId);
             _terminals.remove(ptyId);
-            if (_ptyIds.isNotEmpty) {
-              _tabController.dispose();
-              _tabController = TabController(
-                length: _ptyIds.length,
-                vsync: this,
-              );
-            }
+            _outputBuffers.remove(ptyId);
           });
+        default:
+          break;
       }
     });
+  }
+
+  String _getPtyBuffer(WebSession session, String ptyId) {
+    final dynamic dynamicSession = session;
+    final dynamic buffer = dynamicSession.getPtyBuffer(ptyId);
+    if (buffer is String) {
+      return buffer;
+    }
+    return '';
+  }
+
+  void _appendToBuffer(String ptyId, String chunk) {
+    final current = _outputBuffers[ptyId] ?? '';
+    final updated = current + chunk;
+    if (updated.length > _maxBufferSize) {
+      _outputBuffers[ptyId] =
+          updated.substring(updated.length - _maxBufferSize);
+    } else {
+      _outputBuffers[ptyId] = updated;
+    }
+  }
+
+  void _applyPtySize(String ptyId) {
+    final terminal = _terminals[ptyId];
+    if (terminal == null) {
+      return;
+    }
+    final dynamic session = _session;
+    final dynamic sizes = session.ptySizes;
+    final dynamic size = sizes is Map ? sizes[ptyId] : null;
+    if (size == null) {
+      return;
+    }
+    terminal.resize(size.cols as int, size.rows as int);
   }
 
   @override
   void dispose() {
     _eventSubscription?.cancel();
-    _tabController.dispose();
+    _managerSubscription?.cancel();
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<WebSessionBloc, WebSessionState>(
+      listener: (context, state) {
+        WebSession? updated;
+        for (final session in state.activeSessions) {
+          if (session.id == _session.id) {
+            updated = session;
+            break;
+          }
+        }
+        if (updated == null) {
+          return;
+        }
+        _session = updated;
+        _syncPtyList();
+      },
+      child: _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final theme = Theme.of(context);
 
     return Dialog.fullscreen(
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text('Viewing: ${widget.session.clientAddress}'),
-          leading: IconButton(
-            icon: const Icon(Icons.close),
-            onPressed: () => Navigator.of(context).pop(),
+      child: DefaultTabController(
+        key: ValueKey(_ptyIds.length),
+        length: _ptyIds.length > 1 ? _ptyIds.length : 1,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text('Viewing: ${_session.clientAddress}'),
+            leading: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            bottom: _ptyIds.length > 1
+                ? TabBar(
+                    tabs: _ptyIds
+                        .map((id) =>
+                            Tab(text: 'Terminal ${_ptyIds.indexOf(id) + 1}'))
+                        .toList(),
+                  )
+                : null,
           ),
-          bottom: _ptyIds.length > 1
-              ? TabBar(
-                  controller: _tabController,
-                  tabs: _ptyIds
-                      .map((id) => Tab(text: 'Terminal ${_ptyIds.indexOf(id) + 1}'))
-                      .toList(),
-                )
-              : null,
+          body: _buildBody(theme),
         ),
-        body: _buildBody(theme),
       ),
     );
   }
@@ -168,7 +291,6 @@ class _ReadOnlyTerminalViewerState extends State<ReadOnlyTerminalViewer>
     }
 
     return TabBarView(
-      controller: _tabController,
       children: _ptyIds.map((id) => _buildTerminalView(id, theme)).toList(),
     );
   }
@@ -209,7 +331,7 @@ class _ReadOnlyTerminalViewerState extends State<ReadOnlyTerminalViewer>
                 ),
                 const SizedBox(width: 4),
                 Text(
-                  'Read-only',
+                  'Read Only',
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: theme.colorScheme.onPrimaryContainer,
                   ),

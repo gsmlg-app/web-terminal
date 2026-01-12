@@ -68,49 +68,47 @@ Future<void> main() async {
             create: (BuildContext context) => AesHelper(Constant.appName),
           ),
         ],
-        child: MultiBlocProvider(providers: [
-          BlocProvider<ThemeBloc>(
-            create: (BuildContext context) => ThemeBloc(
-              sharedPrefs,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider<ThemeBloc>(
+              create: (BuildContext context) => ThemeBloc(sharedPrefs),
             ),
-          ),
-          BlocProvider<SshKeyBloc>(
-            create: (BuildContext context) => SshKeyBloc(
-              database,
+            BlocProvider<SshKeyBloc>(
+              create: (BuildContext context) => SshKeyBloc(database),
             ),
-          ),
-          BlocProvider<SshKeyFormBloc>(
-            create: (BuildContext context) => SshKeyFormBloc(
-              context.read<SshKeyBloc>(),
+            BlocProvider<SshKeyFormBloc>(
+              create: (BuildContext context) =>
+                  SshKeyFormBloc(context.read<SshKeyBloc>()),
             ),
-          ),
-          BlocProvider<SshHostBloc>(
-            create: (BuildContext context) => SshHostBloc(
-              database,
+            BlocProvider<SshHostBloc>(
+              create: (BuildContext context) => SshHostBloc(database),
             ),
-          ),
-          BlocProvider<SshHostFormBloc>(
-            create: (BuildContext context) => SshHostFormBloc(
-              context.read<SshHostBloc>(),
+            BlocProvider<SshHostFormBloc>(
+              create: (BuildContext context) =>
+                  SshHostFormBloc(context.read<SshHostBloc>()),
             ),
-          ),
-          BlocProvider<TerminalTabBloc>(
-            create: (BuildContext context) => TerminalTabBloc(),
-          ),
-          BlocProvider<ConnectionBloc>(
-            create: (BuildContext context) => ConnectionBloc(),
-          ),
-          BlocProvider<WebSessionBloc>(
-            create: (BuildContext context) {
-              debugPrint('[Main] Creating WebSessionBloc with debugMode=$kDebugMode');
-              debugPrint('[Main] Static files path: $staticFilesPath');
-              return WebSessionBloc(
-                staticFilesPath: staticFilesPath,
-                debugMode: kDebugMode,
-              );
-            },
-          ),
-        ], child: const App()),
+            BlocProvider<TerminalTabBloc>(
+              create: (BuildContext context) => TerminalTabBloc(),
+            ),
+            BlocProvider<ConnectionBloc>(
+              create: (BuildContext context) => ConnectionBloc(),
+            ),
+            BlocProvider<WebSessionBloc>(
+              create: (BuildContext context) {
+                debugPrint(
+                  '[Main] Creating WebSessionBloc with debugMode=$kDebugMode',
+                );
+                debugPrint('[Main] Static files path: $staticFilesPath');
+                return WebSessionBloc(
+                  staticFilesPath: staticFilesPath,
+                  debugMode: kDebugMode,
+                  sharedPreferences: sharedPrefs,
+                );
+              },
+            ),
+          ],
+          child: const App(),
+        ),
       ),
     ),
   );

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
+
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_server/web_server.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
@@ -51,7 +54,7 @@ class ActiveSessionsList extends StatelessWidget {
 typedef OnAttachSession = void Function(WebSession session);
 
 /// Card for a single active session with attach and disconnect buttons.
-class ActiveSessionCard extends StatelessWidget {
+class ActiveSessionCard extends StatefulWidget {
   final WebSession session;
   final OnAttachSession? onAttach;
 
@@ -62,10 +65,56 @@ class ActiveSessionCard extends StatelessWidget {
   });
 
   @override
+  State<ActiveSessionCard> createState() => _ActiveSessionCardState();
+}
+
+class _ActiveSessionCardState extends State<ActiveSessionCard> {
+  StreamSubscription? _subscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _subscribe();
+  }
+
+  @override
+  void didUpdateWidget(covariant ActiveSessionCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.session != widget.session) {
+      _subscription?.cancel();
+      _subscribe();
+    }
+  }
+
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
+  void _subscribe() {
+    _subscription = widget.session.events.listen((event) {
+      if (!mounted) return;
+      if (event is WsPtyCreatedEvent || event is WsPtyClosedEvent) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final session = widget.session;
+    final onAttach = widget.onAttach;
     final theme = Theme.of(context);
     final duration = DateTime.now().difference(session.createdAt);
     final hasTerminals = session.ptyCount > 0;
+    final sessionData = session.toJson();
+    final inboundBytes = (sessionData['bytesReceived'] as int?) ?? 0;
+    final outboundBytes = (sessionData['bytesSent'] as int?) ?? 0;
+    final totalBytes = inboundBytes + outboundBytes;
+    final inboundRate = (sessionData['inboundRate'] as num?)?.toDouble() ?? 0;
+    final outboundRate = (sessionData['outboundRate'] as num?)?.toDouble() ?? 0;
+    final latencyMs = sessionData['latencyMs'] as int?;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -89,6 +138,15 @@ class ActiveSessionCard extends StatelessWidget {
                         session.clientAddress,
                         style: theme.textTheme.titleMedium,
                       ),
+                      if (session.userAgent != null)
+                        Text(
+                          session.userAgent!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       Text(
                         'Connected ${_formatDuration(duration)}',
                         style: theme.textTheme.bodySmall?.copyWith(
@@ -130,6 +188,35 @@ class ActiveSessionCard extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
+            const SizedBox(height: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Transfer: ${_formatBytes(totalBytes)} '
+                  '(↓${_formatBytes(inboundBytes)} '
+                  '↑${_formatBytes(outboundBytes)})',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Speed: ↓${_formatSpeed(inboundRate)} '
+                  '↑${_formatSpeed(outboundRate)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Latency: ${_formatLatency(latencyMs)}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             // Action buttons
@@ -197,5 +284,36 @@ class ActiveSessionCard extends StatelessWidget {
     } else {
       return '${duration.inDays}d ago';
     }
+  }
+
+  String _formatBytes(int bytes) {
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    double value = bytes.toDouble();
+    var unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex += 1;
+    }
+    final precision = value >= 100 ? 0 : (value >= 10 ? 1 : 2);
+    return '${value.toStringAsFixed(precision)} ${units[unitIndex]}';
+  }
+
+  String _formatSpeed(double bytesPerSecond) {
+    if (bytesPerSecond <= 0) {
+      return '0 B/s';
+    }
+    final formatted = _formatBytes(bytesPerSecond.round());
+    return '$formatted/s';
+  }
+
+  String _formatLatency(int? latencyMs) {
+    if (latencyMs == null) {
+      return '—';
+    }
+    if (latencyMs >= 1000) {
+      final seconds = latencyMs / 1000;
+      return '${seconds.toStringAsFixed(1)}s';
+    }
+    return '${latencyMs}ms';
   }
 }

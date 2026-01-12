@@ -29,6 +29,14 @@ enum WebSessionStatus {
   disconnected,
 }
 
+/// PTY size data for a session.
+class PtySize {
+  final int cols;
+  final int rows;
+
+  const PtySize({required this.cols, required this.rows});
+}
+
 /// A web terminal session representing a browser connection.
 ///
 /// Sessions are created when a browser first accesses the web terminal.
@@ -60,8 +68,7 @@ class WebSession {
   WebSocketChannel? _channel;
 
   /// Stream controller for session events.
-  final _eventController =
-      StreamController<WsSessionInternalEvent>.broadcast();
+  final _eventController = StreamController<WsSessionInternalEvent>.broadcast();
 
   /// Host instance for creating PTY sessions.
   Host? _host;
@@ -98,6 +105,64 @@ class WebSession {
 
   /// Number of active PTY sessions.
   int get ptyCount => ptySessions.length;
+
+  /// PTY size map for matching client dimensions.
+  final Map<String, PtySize> ptySizes = {};
+
+  /// PTY output buffers for attach viewer.
+  final Map<String, String> ptyBuffers = {};
+
+  /// Total bytes received from client.
+  int bytesReceived = 0;
+
+  /// Total bytes sent to client.
+  int bytesSent = 0;
+
+  /// Current inbound transfer rate in bytes/sec.
+  double inboundRate = 0;
+
+  /// Current outbound transfer rate in bytes/sec.
+  double outboundRate = 0;
+
+  /// Latest measured latency in milliseconds.
+  int? latencyMs;
+
+  int _lastBytesReceived = 0;
+  int _lastBytesSent = 0;
+  DateTime _lastRateSampleAt = DateTime.now();
+
+  /// Record bytes received from client.
+  bool recordIncomingBytes(int bytes) {
+    bytesReceived += bytes;
+    return _updateRates();
+  }
+
+  /// Record bytes sent to client.
+  bool recordOutgoingBytes(int bytes) {
+    bytesSent += bytes;
+    return _updateRates();
+  }
+
+  /// Update latency measurement.
+  void updateLatency(int latencyMs) {
+    this.latencyMs = latencyMs;
+  }
+
+  bool _updateRates() {
+    final now = DateTime.now();
+    final elapsedMs = now.difference(_lastRateSampleAt).inMilliseconds;
+    if (elapsedMs < 1000) {
+      return false;
+    }
+
+    final elapsedSeconds = elapsedMs / 1000;
+    inboundRate = (bytesReceived - _lastBytesReceived) / elapsedSeconds;
+    outboundRate = (bytesSent - _lastBytesSent) / elapsedSeconds;
+    _lastBytesReceived = bytesReceived;
+    _lastBytesSent = bytesSent;
+    _lastRateSampleAt = now;
+    return true;
+  }
 
   /// Attach a WebSocket channel to this session.
   void attach(WebSocketChannel channel) {
@@ -146,6 +211,8 @@ class WebSession {
     );
 
     ptySessions[ptyId] = ptySession;
+    ptySizes[ptyId] = PtySize(cols: cols, rows: rows);
+    ptyBuffers[ptyId] = '';
     _eventController.add(WsPtyCreatedEvent(ptyId));
 
     return ptySession;
@@ -156,6 +223,8 @@ class WebSession {
     final pty = ptySessions.remove(ptyId);
     if (pty != null) {
       await pty.close();
+      ptySizes.remove(ptyId);
+      ptyBuffers.remove(ptyId);
       _eventController.add(WsPtyClosedEvent(ptyId, 0));
     }
   }
@@ -166,7 +235,33 @@ class WebSession {
       pty.close();
     }
     ptySessions.clear();
+    ptySizes.clear();
+    ptyBuffers.clear();
   }
+
+  /// Update PTY size and notify listeners.
+  void updatePtySize(String ptyId, int cols, int rows) {
+    if (!ptySessions.containsKey(ptyId)) return;
+    ptySizes[ptyId] = PtySize(cols: cols, rows: rows);
+    _eventController.add(WsPtyResizedEvent(ptyId, cols, rows));
+  }
+
+  /// Append output to PTY buffer for attach view.
+  void appendPtyBuffer(String ptyId, String chunk) {
+    if (!ptyBuffers.containsKey(ptyId)) {
+      return;
+    }
+    const maxBufferSize = 100000;
+    final updated = ptyBuffers[ptyId]! + chunk;
+    if (updated.length > maxBufferSize) {
+      ptyBuffers[ptyId] = updated.substring(updated.length - maxBufferSize);
+    } else {
+      ptyBuffers[ptyId] = updated;
+    }
+  }
+
+  /// Get buffered output for a PTY.
+  String getPtyBuffer(String ptyId) => ptyBuffers[ptyId] ?? '';
 
   /// Send data through the WebSocket.
   void send(dynamic data) {
@@ -175,12 +270,14 @@ class WebSession {
 
   /// Handle PTY output data.
   void _onPtyOutput(String ptyId, Uint8List data) {
+    appendPtyBuffer(ptyId, String.fromCharCodes(data));
     _eventController.add(WsPtyOutputEvent(ptyId, data));
   }
 
   /// Handle PTY exit.
   void _onPtyExit(String ptyId, int exitCode) {
     ptySessions.remove(ptyId);
+    ptySizes.remove(ptyId);
     _eventController.add(WsPtyClosedEvent(ptyId, exitCode));
   }
 
@@ -201,6 +298,11 @@ class WebSession {
         'userAgent': userAgent,
         'status': status.name,
         'ptyCount': ptyCount,
+        'bytesReceived': bytesReceived,
+        'bytesSent': bytesSent,
+        'inboundRate': inboundRate,
+        'outboundRate': outboundRate,
+        'latencyMs': latencyMs,
       };
 }
 
@@ -227,4 +329,12 @@ class WsPtyClosedEvent extends WsSessionInternalEvent {
   final String ptyId;
   final int exitCode;
   const WsPtyClosedEvent(this.ptyId, this.exitCode);
+}
+
+/// Event: PTY resized.
+class WsPtyResizedEvent extends WsSessionInternalEvent {
+  final String ptyId;
+  final int cols;
+  final int rows;
+  const WsPtyResizedEvent(this.ptyId, this.cols, this.rows);
 }

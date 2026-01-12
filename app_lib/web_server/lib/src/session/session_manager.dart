@@ -21,6 +21,12 @@ class SessionApprovedEvent extends SessionManagerEvent {
   const SessionApprovedEvent(this.session);
 }
 
+/// Event: A session was connected.
+class SessionConnectedEvent extends SessionManagerEvent {
+  final WebSession session;
+  const SessionConnectedEvent(this.session);
+}
+
 /// Event: A session was rejected.
 class SessionRejectedEvent extends SessionManagerEvent {
   final WebSession session;
@@ -31,6 +37,12 @@ class SessionRejectedEvent extends SessionManagerEvent {
 class SessionDisconnectedEvent extends SessionManagerEvent {
   final WebSession session;
   const SessionDisconnectedEvent(this.session);
+}
+
+/// Event: A session was updated.
+class SessionUpdatedEvent extends SessionManagerEvent {
+  final WebSession session;
+  const SessionUpdatedEvent(this.session);
 }
 
 /// Manages web terminal sessions.
@@ -92,7 +104,8 @@ class SessionManager {
     _sessions[sessionId] = session;
     _sessionsByApprovalCode[approvalCode] = sessionId;
 
-    print('[SessionManager] Created session: id=${sessionId.substring(0, 8)}..., '
+    print(
+        '[SessionManager] Created session: id=${sessionId.substring(0, 8)}..., '
         'code=$approvalCode, total=${_sessions.length}');
     print('[SessionManager] Emitting SessionPendingEvent');
 
@@ -142,6 +155,29 @@ class SessionManager {
       return true;
     }
     return false;
+  }
+
+  /// Mark a session as connected.
+  void markConnected(String sessionId) {
+    final session = _sessions[sessionId];
+    if (session == null) return;
+
+    session.status = WebSessionStatus.connected;
+    _eventController.add(SessionConnectedEvent(session));
+  }
+
+  /// Mark a session as disconnected without removing it.
+  void markDisconnected(String sessionId) {
+    final session = _sessions[sessionId];
+    if (session == null) return;
+
+    session.status = WebSessionStatus.disconnected;
+    _eventController.add(SessionDisconnectedEvent(session));
+  }
+
+  /// Notify listeners that a session was updated.
+  void notifySessionUpdated(WebSession session) {
+    _eventController.add(SessionUpdatedEvent(session));
   }
 
   /// Reject a pending session by its approval code.
@@ -218,9 +254,8 @@ class SessionManager {
 
   /// Clean up expired sessions.
   void cleanup() {
-    final expiredSessions = _sessions.values
-        .where((s) => _isExpired(s))
-        .toList();
+    final expiredSessions =
+        _sessions.values.where((s) => _isExpired(s)).toList();
 
     for (final session in expiredSessions) {
       session.status = WebSessionStatus.expired;

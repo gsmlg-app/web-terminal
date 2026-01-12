@@ -1,10 +1,13 @@
+import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
-import 'package:web_terminal/destinations.dart';
-import 'package:web_session_bloc/web_session_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:web_server/web_server.dart';
 import 'package:web_server_settings/web_server_settings.dart';
+import 'package:web_session_bloc/web_session_bloc.dart';
+import 'package:web_terminal/destinations.dart';
+import 'package:web_terminal/screens/settings/web_server/web_server_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Screen for managing web terminal server and sessions.
 class WebTerminalScreen extends StatelessWidget {
@@ -18,12 +21,12 @@ class WebTerminalScreen extends StatelessWidget {
     return BlocBuilder<WebSessionBloc, WebSessionState>(
       builder: (context, state) {
         return AppAdaptiveScaffold(
-          selectedIndex:
-              Destinations.indexOf(const Key(WebTerminalScreen.name), context),
-          onSelectedIndexChange: (idx) => Destinations.changeHandler(
-            idx,
+          selectedIndex: Destinations.indexOf(
+            const Key(WebTerminalScreen.name),
             context,
           ),
+          onSelectedIndexChange: (idx) =>
+              Destinations.changeHandler(idx, context),
           destinations: Destinations.navs(context),
           body: (context) => _buildBody(context, state),
         );
@@ -32,148 +35,89 @@ class WebTerminalScreen extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context, WebSessionState state) {
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Web Terminal'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Pending'),
-              Tab(text: 'Active'),
-            ],
-          ),
-          actions: [
-            if (state.serverRunning)
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: Chip(
-                  avatar: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  label: Text('Port ${state.serverPort}'),
-                ),
-              ),
-            // Button to approve session by code
-            if (state.serverRunning)
-              IconButton(
-                icon: const Icon(Icons.dialpad),
-                tooltip: 'Approve by code',
-                onPressed: () => _showApproveByCodeDialog(context),
-              ),
-          ],
-        ),
-        body: Column(
-          children: [
-            // Server control section
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              state.isStarting
-                                  ? 'Starting server...'
-                                  : state.serverRunning
-                                      ? 'Server is running'
-                                      : 'Server is stopped',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            if (state.serverRunning &&
-                                state.serverAddress != null)
-                              Text(
-                                'http://${state.serverAddress}:${state.serverPort}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
-                                    ?.copyWith(
-                                      color:
-                                          Theme.of(context).colorScheme.primary,
-                                    ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      if (state.isStarting)
-                        const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      else
-                        Switch(
-                          value: state.serverRunning,
-                          onChanged: (value) {
-                            if (value) {
-                              context.read<WebSessionBloc>().add(
-                                    const StartWebServer(),
-                                  );
-                            } else {
-                                context.read<WebSessionBloc>().add(
-                                    const StopWebServer(),
-                                  );
-                            }
-                          },
-                        ),
-                    ],
-                  ),
-                  // Error display
-                  if (state.error != null) ...[
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Theme.of(context).colorScheme.errorContainer,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.error_outline,
-                            color:
-                                Theme.of(context).colorScheme.onErrorContainer,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              state.error!,
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onErrorContainer,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Web Terminal'),
+        bottom: _buildServerStatus(context, state),
+        actions: [
+          PendingSessionsBadge(
+            child: IconButton(
+              icon: const Icon(Icons.pending_actions),
+              tooltip: 'Pending approvals',
+              onPressed: () => _showPendingSessionsDialog(context),
             ),
-            const Divider(height: 1),
-            // Tab content
-            Expanded(
-              child: TabBarView(
-                children: [
-                  PendingSessionsBadge(
-                    child: const SessionApprovalList(),
+          ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Web server settings',
+            onPressed: () => context.goNamed(WebServerScreen.name),
+          ),
+        ],
+      ),
+      body: ActiveSessionsList(
+        onAttach: (session) => _showTerminalViewer(context, session),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildServerStatus(
+    BuildContext context,
+    WebSessionState state,
+  ) {
+    final statusText = state.isStarting
+        ? 'Starting server...'
+        : state.serverRunning
+        ? 'Server is running'
+        : 'Server is stopped';
+    final theme = Theme.of(context);
+    final prefs = context.read<SharedPreferences>();
+    final listenIp =
+        prefs.getString('web_server_listen_ip') ??
+        state.serverAddress ??
+        '0.0.0.0';
+    final port = prefs.getInt('web_server_port') ?? state.serverPort ?? 8080;
+    final useSsl = prefs.getBool('web_server_ssl') ?? false;
+    final scheme = useSsl ? 'https' : 'http';
+
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(72),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(statusText, style: theme.textTheme.titleMedium),
+                ),
+                if (state.isStarting)
+                  const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Switch(
+                    value: state.serverRunning,
+                    onChanged: (value) {
+                      if (value) {
+                        context.read<WebSessionBloc>().add(
+                          const StartWebServer(),
+                        );
+                      } else {
+                        context.read<WebSessionBloc>().add(
+                          const StopWebServer(),
+                        );
+                      }
+                    },
                   ),
-                  ActiveSessionsList(
-                    onAttach: (session) => _showTerminalViewer(context, session),
-                  ),
-                ],
+              ],
+            ),
+            Text(
+              '$scheme://$listenIp:$port',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.primary,
               ),
             ),
           ],
@@ -182,10 +126,24 @@ class WebTerminalScreen extends StatelessWidget {
     );
   }
 
-  void _showApproveByCodeDialog(BuildContext context) {
+  void _showPendingSessionsDialog(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     showDialog(
       context: context,
-      builder: (context) => const ApproveByCodeDialog(),
+      builder: (context) => AlertDialog(
+        title: const Text('Pending Approvals'),
+        content: SizedBox(
+          width: size.width * 0.8,
+          height: size.height * 0.6,
+          child: const SessionApprovalList(),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
     );
   }
 

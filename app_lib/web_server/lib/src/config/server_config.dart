@@ -24,6 +24,9 @@ class ServerConfig {
   /// Debug mode: skip authentication and auto-approve sessions.
   final bool debugMode;
 
+  /// Whether to serve HTTPS.
+  final bool useSsl;
+
   const ServerConfig({
     this.port = 8080,
     this.bindAddress,
@@ -33,6 +36,7 @@ class ServerConfig {
     this.maxSessionsPerToken = 5,
     this.maxPtySessions = 10,
     this.debugMode = false,
+    this.useSsl = false,
   });
 
   ServerConfig copyWith({
@@ -44,6 +48,7 @@ class ServerConfig {
     int? maxSessionsPerToken,
     int? maxPtySessions,
     bool? debugMode,
+    bool? useSsl,
   }) {
     return ServerConfig(
       port: port ?? this.port,
@@ -54,6 +59,7 @@ class ServerConfig {
       maxSessionsPerToken: maxSessionsPerToken ?? this.maxSessionsPerToken,
       maxPtySessions: maxPtySessions ?? this.maxPtySessions,
       debugMode: debugMode ?? this.debugMode,
+      useSsl: useSsl ?? this.useSsl,
     );
   }
 }

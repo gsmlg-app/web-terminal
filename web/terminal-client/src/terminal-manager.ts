@@ -15,7 +15,10 @@ export interface TerminalTab {
   fitAddon: FitAddon;
   element: HTMLElement;
   title: string;
+  buffer: string;
 }
+
+const maxBufferSize = 100000;
 
 export class TerminalManager {
   private tabs: Map<string, TerminalTab> = new Map();
@@ -107,7 +110,14 @@ export class TerminalManager {
     this.createTabButton(id, title);
 
     // Store tab
-    const tab: TerminalTab = { id, terminal, fitAddon, element, title };
+    const tab: TerminalTab = {
+      id,
+      terminal,
+      fitAddon,
+      element,
+      title,
+      buffer: '',
+    };
     this.tabs.set(id, tab);
 
     // Request PTY from server
@@ -205,7 +215,9 @@ export class TerminalManager {
     const tab = this.tabs.get(ptyId);
     if (tab) {
       const decoder = new TextDecoder();
-      tab.terminal.write(decoder.decode(data));
+      const decoded = decoder.decode(data);
+      tab.terminal.write(decoded);
+      tab.buffer = this.appendToBuffer(tab.buffer, decoded);
     }
   }
 
@@ -249,6 +261,14 @@ export class TerminalManager {
         }
       }
     }
+  }
+
+  private appendToBuffer(buffer: string, chunk: string): string {
+    const next = buffer + chunk;
+    if (next.length <= maxBufferSize) {
+      return next;
+    }
+    return next.slice(next.length - maxBufferSize);
   }
 
   getTabCount(): number {
