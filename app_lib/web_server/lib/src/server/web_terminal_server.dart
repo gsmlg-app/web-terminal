@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
+import 'package:app_logging/app_logging.dart';
 import 'package:shelf/shelf.dart';
 
 import 'package:shelf/shelf_io.dart' as shelf_io;
@@ -202,19 +200,19 @@ class WebTerminalServer {
       userAgent: userAgent,
     );
 
-    // Debug logging
     final isNewSession = existingSessionId != session.id;
-    print('[WebServer] ===== Request to / =====');
-    print('[WebServer] Client: $clientAddress');
-    print(
+    final logger = AppLogger();
+    logger.d('[WebServer] ===== Request to / =====');
+    logger.d('[WebServer] Client: $clientAddress');
+    logger.d(
         '[WebServer] Existing cookie: ${existingSessionId?.substring(0, 8) ?? 'none'}...');
-    print('[WebServer] Session ID: ${session.id.substring(0, 8)}...');
-    print('[WebServer] New session created: $isNewSession');
-    print('[WebServer] Approval code: ${session.approvalCode}');
-    print('[WebServer] Status: ${session.status.name}');
-    print(
+    logger.d('[WebServer] Session ID: ${session.id.substring(0, 8)}...');
+    logger.d('[WebServer] New session created: $isNewSession');
+    logger.d('[WebServer] Approval code: ${session.approvalCode}');
+    logger.d('[WebServer] Status: ${session.status.name}');
+    logger.d(
         '[WebServer] Injecting window.__SESSION__ = ${_sessionToJson(session)}');
-    print('[WebServer] ===========================');
+    logger.d('[WebServer] ===========================');
 
     // Check if we have static files
     final indexFile = File('${config.staticFilesPath}/index.html');

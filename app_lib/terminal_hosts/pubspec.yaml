@@ -14,7 +14,7 @@ dependencies:
 
   terminal_core: any
   flutter_pty: any
-  gsmlg_ssh: any
+  app_ssh: any
   ssh_host_bloc: any
   flutter_riverpod: ^2.0.0
   path: any

@@ -14,7 +14,7 @@ dependencies:
   meta: any
   app_database: any
   form_bloc: any
-  gsmlg_security: any
+  app_security: any
 
 dev_dependencies:
   flutter_test:

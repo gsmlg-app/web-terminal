@@ -1,4 +1,4 @@
-import 'package:gsmlg_ssh/gsmlg_ssh.dart';
+import 'package:app_ssh/app_ssh.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';

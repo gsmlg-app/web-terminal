@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:gsmlg_security/gsmlg_security.dart';
+import 'package:app_security/app_security.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:app_locale/app_locale.dart';
 

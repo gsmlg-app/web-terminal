@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:gsmlg_ssh/gsmlg_ssh.dart';
+import 'package:app_ssh/app_ssh.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_fs.dart';
 

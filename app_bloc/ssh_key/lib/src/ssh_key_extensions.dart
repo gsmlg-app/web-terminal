@@ -1,5 +1,5 @@
 import 'package:app_database/app_database.dart';
-import 'package:gsmlg_security/gsmlg_security.dart';
+import 'package:app_security/app_security.dart';
 
 /// Application name constant used for encryption
 const String appName = 'Web Terminal';
