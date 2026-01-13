@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:gsmlg_ssh/gsmlg_ssh.dart';
+import 'package:app_ssh/app_ssh.dart';
 import 'package:path/path.dart' as p;
 import 'package:terminal_core/terminal_core.dart';
 

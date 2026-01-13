@@ -18,7 +18,7 @@ dependencies:
   app_feedback: any
   ssh_host_bloc: any
   ssh_key_bloc: any
-  gsmlg_security: any
+  app_security: any
   go_router: any
   google_fonts: any
   font_awesome_flutter: any

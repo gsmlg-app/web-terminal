@@ -45,9 +45,9 @@ workspace:
   - third_party/flutter_form_bloc
   - third_party/flutter_adaptive_scaffold
   - third_party/settings_ui
-  - third_party/gsmlg_security
-  - third_party/gsmlg_ssh
-  - third_party/gsmlg_utils
+  - app_lib/security
+  - app_lib/ssh
+  - app_lib/utils
   - third_party/flex_tabs
 
 dependencies:
@@ -137,9 +137,9 @@ dependencies:
   web_server_settings: any
 
   # External packages from original monorepo (copied to third_party)
-  gsmlg_security: any
-  gsmlg_ssh: any
-  gsmlg_utils: any
+  app_security: any
+  app_ssh: any
+  app_utils: any
 
 dev_dependencies:
   flutter_test:

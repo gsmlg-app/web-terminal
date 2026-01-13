@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:web_server/web_server.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
@@ -225,7 +224,7 @@ class _ActiveSessionCardState extends State<ActiveSessionCard> {
               children: [
                 if (hasTerminals && onAttach != null)
                   OutlinedButton.icon(
-                    onPressed: () => onAttach!(session),
+                    onPressed: () => onAttach(session),
                     icon: const Icon(Icons.visibility),
                     label: const Text('Attach'),
                   ),

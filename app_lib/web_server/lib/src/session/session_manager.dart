@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_logging/app_logging.dart';
 import 'package:uuid/uuid.dart';
 
 import 'session.dart';
@@ -104,10 +105,11 @@ class SessionManager {
     _sessions[sessionId] = session;
     _sessionsByApprovalCode[approvalCode] = sessionId;
 
-    print(
+    final logger = AppLogger();
+    logger.d(
         '[SessionManager] Created session: id=${sessionId.substring(0, 8)}..., '
         'code=$approvalCode, total=${_sessions.length}');
-    print('[SessionManager] Emitting SessionPendingEvent');
+    logger.d('[SessionManager] Emitting SessionPendingEvent');
 
     _eventController.add(SessionPendingEvent(session));
 
