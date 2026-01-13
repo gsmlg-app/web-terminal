@@ -13,7 +13,8 @@ class SessionApprovalList extends StatelessWidget {
     return BlocBuilder<WebSessionBloc, WebSessionState>(
       builder: (context, state) {
         // Debug logging
-        debugPrint('[SessionApprovalList] Building with ${state.pendingSessions.length} pending sessions');
+        debugPrint(
+            '[SessionApprovalList] Building with ${state.pendingSessions.length} pending sessions');
 
         if (state.pendingSessions.isEmpty) {
           return const Center(
@@ -122,7 +123,8 @@ class SessionApprovalCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
               decoration: BoxDecoration(
-                color: theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                color:
+                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: theme.colorScheme.primaryContainer,
