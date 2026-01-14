@@ -1,5 +1,4 @@
 import 'package:app_ssh/app_ssh.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_host.dart';
@@ -11,25 +10,22 @@ class SSHConnector extends HostConnector<SSHHost> {
 
   @override
   Future<SSHHost> createHost() async {
-    final socket = await AsyncValue.guard(
-      () => SSHSocket.connect(record.hostname!, record.port!),
-    );
-
-    if (socket.hasError) {
-      final error = socket.error!;
+    final SSHSocket socket;
+    try {
+      socket = await SSHSocket.connect(record.hostname!, record.port!);
+    } catch (error) {
       throw 'Failed to connect: $error';
     }
 
     final client = SSHClient(
-      socket.value!,
+      socket,
       username: record.username!,
       onPasswordRequest: () => record.password,
     );
 
-    final authenticated = await AsyncValue.guard(() => client.authenticated);
-
-    if (authenticated.hasError) {
-      final error = authenticated.error!;
+    try {
+      await client.authenticated;
+    } catch (error) {
       throw 'Failed to authenticate: $error';
     }
 

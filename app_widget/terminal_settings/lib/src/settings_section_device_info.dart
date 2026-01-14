@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 /// Settings section for displaying device information.
@@ -10,7 +9,7 @@ class SettingsSectionDeviceInfo {
   SettingsSectionDeviceInfo._();
 
   /// Builds a settings section with device information.
-  static SettingsSection build(BuildContext context, WidgetRef ref) {
+  static SettingsSection build(BuildContext context) {
     final deviceInfo = _getDeviceInfo();
 
     return SettingsSection(

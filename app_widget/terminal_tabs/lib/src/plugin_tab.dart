@@ -1,7 +1,6 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_core/terminal_core.dart';
 
 class PluginTab extends TabItem {
@@ -57,21 +56,19 @@ class PluginTab extends TabItem {
   }
 }
 
-class PluginTabView extends ConsumerStatefulWidget {
+class PluginTabView extends StatefulWidget {
   const PluginTabView(this.plugin, {super.key});
 
   final Plugin plugin;
 
   @override
-  ConsumerState<PluginTabView> createState() => _PluginTabViewState();
+  State<PluginTabView> createState() => _PluginTabViewState();
 }
 
-class _PluginTabViewState extends ConsumerState<PluginTabView> {
+class _PluginTabViewState extends State<PluginTabView> {
   Plugin get plugin => widget.plugin;
 
   HostConnector? connector;
-
-  RemoveListener? _connectorListener;
 
   @override
   void initState() {
@@ -79,7 +76,7 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       setState(() {
         connector = widget.plugin.hostSpec.createConnector();
-        _connectorListener = connector?.addListener(_onConnectionChanged);
+        connector?.addListener(_onConnectionChanged);
         connector?.connect().then((_) {
           widget.plugin.manager.didConnected(connector!.host!);
         });
@@ -87,13 +84,16 @@ class _PluginTabViewState extends ConsumerState<PluginTabView> {
     });
   }
 
-  void _onConnectionChanged(HostConnectorStatus status) {
-    plugin.manager.didConnectionStatusChanged(status);
+  void _onConnectionChanged() {
+    if (connector != null) {
+      plugin.manager.didConnectionStatusChanged(connector!.status);
+    }
   }
 
   @override
   void dispose() {
-    _connectorListener?.call();
+    connector?.removeListener(_onConnectionChanged);
+    connector?.dispose();
     super.dispose();
   }
 

@@ -12,8 +12,6 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  flutter_riverpod: any
-  state_notifier: any
   flex_tabs: any
   window_manager: any
   equatable: any

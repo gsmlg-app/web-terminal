@@ -1,6 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_tabs/src/pages/host_edit_page.dart';
 
 class AddHostTab extends TabItem {
@@ -10,14 +9,14 @@ class AddHostTab extends TabItem {
   }
 }
 
-class AddHostTabView extends ConsumerStatefulWidget {
+class AddHostTabView extends StatefulWidget {
   const AddHostTabView({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _AddHostTabViewState();
+  State<AddHostTabView> createState() => _AddHostTabViewState();
 }
 
-class _AddHostTabViewState extends ConsumerState<AddHostTabView> {
+class _AddHostTabViewState extends State<AddHostTabView> {
   @override
   Widget build(BuildContext context) {
     return const HostEditPage();

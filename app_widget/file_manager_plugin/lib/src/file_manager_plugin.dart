@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:file_manager_plugin/src/navigation_breadcrumbs.dart';
@@ -190,7 +190,7 @@ class FileListNavigator extends StatelessWidget {
   }
 }
 
-class FileListView extends ConsumerStatefulWidget {
+class FileListView extends StatefulWidget {
   const FileListView(this.plugin, {super.key});
 
   final FileManagerPlugin plugin;
@@ -199,7 +199,7 @@ class FileListView extends ConsumerStatefulWidget {
   FileListViewState createState() => FileListViewState();
 }
 
-class FileListViewState extends ConsumerState<FileListView> {
+class FileListViewState extends State<FileListView> {
   FileManagerPlugin get plugin => widget.plugin;
 
   @override
@@ -231,7 +231,7 @@ class FileListViewState extends ConsumerState<FileListView> {
         if (file is Directory) {
           plugin.goto(file.path);
         } else if (file is File) {
-          ref.read(tabsServiceProvider).openFile(file);
+          context.read<TabsService>().openFile(file);
         }
       },
       columns: [

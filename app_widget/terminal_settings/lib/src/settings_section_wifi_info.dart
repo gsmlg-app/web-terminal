@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:settings_ui/settings_ui.dart';
 
 /// Settings section for displaying WiFi information.
@@ -11,7 +10,7 @@ class SettingsSectionWifiInfo {
   SettingsSectionWifiInfo._();
 
   /// Builds a settings section with WiFi information.
-  static SettingsSection build(BuildContext context, WidgetRef ref) {
+  static SettingsSection build(BuildContext context) {
     return SettingsSection(
       title: const Text('WiFi Information'),
       tiles: <SettingsTile>[

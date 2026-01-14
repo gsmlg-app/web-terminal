@@ -1,16 +1,15 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_tabs/src/shared/fluent_back_button.dart';
 
-class HostEditPage extends ConsumerStatefulWidget {
+class HostEditPage extends StatefulWidget {
   const HostEditPage({super.key});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _HostEditDialogState();
+  State<HostEditPage> createState() => _HostEditDialogState();
 }
 
-class _HostEditDialogState extends ConsumerState<HostEditPage> {
+class _HostEditDialogState extends State<HostEditPage> {
   bool get isEditing => false;
 
   @override

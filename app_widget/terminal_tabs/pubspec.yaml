@@ -12,9 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_bloc: any
   flex_tabs: any
-  flutter_riverpod: ^2.0.0
-  state_notifier: any
   xterm: ^4.0.0
   code_text_field: ^1.0.2
   highlight: ^0.7.0

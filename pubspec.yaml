@@ -11,7 +11,6 @@ workspace:
   - app_lib/database
   - app_lib/theme
   - app_lib/locale
-  - app_lib/provider
   - app_lib/logging
   - app_lib/terminal_core
   - app_lib/terminal_hosts
@@ -85,10 +84,6 @@ dependencies:
   # Data grid
   syncfusion_flutter_datagrid: ^29.2.4
 
-  # State management (additional)
-  flutter_riverpod: ^2.0.0
-  flutter_state_notifier: ^1.0.0
-
   # Security
   flutter_secure_storage: ^9.0.0
 
@@ -110,7 +105,6 @@ dependencies:
   app_database: any
   app_theme: any
   app_locale: any
-  app_provider: any
   theme_bloc: any
   connection_bloc: any
   ssh_key_bloc: any

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:settings_ui/settings_ui.dart';
 import 'package:web_terminal/screens/settings/_setting_config.dart';
@@ -8,13 +7,13 @@ import 'package:terminal_settings/terminal_settings.dart';
 import 'package:web_terminal/destinations.dart';
 import 'package:app_locale/app_locale.dart';
 
-class WifiInfoScreen extends ConsumerWidget {
+class WifiInfoScreen extends StatelessWidget {
   static const name = SettingsScreenNames.wifiInfo;
   static const path = 'wifi-info';
   const WifiInfoScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     const String title = 'Wifi Info';
 
     return AppAdaptiveScaffold(
@@ -31,7 +30,7 @@ class WifiInfoScreen extends ConsumerWidget {
             SliverFillRemaining(
               child: SettingsList(
                 sections: [
-                  SettingsSectionWifiInfo.build(context, ref),
+                  SettingsSectionWifiInfo.build(context),
                 ],
               ),
             ),
@@ -61,7 +60,7 @@ class WifiInfoScreen extends ConsumerWidget {
             SliverFillRemaining(
               child: SettingsList(
                 sections: [
-                  SettingsSectionWifiInfo.build(context, ref),
+                  SettingsSectionWifiInfo.build(context),
                 ],
               ),
             ),

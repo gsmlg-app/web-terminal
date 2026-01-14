@@ -1,20 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_core/terminal_core.dart';
 
 class StarterPlugin extends Plugin {
   final _uptime = ValueNotifier<String?>(null);
 
   Future<void> _updateUptime() async {
-    final result = await AsyncValue.guard(() => host.execute('uptime'));
-
-    result.when(
-      data: (data) => _uptime.value = data.stdout,
-      loading: () => _uptime.value = 'Loading...',
-      error: (error, stackTrace) => _uptime.value = 'Error: $error',
-    );
+    try {
+      final result = await host.execute('uptime');
+      _uptime.value = result.stdout;
+    } catch (error) {
+      _uptime.value = 'Error: $error';
+    }
   }
 
   Future<void> _startUpdate() async {

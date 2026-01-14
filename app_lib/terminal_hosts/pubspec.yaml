@@ -16,7 +16,6 @@ dependencies:
   flutter_pty: any
   app_ssh: any
   ssh_host_bloc: any
-  flutter_riverpod: ^2.0.0
   path: any
 
 dev_dependencies:

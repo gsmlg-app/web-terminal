@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:app_security/app_security.dart';
 import 'package:theme_bloc/theme_bloc.dart';
@@ -17,7 +16,6 @@ import 'package:connection_bloc/connection_bloc.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
-import 'package:app_provider/app_provider.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -51,64 +49,61 @@ Future<void> main() async {
   }
 
   runApp(
-    ProviderScope(
-      observers: const [ProviderLogger()],
-      child: MultiRepositoryProvider(
+    MultiRepositoryProvider(
+      providers: [
+        RepositoryProvider<SharedPreferences>(
+          create: (BuildContext context) => sharedPrefs,
+        ),
+        RepositoryProvider<FlutterSecureStorage>(
+          create: (BuildContext context) => const FlutterSecureStorage(),
+        ),
+        RepositoryProvider<AppDatabase>(
+          create: (BuildContext context) => database,
+        ),
+        RepositoryProvider<AesHelper>(
+          create: (BuildContext context) => AesHelper(Constant.appName),
+        ),
+      ],
+      child: MultiBlocProvider(
         providers: [
-          RepositoryProvider<SharedPreferences>(
-            create: (BuildContext context) => sharedPrefs,
+          BlocProvider<ThemeBloc>(
+            create: (BuildContext context) => ThemeBloc(sharedPrefs),
           ),
-          RepositoryProvider<FlutterSecureStorage>(
-            create: (BuildContext context) => const FlutterSecureStorage(),
+          BlocProvider<SshKeyBloc>(
+            create: (BuildContext context) => SshKeyBloc(database),
           ),
-          RepositoryProvider<AppDatabase>(
-            create: (BuildContext context) => database,
+          BlocProvider<SshKeyFormBloc>(
+            create: (BuildContext context) =>
+                SshKeyFormBloc(context.read<SshKeyBloc>()),
           ),
-          RepositoryProvider<AesHelper>(
-            create: (BuildContext context) => AesHelper(Constant.appName),
+          BlocProvider<SshHostBloc>(
+            create: (BuildContext context) => SshHostBloc(database),
+          ),
+          BlocProvider<SshHostFormBloc>(
+            create: (BuildContext context) =>
+                SshHostFormBloc(context.read<SshHostBloc>()),
+          ),
+          BlocProvider<TerminalTabBloc>(
+            create: (BuildContext context) => TerminalTabBloc(),
+          ),
+          BlocProvider<ConnectionBloc>(
+            create: (BuildContext context) => ConnectionBloc(),
+          ),
+          BlocProvider<WebSessionBloc>(
+            create: (BuildContext context) {
+              debugPrint(
+                '[Main] Creating WebSessionBloc with debugMode=$kDebugMode',
+              );
+              debugPrint('[Main] Static files path: $staticFilesPath');
+              return WebSessionBloc(
+                staticFilesPath: staticFilesPath,
+                debugMode: kDebugMode,
+                sharedPreferences: sharedPrefs,
+              );
+            },
           ),
         ],
-        child: MultiBlocProvider(
-          providers: [
-            BlocProvider<ThemeBloc>(
-              create: (BuildContext context) => ThemeBloc(sharedPrefs),
-            ),
-            BlocProvider<SshKeyBloc>(
-              create: (BuildContext context) => SshKeyBloc(database),
-            ),
-            BlocProvider<SshKeyFormBloc>(
-              create: (BuildContext context) =>
-                  SshKeyFormBloc(context.read<SshKeyBloc>()),
-            ),
-            BlocProvider<SshHostBloc>(
-              create: (BuildContext context) => SshHostBloc(database),
-            ),
-            BlocProvider<SshHostFormBloc>(
-              create: (BuildContext context) =>
-                  SshHostFormBloc(context.read<SshHostBloc>()),
-            ),
-            BlocProvider<TerminalTabBloc>(
-              create: (BuildContext context) => TerminalTabBloc(),
-            ),
-            BlocProvider<ConnectionBloc>(
-              create: (BuildContext context) => ConnectionBloc(),
-            ),
-            BlocProvider<WebSessionBloc>(
-              create: (BuildContext context) {
-                debugPrint(
-                  '[Main] Creating WebSessionBloc with debugMode=$kDebugMode',
-                );
-                debugPrint('[Main] Static files path: $staticFilesPath');
-                return WebSessionBloc(
-                  staticFilesPath: staticFilesPath,
-                  debugMode: kDebugMode,
-                  sharedPreferences: sharedPrefs,
-                );
-              },
-            ),
-          ],
-          child: const App(),
-        ),
+        child: const App(),
       ),
     ),
   );

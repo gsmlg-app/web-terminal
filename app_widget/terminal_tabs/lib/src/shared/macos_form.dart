@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 
 class MacosFormRow extends StatelessWidget {
@@ -38,7 +37,7 @@ class MacosFormRow extends StatelessWidget {
   }
 }
 
-class MacosTextFormRow extends ConsumerWidget {
+class MacosTextFormRow extends StatelessWidget {
   final Widget? label;
 
   final String? placeholder;
@@ -59,7 +58,7 @@ class MacosTextFormRow extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     return MacosFormRow(
       label: label,
       spaceBetween: 6.0,

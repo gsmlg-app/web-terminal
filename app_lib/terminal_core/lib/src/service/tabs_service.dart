@@ -1,5 +1,4 @@
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_core/src/conn.dart';
 import 'package:terminal_core/src/fs.dart';
 import 'package:terminal_core/src/plugin.dart';
@@ -11,6 +10,10 @@ typedef PluginTabFactory =
 /// Callback type for creating a tab from a file.
 typedef FileTabFactory = TabItem Function(File file);
 
+/// Service for managing tab operations.
+///
+/// Provides methods to open plugins, files, and generic tabs.
+/// Requires factories to be set before use.
 class TabsService {
   TabsService();
 
@@ -19,13 +22,6 @@ class TabsService {
 
   /// Factory for creating file tabs. Must be set before using openFile.
   FileTabFactory? fileTabFactory;
-
-  // TODO: openTerminal requires TerminalPlugin from plugins package.
-  // This will be re-enabled once the plugin integration is set up.
-  // void openTerminal(HostSpec hostSpec, {Tabs? tabs, bool activate = true}) {
-  //   return openPlugin(hostSpec, TerminalPlugin(),
-  //       tabs: tabs, activate: activate);
-  // }
 
   void openPlugin(
     HostSpec host,
@@ -63,8 +59,3 @@ class TabsService {
     }
   }
 }
-
-final tabsServiceProvider = Provider(
-  name: 'tabsServiceProvider',
-  (ref) => TabsService(),
-);

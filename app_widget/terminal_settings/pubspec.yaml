@@ -24,7 +24,6 @@ dependencies:
   font_awesome_flutter: any
   app_locale: any
   theme_bloc: any
-  flutter_riverpod: any
   web_session_bloc: any
 
 dev_dependencies:

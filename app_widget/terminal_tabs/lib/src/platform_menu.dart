@@ -1,20 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:terminal_tabs/src/shortcuts.dart' as shortcuts;
-import 'package:terminal_tabs/src/devtools_tab.dart';
-
-// TODO: Import from terminal_core package when available
-// import 'package:terminal_core/terminal_core.dart';
-
-/// Provider for the active tab service.
-///
-/// TODO: This should be imported from the app's service layer.
-final activeTabServiceProvider = Provider<ActiveTabService>((ref) {
-  throw UnimplementedError(
-    'activeTabServiceProvider must be overridden by the host application',
-  );
-});
 
 /// Abstract class representing an active tab service.
 ///
@@ -23,26 +9,16 @@ abstract class ActiveTabService {
   dynamic getActiveTab();
 }
 
-/// Extension on WidgetRef to open a new tab.
-///
-/// TODO: This should be imported from the app's service layer.
-extension TabsExtension on WidgetRef {
-  void openTab(dynamic tab) {
-    // TODO: Implement tab opening logic
-    // This should be integrated with the app's tab management system
-  }
-}
-
-class GlobalPlatformMenu extends ConsumerStatefulWidget {
+class GlobalPlatformMenu extends StatefulWidget {
   const GlobalPlatformMenu({super.key, required this.child});
 
   final Widget child;
 
   @override
-  ConsumerState<GlobalPlatformMenu> createState() => _GlobalPlatformMenuState();
+  State<GlobalPlatformMenu> createState() => _GlobalPlatformMenuState();
 }
 
-class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
+class _GlobalPlatformMenuState extends State<GlobalPlatformMenu> {
   @override
   Widget build(BuildContext context) {
     return PlatformMenuBar(
@@ -185,7 +161,10 @@ class _GlobalPlatformMenuState extends ConsumerState<GlobalPlatformMenu> {
             PlatformMenuItem(
               label: 'DevTools',
               shortcut: shortcuts.openDevTools,
-              onSelected: () => ref.openTab(DevToolsTab()),
+              onSelected: () {
+                // TODO: Integrate with app's tab service
+                // context.read<TabsService>().openTab(DevToolsTab());
+              },
             ),
           ],
         ),

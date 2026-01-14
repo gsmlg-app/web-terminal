@@ -1,6 +1,5 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:macos_ui/macos_ui.dart';
 import 'package:terminal_tabs/src/playground.dart';
 import 'package:xterm/xterm.dart';
@@ -14,17 +13,16 @@ class DevToolsTab extends TabItem {
   final terminal = Terminal();
 }
 
-class DevToolsTabView extends ConsumerStatefulWidget {
+class DevToolsTabView extends StatefulWidget {
   const DevToolsTabView(this.tab, {super.key});
 
   final DevToolsTab tab;
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
-      _DevToolsTabViewState();
+  State<DevToolsTabView> createState() => _DevToolsTabViewState();
 }
 
-class _DevToolsTabViewState extends ConsumerState<DevToolsTabView> {
+class _DevToolsTabViewState extends State<DevToolsTabView> {
   DevToolsTab get tab => widget.tab;
 
   @override

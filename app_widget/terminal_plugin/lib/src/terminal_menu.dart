@@ -1,14 +1,14 @@
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:file_manager_plugin/file_manager_plugin.dart';
 import 'package:starter_plugin/starter_plugin.dart';
 import 'package:terminal_plugin/src/terminal_plugin.dart';
 import 'package:xterm/xterm.dart';
 
-class TerminalContextMenu extends ConsumerStatefulWidget {
+class TerminalContextMenu extends StatefulWidget {
   const TerminalContextMenu({
     super.key,
     required this.plugin,
@@ -17,11 +17,10 @@ class TerminalContextMenu extends ConsumerStatefulWidget {
   final TerminalPlugin plugin;
 
   @override
-  ConsumerState<TerminalContextMenu> createState() =>
-      TerminalContextMenuState();
+  State<TerminalContextMenu> createState() => TerminalContextMenuState();
 }
 
-class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
+class TerminalContextMenuState extends State<TerminalContextMenu>
     with ContextMenuStateMixin {
   TerminalPlugin get plugin => widget.plugin;
 
@@ -148,14 +147,14 @@ class TerminalContextMenuState extends ConsumerState<TerminalContextMenu>
   }
 
   Future<void> _handleOpenFileManager() async {
-    ref.read(tabsServiceProvider).openPlugin(
+    context.read<TabsService>().openPlugin(
           plugin.hostSpec,
           FileManagerPlugin(),
         );
   }
 
   Future<void> _handleStarterPlugin() async {
-    ref.read(tabsServiceProvider).openPlugin(
+    context.read<TabsService>().openPlugin(
           plugin.hostSpec,
           StarterPlugin(),
         );
