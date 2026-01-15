@@ -74,11 +74,20 @@ class _PluginTabViewState extends State<PluginTabView> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+
+      // Skip if already connected (e.g., during hot reload)
+      if (widget.plugin.manager.isConnected) {
+        return;
+      }
+
       setState(() {
         connector = widget.plugin.hostSpec.createConnector();
         connector?.addListener(_onConnectionChanged);
         connector?.connect().then((_) {
-          widget.plugin.manager.didConnected(connector!.host!);
+          if (mounted && connector?.host != null) {
+            widget.plugin.manager.didConnected(connector!.host!);
+          }
         });
       });
     });

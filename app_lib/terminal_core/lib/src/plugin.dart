@@ -87,6 +87,9 @@ class PluginManager with ChangeNotifier {
 
   Host? _host;
 
+  /// Returns true if the manager is connected to a host.
+  bool get isConnected => _host != null;
+
   void add(Plugin plugin) {
     if (plugin._manager != null) {
       throw Exception('Plugin is already mounted');
