@@ -14,6 +14,7 @@ workspace:
   - app_lib/logging
   - app_lib/terminal_core
   - app_lib/terminal_hosts
+  - app_lib/secure_storage
   - app_bloc/theme
   - app_bloc/connection
   - app_bloc/ssh_key
