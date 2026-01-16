@@ -8,3 +8,4 @@ export 'src/local_spec.dart';
 export 'src/ssh_conn.dart';
 export 'src/ssh_fs.dart';
 export 'src/ssh_host.dart';
+export 'src/ssh_spec.dart';
