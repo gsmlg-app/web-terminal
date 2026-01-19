@@ -18,6 +18,7 @@ dependencies:
   ssh_host_bloc: any
   path: any
   android_shell: any
+  ios_shell: any
 
 dev_dependencies:
   flutter_test:

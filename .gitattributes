@@ -2,3 +2,6 @@
 
 # Android shell busybox binaries
 app_plugin/android_shell/android/src/main/assets/shell/*/busybox filter=lfs diff=lfs merge=lfs -text
+
+# iOS shell XCFramework binaries
+app_plugin/ios_shell/ios/Frameworks/*.xcframework/**/* filter=lfs diff=lfs merge=lfs -text

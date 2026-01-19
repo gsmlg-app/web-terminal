@@ -9,6 +9,11 @@ export 'src/android_conn.dart';
 export 'src/android_host.dart';
 export 'src/android_spec.dart';
 
+// iOS host implementations
+export 'src/ios_conn.dart';
+export 'src/ios_host.dart';
+export 'src/ios_spec.dart';
+
 // SSH host implementations
 export 'src/ssh_conn.dart';
 export 'src/ssh_fs.dart';
