@@ -16,6 +16,8 @@ import 'package:connection_bloc/connection_bloc.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
+import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
 import 'package:path_provider/path_provider.dart';
@@ -85,6 +87,14 @@ Future<void> main() async {
           ),
           BlocProvider<TerminalTabBloc>(
             create: (BuildContext context) => TerminalTabBloc(),
+          ),
+          BlocProvider<TerminalSettingsBloc>(
+            create: (BuildContext context) => TerminalSettingsBloc(
+              vault: SecureStorageVaultRepository(
+                storage: context.read<FlutterSecureStorage>(),
+                namespace: 'terminal',
+              ),
+            )..add(TerminalSettingsLoad()),
           ),
           BlocProvider<ConnectionBloc>(
             create: (BuildContext context) => ConnectionBloc(),

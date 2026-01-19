@@ -6,11 +6,15 @@ import 'package:settings_ui/settings_ui.dart';
 import 'package:theme_bloc/theme_bloc.dart';
 import 'package:terminal_settings/src/bloc_settings_section_accent_color.dart';
 import 'package:terminal_settings/src/bloc_settings_section_appearance.dart';
+import 'package:terminal_settings/src/settings_section_terminal.dart';
 import 'package:app_locale/app_locale.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
 
 /// Configuration for root settings list screen routing.
 class RootSettingListConfig {
+  /// Screen name for the terminal environment settings screen.
+  final String terminalEnvScreenName;
+
   /// Screen name for the host management screen.
   final String hostScreenName;
 
@@ -33,6 +37,7 @@ class RootSettingListConfig {
   final String webServerScreenName;
 
   const RootSettingListConfig({
+    required this.terminalEnvScreenName,
     required this.hostScreenName,
     required this.sshKeyScreenName,
     required this.deviceInfoScreenName,
@@ -62,6 +67,12 @@ class RootSettingList extends StatelessWidget {
         builder: (context, state) {
           return SettingsList(
             sections: [
+              SettingsSectionTerminal(
+                envSettingsScreenName: config.terminalEnvScreenName,
+                onEnvSettingsPressed: (context) {
+                  context.goNamed(config.terminalEnvScreenName);
+                },
+              ),
               SettingsSection(
                 title: Text(context.l10n.smenuSSH),
                 tiles: <SettingsTile>[

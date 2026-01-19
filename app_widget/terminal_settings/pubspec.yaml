@@ -25,6 +25,7 @@ dependencies:
   app_locale: any
   theme_bloc: any
   web_session_bloc: any
+  terminal_settings_bloc: any
 
 dev_dependencies:
   flutter_test:

@@ -20,6 +20,7 @@ workspace:
   - app_bloc/ssh_key
   - app_bloc/ssh_host
   - app_bloc/terminal_tab
+  - app_bloc/terminal_settings
   - app_bloc/web_session
   - app_lib/web_server
   - app_widget/adaptive
@@ -113,6 +114,7 @@ dependencies:
   ssh_key_bloc: any
   ssh_host_bloc: any
   terminal_tab_bloc: any
+  terminal_settings_bloc: any
   app_artwork: any
   app_client_info: any
   app_feedback: any
@@ -137,6 +139,7 @@ dependencies:
   app_security: any
   app_ssh: any
   app_utils: any
+  app_secure_storage: any
 
 dev_dependencies:
   flutter_test:

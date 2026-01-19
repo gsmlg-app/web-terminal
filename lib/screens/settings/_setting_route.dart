@@ -6,6 +6,7 @@ import 'package:web_terminal/screens/settings/select_brightness.dart';
 import 'package:web_terminal/screens/settings/select_theme.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:web_terminal/screens/settings/ssh_key_management.dart';
+import 'package:web_terminal/screens/settings/terminal_env_screen.dart';
 import 'package:web_terminal/screens/settings/web_server/web_server_screen.dart';
 
 final settingRoute = GoRoute(
@@ -18,6 +19,16 @@ final settingRoute = GoRoute(
     );
   },
   routes: [
+    GoRoute(
+      name: TerminalEnvScreen.name,
+      path: TerminalEnvScreen.path,
+      pageBuilder: (context, state) {
+        return NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const TerminalEnvScreen(),
+        );
+      },
+    ),
     GoRoute(
       name: SettingsSelectBrightness.name,
       path: SettingsSelectBrightness.path,
