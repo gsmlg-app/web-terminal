@@ -200,6 +200,10 @@ class AppAdaptiveScaffold extends StatelessWidget {
   /// Used to map NavigationDestination to NavigationRailDestination.
   final NavigationRailDestinationBuilder? navigationRailDestinationBuilder;
 
+  /// When true, hides all navigation UI (NavigationRail, BottomNavigationBar)
+  /// and displays only the body content in fullscreen mode.
+  final bool hideNavigation;
+
   const AppAdaptiveScaffold({
     super.key,
     required this.destinations,
@@ -237,10 +241,16 @@ class AppAdaptiveScaffold extends StatelessWidget {
     this.appBarBreakpoint,
     this.navigationRailDestinationBuilder,
     this.groupAlignment,
+    this.hideNavigation = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // When hideNavigation is true, render only the body without navigation
+    if (hideNavigation) {
+      return body?.call(context) ?? const SizedBox.shrink();
+    }
+
     return AdaptiveScaffold(
       destinations: destinations,
       selectedIndex: selectedIndex,

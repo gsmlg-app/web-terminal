@@ -11,6 +11,7 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabStart>(_onTerminalTabStart);
     on<TerminalTabStop>(_onTerminalTabStop);
     on<TerminalTabOpenTab>(_onTerminalTabOpenTab);
+    on<TerminalTabToggleFullscreen>(_onTerminalTabToggleFullscreen);
   }
 
   void _onTerminalTabStart(
@@ -51,6 +52,16 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
         event.tabItem.activate();
       }
       emit(currentState.copyWith(incrementVersion: true));
+    }
+  }
+
+  void _onTerminalTabToggleFullscreen(
+    TerminalTabToggleFullscreen event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is TerminalTabLoaded) {
+      final currentState = state as TerminalTabLoaded;
+      emit(currentState.copyWith(isFullscreen: !currentState.isFullscreen));
     }
   }
 }

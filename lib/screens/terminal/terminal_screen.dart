@@ -135,15 +135,46 @@ class _TerminalScreenState extends State<TerminalScreen> {
       widget = VirtualWindowFrame(child: widget);
     }
 
-    return AppAdaptiveScaffold(
-      selectedIndex:
-          Destinations.indexOf(const Key(TerminalScreen.name), context),
-      onSelectedIndexChange: (idx) => Destinations.changeHandler(
-        idx,
-        context,
+    // Wrap with Actions to handle fullscreen toggle
+    widget = Actions(
+      actions: {
+        ToggleFullscreenIntent: CallbackAction<ToggleFullscreenIntent>(
+          onInvoke: (_) {
+            _terminalTabBloc.add(TerminalTabToggleFullscreen());
+            return null;
+          },
+        ),
+      },
+      child: Focus(
+        autofocus: true,
+        child: widget,
       ),
-      destinations: Destinations.navs(context),
-      body: (context) => widget,
+    );
+
+    return BlocBuilder<TerminalTabBloc, TerminalTabState>(
+      buildWhen: (previous, current) {
+        // Only rebuild when fullscreen state changes
+        if (previous is TerminalTabLoaded && current is TerminalTabLoaded) {
+          return previous.isFullscreen != current.isFullscreen;
+        }
+        return true;
+      },
+      builder: (context, state) {
+        final isFullscreen =
+            state is TerminalTabLoaded ? state.isFullscreen : false;
+
+        return AppAdaptiveScaffold(
+          selectedIndex:
+              Destinations.indexOf(const Key(TerminalScreen.name), context),
+          onSelectedIndexChange: (idx) => Destinations.changeHandler(
+            idx,
+            context,
+          ),
+          destinations: Destinations.navs(context),
+          hideNavigation: isFullscreen,
+          body: (context) => widget,
+        );
+      },
     );
   }
 

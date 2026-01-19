@@ -54,3 +54,7 @@ SingleActivator get terminalSelectAll {
           shift: true,
         );
 }
+
+SingleActivator get toggleFullscreen {
+  return const SingleActivator(LogicalKeyboardKey.f11);
+}

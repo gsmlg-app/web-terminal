@@ -13,3 +13,6 @@ class TerminalTabOpenTab extends TerminalTabEvent {
 
   TerminalTabOpenTab(this.tabItem, {this.activate = true});
 }
+
+/// Toggles fullscreen mode (hides/shows navigation shell).
+class TerminalTabToggleFullscreen extends TerminalTabEvent {}
