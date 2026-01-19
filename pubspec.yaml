@@ -41,6 +41,7 @@ workspace:
   - app_plugin/client_info/client_info_macos
   - app_plugin/client_info/client_info_windows
   - app_plugin/pty
+  - app_plugin/android_shell
   - third_party/form_bloc
   - third_party/flutter_form_bloc
   - third_party/flutter_adaptive_scaffold

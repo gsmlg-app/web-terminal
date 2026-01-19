@@ -1,0 +1,4 @@
+# Git LFS tracking for large binary files
+
+# Android shell busybox binaries
+app_plugin/android_shell/android/src/main/assets/shell/*/busybox filter=lfs diff=lfs merge=lfs -text

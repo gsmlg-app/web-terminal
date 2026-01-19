@@ -38,7 +38,7 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
   void _openLocalTerminal(BuildContext context) {
     handlePressed(context, () {
       final plugin = TerminalPlugin();
-      final manager = PluginManager(LocalHostSpec());
+      final manager = PluginManager(createDefaultHostSpec());
       final tabItem = PluginTab(plugin, manager);
       context.read<TerminalTabBloc>().add(TerminalTabOpenTab(tabItem));
     });
