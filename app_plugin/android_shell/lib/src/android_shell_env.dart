@@ -87,6 +87,9 @@ class AndroidShellEnv {
     _initialized = true;
   }
 
+  /// Path to the shell profile.
+  String get profilePath => p.join(etcPath, 'profile');
+
   /// Returns environment variables for the sandboxed shell.
   ///
   /// These should be passed to the PTY when starting a shell session.
@@ -101,11 +104,19 @@ class AndroidShellEnv {
       'TMPDIR': tmpPath,
       'ANDROID_DATA': '/data',
       'ANDROID_ROOT': '/system',
+      // ENV tells busybox sh where to find the profile for interactive shells
+      'ENV': profilePath,
     };
   }
 
   /// Returns the shell command and arguments for starting a login shell.
+  ///
+  /// Uses busybox sh with profile sourcing. The profile changes to HOME
+  /// directory since Android's /data restrictions may prevent PTY from
+  /// setting the initial working directory correctly.
   (String, List<String>) getShellCommand() {
+    // Start interactive shell that sources our profile via ENV
+    // The -l flag tells sh it's a login shell
     return (shellPath, ['-l']);
   }
 

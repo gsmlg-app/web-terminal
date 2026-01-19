@@ -1,8 +1,14 @@
 # Web Terminal - Android Shell Profile
 # Sourced on login shell startup
 
-# Set prompt
-PS1='$ '
+# Change to home directory on login
+# This is necessary because Android's /data restrictions may prevent
+# the PTY from setting the initial working directory correctly
+cd "$HOME" 2>/dev/null || cd /
+
+# Set prompt - busybox ash uses limited escapes
+# Show username and short path
+PS1='${PWD##*/} $ '
 
 # Aliases for common commands
 alias ll='ls -la'
