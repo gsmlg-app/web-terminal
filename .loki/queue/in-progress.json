@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Iteration 22: Explore more test opportunities"
+      "action": "Iteration 23: Find more untested code"
     }
   }
 ]
