@@ -21,10 +21,18 @@ HostSpec createDefaultHostSpec({
   String? initCommands,
 }) {
   if (Platform.isAndroid) {
-    return AndroidHostSpec();
+    return AndroidHostSpec(
+      name: name ?? 'Android',
+      environment: environment ?? const {},
+      initCommands: initCommands,
+    );
   }
   if (Platform.isIOS) {
-    return IosHostSpec();
+    return IosHostSpec(
+      name: name ?? 'iOS',
+      environment: environment ?? const {},
+      initCommands: initCommands,
+    );
   }
   return LocalHostSpec(
     name: name ?? 'Local',

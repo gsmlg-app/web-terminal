@@ -7,7 +7,16 @@ import 'package:terminal_hosts/src/android_host.dart';
 /// Ensures the sandboxed shell environment is initialized before creating
 /// the host.
 class AndroidConnector extends HostConnector<AndroidHost> {
-  AndroidConnector();
+  /// Additional environment variables from shell profile.
+  final Map<String, String> environment;
+
+  /// Optional init commands to run when shell starts.
+  final String? initCommands;
+
+  AndroidConnector({
+    this.environment = const {},
+    this.initCommands,
+  });
 
   @override
   Future<AndroidHost> createHost() async {
@@ -17,6 +26,10 @@ class AndroidConnector extends HostConnector<AndroidHost> {
       await env.initialize();
     }
 
-    return AndroidHost(env);
+    return AndroidHost(
+      env,
+      environment: environment,
+      initCommands: initCommands,
+    );
   }
 }

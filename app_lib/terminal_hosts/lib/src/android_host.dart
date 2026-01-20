@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io' as io;
 import 'dart:typed_data';
 
@@ -11,7 +12,18 @@ import 'package:terminal_hosts/src/local_fs.dart';
 class AndroidHost implements Host {
   final AndroidShellEnv _env;
 
-  AndroidHost(this._env);
+  /// Additional environment variables from shell profile.
+  final Map<String, String> _profileEnvironment;
+
+  /// Optional init commands to run when shell starts.
+  final String? _initCommands;
+
+  AndroidHost(
+    this._env, {
+    Map<String, String> environment = const {},
+    String? initCommands,
+  })  : _profileEnvironment = environment,
+        _initCommands = initCommands;
 
   @override
   Future<ExecutionResult> execute(
@@ -45,14 +57,31 @@ class AndroidHost implements Host {
   }) async {
     final (command, args) = _env.getShellCommand();
 
+    // Merge environment: base → profile → session-specific
+    final mergedEnv = {
+      ..._env.getEnvironment(),
+      ..._profileEnvironment,
+      ...environment ?? {},
+    };
+
     final pty = Pty.start(
       command,
       arguments: args,
-      environment: {..._env.getEnvironment(), ...environment ?? {}},
+      environment: mergedEnv,
       workingDirectory: _env.homePath,
       rows: height,
       columns: width,
     );
+
+    // Send init commands if provided (after a short delay for shell to start)
+    final initCmds = _initCommands;
+    if (initCmds != null && initCmds.isNotEmpty) {
+      // Wait briefly for shell prompt
+      Future.delayed(const Duration(milliseconds: 100), () {
+        pty.write(utf8.encode('$initCmds\n'));
+      });
+    }
+
     return AndroidExecutionSession(pty);
   }
 

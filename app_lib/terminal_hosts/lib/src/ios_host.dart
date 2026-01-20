@@ -14,7 +14,18 @@ import 'package:terminal_hosts/src/local_fs.dart';
 class IosHost implements Host {
   final IosShellEnv _env;
 
-  IosHost(this._env);
+  /// Additional environment variables from shell profile.
+  final Map<String, String> _profileEnvironment;
+
+  /// Optional init commands to run when shell starts.
+  final String? _initCommands;
+
+  IosHost(
+    this._env, {
+    Map<String, String> environment = const {},
+    String? initCommands,
+  })  : _profileEnvironment = environment,
+        _initCommands = initCommands;
 
   @override
   Future<ExecutionResult> execute(
@@ -47,10 +58,20 @@ class IosHost implements Host {
     int height = 25,
     Map<String, String>? environment,
   }) async {
+    // Merge environment: profile → session-specific
+    final mergedEnv = {
+      ..._profileEnvironment,
+      ...environment ?? {},
+    };
+
     // Create a simulated shell session for iOS
     // Note: width/height are accepted for API compatibility but iOS
     // doesn't support true PTY resizing
-    return IosExecutionSession(_env);
+    return IosExecutionSession(
+      _env,
+      environment: mergedEnv,
+      initCommands: _initCommands,
+    );
   }
 
   final _doneCompleter = Completer<void>();
@@ -92,14 +113,75 @@ class IosExecutionResult implements ExecutionResult {
 class IosExecutionSession implements ExecutionSession {
   final IosShellEnv _env;
 
+  /// Environment variables from profile (applied to each command).
+  /// Mutable to allow export commands to add variables.
+  final Map<String, String> _environment;
+
   final _outputController = StreamController<Uint8List>.broadcast();
   final _exitCodeCompleter = Completer<int>();
 
   String _inputBuffer = '';
   bool _closed = false;
 
-  IosExecutionSession(this._env) {
+  IosExecutionSession(
+    this._env, {
+    Map<String, String> environment = const {},
+    String? initCommands,
+  }) : _environment = Map<String, String>.from(environment) {
+    _initialize(initCommands);
+  }
+
+  Future<void> _initialize(String? initCommands) async {
+    // Run init commands silently if provided
+    final cmds = initCommands;
+    if (cmds != null && cmds.isNotEmpty) {
+      for (final line in cmds.split('\n')) {
+        final cmd = line.trim();
+        if (cmd.isNotEmpty) {
+          await _executeCommandSilent(cmd);
+        }
+      }
+    }
     _showPrompt();
+  }
+
+  /// Executes a command without showing output (for init commands).
+  Future<void> _executeCommandSilent(String command) async {
+    if (command.isEmpty) return;
+
+    // Handle export commands for environment variables
+    if (command.startsWith('export ')) {
+      _handleExport(command);
+      return;
+    }
+
+    // Handle alias commands (stored in memory but ios_system doesn't support them)
+    if (command.startsWith('alias ')) {
+      // iOS shell doesn't support aliases, silently ignore
+      return;
+    }
+
+    // Execute other commands silently
+    try {
+      await _env.execute(command);
+    } catch (_) {
+      // Ignore errors for init commands
+    }
+  }
+
+  void _handleExport(String command) {
+    // Parse: export VAR=value or export VAR="value"
+    final match = RegExp(r'^export\s+(\w+)=(.*)$').firstMatch(command);
+    if (match != null) {
+      final varName = match.group(1)!;
+      var value = match.group(2)!;
+      // Remove surrounding quotes if present
+      if ((value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))) {
+        value = value.substring(1, value.length - 1);
+      }
+      _environment[varName] = value;
+    }
   }
 
   @override
