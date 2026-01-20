@@ -6,20 +6,20 @@ import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 /// A minimal TabItem for testing purposes.
 class TestTabItem extends TabItem {
   final String testId;
-  bool isActivated = false;
-  bool isDisposed = false;
+  bool wasActivated = false;
+  bool wasDisposed = false;
 
   TestTabItem(this.testId);
 
   @override
   void activate() {
-    isActivated = true;
+    wasActivated = true;
     super.activate();
   }
 
   @override
   void dispose() {
-    isDisposed = true;
+    wasDisposed = true;
     super.dispose();
   }
 }

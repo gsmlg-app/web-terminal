@@ -25,49 +25,66 @@ class SessionMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return PopupMenuButton<_SessionType>(
-      icon: const Icon(Icons.add),
-      tooltip: 'New session',
-      onSelected: (type) {
-        switch (type) {
-          case _SessionType.localShell:
-            onNewLocalShell();
-          case _SessionType.sshShell:
-            onNewSshSession();
-          case _SessionType.sftpServer:
-            onNewSftpSession();
-        }
-      },
-      itemBuilder: (context) => [
-        const PopupMenuItem(
-          value: _SessionType.localShell,
-          child: ListTile(
-            leading: Icon(Icons.terminal),
-            title: Text('Local Shell'),
-            subtitle: Text('Open a terminal on this device'),
-            contentPadding: EdgeInsets.zero,
+    return Semantics(
+      label: 'Create new session',
+      hint: 'Double tap to open session type menu',
+      button: true,
+      child: PopupMenuButton<_SessionType>(
+        icon: const Icon(Icons.add),
+        tooltip: 'New session',
+        onSelected: (type) {
+          switch (type) {
+            case _SessionType.localShell:
+              onNewLocalShell();
+            case _SessionType.sshShell:
+              onNewSshSession();
+            case _SessionType.sftpServer:
+              onNewSftpSession();
+          }
+        },
+        itemBuilder: (context) => [
+          PopupMenuItem(
+            value: _SessionType.localShell,
+            child: Semantics(
+              label: 'Local Shell. Open a terminal on this device.',
+              hint: 'Double tap to open local shell',
+              child: const ListTile(
+                leading: Icon(Icons.terminal),
+                title: Text('Local Shell'),
+                subtitle: Text('Open a terminal on this device'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
-        ),
-        const PopupMenuItem(
-          value: _SessionType.sshShell,
-          child: ListTile(
-            leading: Icon(Icons.cloud),
-            title: Text('SSH Shell'),
-            subtitle: Text('Connect to a remote server'),
-            contentPadding: EdgeInsets.zero,
+          PopupMenuItem(
+            value: _SessionType.sshShell,
+            child: Semantics(
+              label: 'SSH Shell. Connect to a remote server.',
+              hint: 'Double tap to connect via SSH',
+              child: const ListTile(
+                leading: Icon(Icons.cloud),
+                title: Text('SSH Shell'),
+                subtitle: Text('Connect to a remote server'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
-        ),
-        const PopupMenuItem(
-          value: _SessionType.sftpServer,
-          enabled: false, // SFTP is planned for future release
-          child: ListTile(
-            leading: Icon(Icons.folder),
-            title: Text('SFTP Server'),
-            subtitle: Text('Browse remote files (coming soon)'),
-            contentPadding: EdgeInsets.zero,
+          PopupMenuItem(
+            value: _SessionType.sftpServer,
+            enabled: false, // SFTP is planned for future release
+            child: Semantics(
+              label: 'SFTP Server. Browse remote files. Coming soon, currently disabled.',
+              enabled: false,
+              child: const ListTile(
+                leading: Icon(Icons.folder),
+                title: Text('SFTP Server'),
+                subtitle: Text('Browse remote files (coming soon)'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
