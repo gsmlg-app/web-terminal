@@ -281,7 +281,7 @@ void main() {
   group('Theme color schemes', () {
     test('each theme has distinct color schemes', () {
       final colorSchemes = themeList
-          .map((t) => t.lightTheme.colorScheme.primary.value)
+          .map((t) => t.lightTheme.colorScheme.primary.toARGB32())
           .toSet();
       // All themes should have different primary colors
       expect(colorSchemes.length, themeList.length);

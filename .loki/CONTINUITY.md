@@ -502,3 +502,22 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 7b8463a - test(adaptive): add comprehensive tests for AppAdaptiveAction and AppAdaptiveScaffold
 - Total new tests this iteration: 46
 - Total project tests: 433+ (accumulated across all packages)
+
+#### Iteration 13: Theme Package Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for app_theme package (48 tests)
+  - ThemeModeExtension.fromString: parses all variants, null/unknown handling (9 tests)
+  - ThemeModeExtension.title: system/light/dark labels (3 tests)
+  - ThemeModeExtension.icon: brightness_auto/light_mode/dark_mode icons (3 tests)
+  - ThemeModeExtension.iconOutlined: outlined icon variants (3 tests)
+  - themeList: contains all four themes (5 tests)
+  - AppTheme.toString: returns theme name (1 test)
+  - VioletTheme: name, light/dark themes, Material 3, factory (5 tests)
+  - GreenTheme: name, light/dark themes, Material 3 (4 tests)
+  - FireTheme: name, light/dark themes, Material 3 (4 tests)
+  - WheatTheme: name, light/dark themes, Material 3 (4 tests)
+  - DynamicTheme: fromSeed creation, brightness, Material 3, color differences (5 tests)
+  - Theme color schemes: distinctness, hue consistency (2 tests)
+- Fixed test tolerance: Material 3 may adjust hue between light/dark for accessibility (15 degree tolerance)
+- **Commit**: b5f06f8 - test(theme): add comprehensive tests for app_theme package
+- Total new tests this iteration: 48
+- Total project tests: 481+ (accumulated across all packages)
