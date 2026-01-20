@@ -1,7 +1,7 @@
 {
-  "timestamp": "2026-01-20T16:15:08Z",
+  "timestamp": "2026-01-20T16:25:12Z",
   "cpu": {
-    "usage_percent": 22,
+    "usage_percent": 15,
     "threshold_percent": 80,
     "status": "ok"
   },

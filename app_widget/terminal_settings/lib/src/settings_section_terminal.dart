@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:settings_ui/settings_ui.dart';
+import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 
 /// Available monospace font families for terminal.
@@ -23,10 +24,14 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
   /// Callback when environment settings tile is pressed.
   final void Function(BuildContext context) onEnvSettingsPressed;
 
+  /// Callback when shell profiles tile is pressed (optional).
+  final void Function(BuildContext context)? onShellProfilesPressed;
+
   const SettingsSectionTerminal({
     super.key,
     required this.envSettingsScreenName,
     required this.onEnvSettingsPressed,
+    this.onShellProfilesPressed,
   });
 
   @override
@@ -51,7 +56,7 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
 
         return SettingsSection(
           title: const Text('Terminal'),
-          tiles: <SettingsTile>[
+          tiles: <Widget>[
             SettingsTile.navigation(
               leading: const Icon(Icons.settings_applications),
               title: const Text('Environment Variables'),
@@ -62,6 +67,8 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
               ),
               onPressed: onEnvSettingsPressed,
             ),
+            if (onShellProfilesPressed != null)
+              _ShellProfilesTile(onPressed: onShellProfilesPressed!),
             SettingsTile(
               leading: const Icon(Icons.tab),
               title: const Text('Max Open Sessions'),
@@ -134,6 +141,36 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+}
+
+/// A settings tile that shows shell profiles count with ShellProfileBloc.
+class _ShellProfilesTile extends AbstractSettingsTile {
+  final void Function(BuildContext context) onPressed;
+
+  const _ShellProfilesTile({required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ShellProfileBloc, ShellProfileState>(
+      builder: (context, state) {
+        final profileCount =
+            state is ShellProfileLoaded ? state.profiles.length : 0;
+        final defaultProfile =
+            state is ShellProfileLoaded ? state.defaultProfile : null;
+
+        return SettingsTile.navigation(
+          leading: const Icon(Icons.person),
+          title: const Text('Shell Profiles'),
+          description: Text(
+            profileCount > 0
+                ? '$profileCount profile${profileCount > 1 ? 's' : ''}${defaultProfile != null ? ' (default: ${defaultProfile.name})' : ''}'
+                : 'No profiles configured',
+          ),
+          onPressed: onPressed,
         );
       },
     );

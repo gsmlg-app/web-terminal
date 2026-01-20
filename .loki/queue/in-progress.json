@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Update Loki state files and commit progress"
+      "action": "Create shell profile list screen"
     }
   }
 ]

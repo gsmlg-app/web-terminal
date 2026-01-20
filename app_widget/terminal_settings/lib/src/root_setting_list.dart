@@ -36,6 +36,9 @@ class RootSettingListConfig {
   /// Screen name for the web server settings screen.
   final String webServerScreenName;
 
+  /// Screen name for the shell profiles settings screen (optional).
+  final String? shellProfilesScreenName;
+
   const RootSettingListConfig({
     required this.terminalEnvScreenName,
     required this.hostScreenName,
@@ -45,6 +48,7 @@ class RootSettingListConfig {
     required this.selectBrightnessScreenName,
     required this.selectThemeScreenName,
     required this.webServerScreenName,
+    this.shellProfilesScreenName,
   });
 }
 
@@ -72,6 +76,11 @@ class RootSettingList extends StatelessWidget {
                 onEnvSettingsPressed: (context) {
                   context.goNamed(config.terminalEnvScreenName);
                 },
+                onShellProfilesPressed: config.shellProfilesScreenName != null
+                    ? (context) {
+                        context.goNamed(config.shellProfilesScreenName!);
+                      }
+                    : null,
               ),
               SettingsSection(
                 title: Text(context.l10n.smenuSSH),
