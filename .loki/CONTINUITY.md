@@ -521,3 +521,23 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: b5f06f8 - test(theme): add comprehensive tests for app_theme package
 - Total new tests this iteration: 48
 - Total project tests: 481+ (accumulated across all packages)
+
+#### Iteration 14: Web Server Message Protocol Test Coverage ✓ COMPLETED
+- Added comprehensive tests for web_server message protocol (60 tests)
+  - SessionStatus: creation, all params, toJson, fromJson (7 tests)
+  - CreatePtyRequest: required params, env, defaults (6 tests)
+  - CreatePtyResponse: success/error responses, parsing (3 tests)
+  - ClosePtyRequest: creation, toJson, fromJson (3 tests)
+  - PtyExited: ptyId, exitCode, parsing (3 tests)
+  - ResizePtyRequest: dimensions, parsing (2 tests)
+  - Ping: sentAt, toJson, fromJson, default timestamp (4 tests)
+  - Pong: sentAt, toJson, fromJson, default timestamp (4 tests)
+  - ErrorMessage: code/message, serialization (3 tests)
+  - parseMessage: all 9 message types, invalid/unknown/missing type (12 tests)
+  - parseMessageFromJson: valid, null type, unknown type (3 tests)
+  - encodeBinaryFrame: encoding, empty data, long ptyId (3 tests)
+  - decodeBinaryFrame: valid, empty, truncated, no data, roundtrip (5 tests)
+  - WsMessage JSON roundtrip: SessionStatus, CreatePtyRequest, ErrorMessage (3 tests)
+- **Commit**: 4515fc2 - test(web-server): add comprehensive tests for WebSocket message protocol
+- Total new tests this iteration: 60
+- Total project tests: 541+ (accumulated across all packages)
