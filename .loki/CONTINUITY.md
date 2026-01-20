@@ -358,3 +358,15 @@ Building a native-like shell experience on Android and iOS with:
   - Tests for: reportFlutterError, getRecentErrors, clearErrorLogs, exportErrorLogs
   - Tests for: setupGlobalErrorHandler, LogLevel enum values
 - Total logging package tests: 32 (was 15)
+
+#### Iteration 7 (continued): Terminal Core Tests ✓ COMPLETED
+- Added comprehensive tests for `app_lib/terminal_core` package (33 tests)
+- Test coverage includes:
+  - Plugin mixin: initial state, title, lifecycle errors (6 tests)
+  - PluginManager: add/remove, mount/unmount, connect/disconnect (16 tests)
+  - HostConnectorStatus enum values (1 test)
+  - HostConnector: status transitions, connect/disconnect, listeners (8 tests)
+  - ExecutionResult interface (1 test)
+- Created mock implementations: MockHostSpec, MockHost, MockExecutionResult, MockHostConnector, TestPlugin
+- Tests verify correct lifecycle callback ordering and state management
+- Total terminal_core tests: 33 (was 0)
