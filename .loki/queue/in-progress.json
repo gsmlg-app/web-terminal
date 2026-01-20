@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Iteration 20: Find next improvement target"
+      "action": "Iteration 20: Add TabsService tests"
     }
   }
 ]
