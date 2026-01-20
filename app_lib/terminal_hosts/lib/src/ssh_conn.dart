@@ -1,7 +1,15 @@
+import 'dart:async';
+
 import 'package:app_ssh/app_ssh.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_host.dart';
+
+/// Default timeout for SSH socket connection.
+const Duration kSshConnectionTimeout = Duration(seconds: 30);
+
+/// Default timeout for SSH authentication.
+const Duration kSshAuthenticationTimeout = Duration(seconds: 60);
 
 /// SSH key data for authentication.
 class SshKeyData {
@@ -50,6 +58,17 @@ class SshKeyParseException implements Exception {
   String toString() => cause != null ? '$message: $cause' : message;
 }
 
+/// Exception thrown when SSH connection or authentication times out.
+class SshTimeoutException implements Exception {
+  final String message;
+  final Duration timeout;
+
+  const SshTimeoutException(this.message, this.timeout);
+
+  @override
+  String toString() => '$message (timeout: ${timeout.inSeconds}s)';
+}
+
 class SSHConnector extends HostConnector<SSHHost> {
   final SshHost record;
 
@@ -58,7 +77,18 @@ class SSHConnector extends HostConnector<SSHHost> {
   /// instead of password authentication.
   final SshKeyData? keyData;
 
-  SSHConnector(this.record, {this.keyData});
+  /// Timeout for establishing the socket connection.
+  final Duration connectionTimeout;
+
+  /// Timeout for SSH authentication after connection is established.
+  final Duration authenticationTimeout;
+
+  SSHConnector(
+    this.record, {
+    this.keyData,
+    this.connectionTimeout = kSshConnectionTimeout,
+    this.authenticationTimeout = kSshAuthenticationTimeout,
+  });
 
   @override
   Future<SSHHost> createHost() async {
@@ -77,10 +107,20 @@ class SSHConnector extends HostConnector<SSHHost> {
       throw const SshAuthenticationException('Username is required');
     }
 
-    // Establish socket connection
+    // Establish socket connection with timeout
     final SSHSocket socket;
     try {
-      socket = await SSHSocket.connect(hostname, port);
+      socket = await SSHSocket.connect(hostname, port).timeout(
+        connectionTimeout,
+        onTimeout: () {
+          throw SshTimeoutException(
+            'Connection to $hostname:$port timed out',
+            connectionTimeout,
+          );
+        },
+      );
+    } on SshTimeoutException {
+      rethrow;
     } catch (error) {
       throw SshConnectionException('Failed to connect to $hostname:$port', error);
     }
@@ -115,9 +155,20 @@ class SSHConnector extends HostConnector<SSHHost> {
       identities: identities,
     );
 
-    // Authenticate
+    // Authenticate with timeout
     try {
-      await client.authenticated;
+      await client.authenticated.timeout(
+        authenticationTimeout,
+        onTimeout: () {
+          client.close();
+          throw SshTimeoutException(
+            'Authentication for $username@$hostname timed out',
+            authenticationTimeout,
+          );
+        },
+      );
+    } on SshTimeoutException {
+      rethrow;
     } catch (error) {
       client.close();
       throw SshAuthenticationException('Authentication failed for $username@$hostname', error);
