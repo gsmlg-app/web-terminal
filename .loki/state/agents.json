@@ -4,10 +4,21 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Commit security review document",
+    "current_task": "Bash: Commit loki state files",
     "status": "active",
-    "spawned_at": "2026-01-20T14:56:30.148832Z",
+    "spawned_at": "2026-01-20T15:39:23.351627Z",
     "tasks_completed": [],
-    "tool_count": 120
+    "tool_count": 161
+  },
+  {
+    "agent_id": "agent-toolu_01",
+    "tool_id": "toolu_01CZvsjxVpa5Qz8n8RfrisTK",
+    "agent_type": "Explore",
+    "model": "sonnet",
+    "current_task": "Find edge cases in terminal",
+    "status": "completed",
+    "spawned_at": "2026-01-20T15:30:13.159187Z",
+    "tasks_completed": [],
+    "completed_at": "2026-01-20T15:31:42.197799Z"
   }
 ]

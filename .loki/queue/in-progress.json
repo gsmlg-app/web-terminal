@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Security review of SSH key handling"
+      "action": "Update Loki state files and commit progress"
     }
   }
 ]

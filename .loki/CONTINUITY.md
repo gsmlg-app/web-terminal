@@ -170,3 +170,34 @@ Building a native-like shell experience on Android and iOS with:
 - Created comprehensive terminal feature documentation: `docs/TERMINAL.md`
 - Updated documentation index: `docs/INDEX.md`
 - Covers: shell sessions, SSH, settings, architecture, limitations
+
+#### Bug Fixes ✓ COMPLETED
+- Added typed SSH exceptions (SshConnectionException, SshAuthenticationException, SshKeyParseException)
+- Added input validation for hostname, port, username before network I/O
+- Fixed resource cleanup on authentication failure
+- **Commit**: 94a28a8 - fix(ssh): add typed exceptions and validation for SSH connections
+
+#### Test Infrastructure Fixes ✓ COMPLETED (Iteration 3)
+- **SSH Socket Test**: Added timeout handling and skip for unreliable network tests
+- **web_server Package**: Converted to Flutter package (was misclassified as pure Dart but depends on flutter via terminal_core)
+- **web_session_bloc Tests**: Added 17 state/event tests for WebSessionState and WebSessionEvent classes
+- **web_server_settings Tests**: Added export availability test
+- **ServerConfig Tests**: Added 4 tests for server configuration in web_server package
+- All `melos run test` passes (both test:dart and test:flutter)
+- **Commit**: 1db7398 - test: fix test infrastructure for melos run test
+
+#### Shell Profile Management ✓ COMPLETED (Iteration 3)
+- Added ShellProfiles database table with migration from v1 to v2
+- Fields: name, shellType, envVars, aliases, fontFamily, fontSize, colorTheme, isDefault
+- Created shell_profile_bloc package with full CRUD operations
+- Default profile handling: automatically clears other defaults when setting new one
+- Added 14 unit tests for state, events, and bloc operations
+- **Commit**: 4e44d82 - feat(shell-profiles): add shell profile management system
+
+#### Shell Profile Extensions ✓ COMPLETED (Iteration 3)
+- Added ShellProfileParsing extension for JSON field parsing
+- parsedEnvironmentVariables, parsedAliases, parsedShellType accessors
+- generateInitCommands(): produces shell export/alias statements
+- Added ShellProfileEncoder for encoding Maps to JSON
+- Added 16 additional tests for extensions
+- **Commit**: 2f0296a - feat(shell-profiles): add parsing extensions and init command generation
