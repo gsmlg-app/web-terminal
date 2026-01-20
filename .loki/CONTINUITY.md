@@ -300,4 +300,17 @@ Building a native-like shell experience on Android and iOS with:
   - Control character handling (Ctrl+C, Ctrl+D, backspace)
   - Command execution and environment merging
 - Total terminal_hosts tests now: 111 (was ~46)
-- **Commit**: d4b5d31 - test: add comprehensive widget and host implementation tests
+- **Commits**:
+  - d4b5d31 - test: add comprehensive widget and host implementation tests
+  - c2ee206 - docs(loki): update CONTINUITY.md with iteration 5 progress
+
+#### Iteration 5 (continued): Code Quality Fixes ✓ COMPLETED
+- Fixed resource leak in SSHFile.copy() (ssh_fs.dart)
+  - Added try-finally blocks to properly close source and destination file handles
+  - Prevents connection exhaustion from unclosed SFTP file handles
+- Added SSHHostSpec constructor validation (ssh_spec.dart)
+  - Throws ArgumentError when keyData is null but identityType is key
+  - Prevents silent fallback to password auth when key auth was intended
+  - Improves developer experience with fail-fast error detection
+- Added 3 tests for SSHHostSpec keyData validation
+- **Commit**: fadc898 - fix: close file handles in SSHFile.copy() and validate SSHHostSpec keyData
