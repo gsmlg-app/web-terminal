@@ -281,12 +281,14 @@ void showShellProfileForm({
   var selectedShellType =
       ShellType.fromValue(profile?.shellType) ?? ShellType.sh;
   var isDefault = profile?.isDefault ?? false;
+  // Capture the bloc before showing the dialog
+  final bloc = context.read<ShellProfileBloc>();
 
   showDialog(
     context: context,
     builder: (dialogContext) {
       return StatefulBuilder(
-        builder: (context, setState) {
+        builder: (_, setState) {
           return AlertDialog(
             title: Text(isEditing ? 'Edit Profile' : 'New Profile'),
             content: SingleChildScrollView(
@@ -346,7 +348,6 @@ void showShellProfileForm({
                     return;
                   }
 
-                  final bloc = context.read<ShellProfileBloc>();
                   if (isEditing) {
                     bloc.add(UpdateShellProfile(
                       id: profile.id,

@@ -4,11 +4,11 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Commit test fix",
+    "current_task": "Bash: Commit shell profile screen tests",
     "status": "active",
     "spawned_at": "2026-01-20T15:39:23.351627Z",
     "tasks_completed": [],
-    "tool_count": 224
+    "tool_count": 254
   },
   {
     "agent_id": "agent-toolu_01",

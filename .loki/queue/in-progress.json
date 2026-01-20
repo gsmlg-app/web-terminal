@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Run tests and verify"
+      "action": "Add widget tests for shell profile screen"
     }
   }
 ]

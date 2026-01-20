@@ -201,3 +201,15 @@ Building a native-like shell experience on Android and iOS with:
 - Added ShellProfileEncoder for encoding Maps to JSON
 - Added 16 additional tests for extensions
 - **Commit**: 2f0296a - feat(shell-profiles): add parsing extensions and init command generation
+
+#### Shell Profile UI ✓ COMPLETED (Iteration 3)
+- Added shell profile navigation tile to SettingsSectionTerminal
+- Created ShellProfileScreen with list view and CRUD operations
+- Profile form dialog for add/edit with shell type dropdown
+- Set as default, delete with confirmation dialog
+- Integrated ShellProfileBloc into main.dart providers
+- Added route to settings navigation
+- **Commits**:
+  - 9f719e1 - feat(terminal-settings): add shell profile navigation tile
+  - daf0b53 - feat(settings): add shell profile management screen
+  - 5e90cde - test(ssh): skip network tests by default
