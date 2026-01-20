@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Iteration 18: Find next package with minimal coverage"
+      "action": "Iteration 19: Find next package to test"
     }
   }
 ]
