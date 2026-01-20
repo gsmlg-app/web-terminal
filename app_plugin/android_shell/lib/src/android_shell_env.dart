@@ -111,13 +111,22 @@ class AndroidShellEnv {
 
   /// Returns the shell command and arguments for starting a login shell.
   ///
-  /// Uses busybox sh with profile sourcing. The profile changes to HOME
-  /// directory since Android's /data restrictions may prevent PTY from
-  /// setting the initial working directory correctly.
+  /// Uses busybox sh with explicit HOME navigation. The PTY workingDirectory
+  /// parameter doesn't work reliably on Android, and the -l flag for login
+  /// shells only reads /etc/profile (hardcoded), not our custom profile path.
+  /// The ENV variable is only read for interactive non-login shells.
+  ///
+  /// Solution: Use -c to run a command that:
+  /// 1. Changes to HOME directory
+  /// 2. Sources our custom profile
+  /// 3. Execs an interactive shell (replaces current process)
   (String, List<String>) getShellCommand() {
-    // Start interactive shell that sources our profile via ENV
-    // The -l flag tells sh it's a login shell
-    return (shellPath, ['-l']);
+    // Chain: cd to HOME, source profile for aliases/settings, exec interactive shell
+    // The exec ensures we don't have nested shell processes
+    return (
+      shellPath,
+      ['-c', 'cd "\$HOME" 2>/dev/null; . "\$ENV" 2>/dev/null; exec sh -i'],
+    );
   }
 
   /// Resets the singleton instance (useful for testing).
