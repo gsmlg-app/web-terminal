@@ -243,3 +243,39 @@ Building a native-like shell experience on Android and iOS with:
 - **Commits**:
   - dcd21fe - feat(terminal-hosts): add shell profile support to Android and iOS hosts
   - 4e14d7e - test(terminal-hosts): add unit tests for host spec profile support
+
+#### Iteration 4 Improvements ✓ COMPLETED
+- Created comprehensive iOS Shell Emulator documentation (docs/IOS_SHELL_EMULATOR.md)
+  - Covers architecture, component diagram, limitations, roadmap, comparison with a-shell
+  - Updated docs/INDEX.md to include the new document
+- Added comprehensive Terminal Tab BLoC tests (36 tests)
+  - Tests for all events: Start, Stop, OpenTab, ToggleFullscreen, SelectSession, CloseSession
+  - Tests for all state properties and helper methods
+  - Fixed blocTest timing issues with async pattern
+- Added accessibility semantics to terminal widgets
+  - TerminalAppBar: fullscreen toggle, session selector, close buttons
+  - SessionMenu: menu button and all session type options
+  - SshHostSelector: loading, error, empty states, and host list items
+- Added SSH connection timeout handling
+  - kSshConnectionTimeout (30s) and kSshAuthenticationTimeout (60s) constants
+  - SshTimeoutException class for timeout-specific errors
+  - Configurable connectionTimeout and authenticationTimeout in SSHConnector
+  - Timeout wrapping for SSHSocket.connect() and client.authenticated
+  - 13 unit tests for timeout handling
+- Added terminal session telemetry tracking (PRD optional)
+  - TerminalAnalytics service with event stream
+  - SessionType enum (local, ssh, sftp)
+  - TerminalEvent enum (sessionCreated, sessionClosed, fullscreenToggled)
+  - Track local shell creation with profile metadata
+  - Track SSH session creation with host and auth type
+  - Track fullscreen toggle via BLoC listener
+  - 15 unit tests for analytics service
+- Added comprehensive SshHostSelector widget tests (16 tests)
+  - Tests for loading, error, empty, and host list states
+  - Tests for host selection and cancel behavior
+  - Tests for accessibility semantics
+- **Commits**:
+  - bcb43cd - docs(loki): update CONTINUITY.md with Android/iOS profile support
+  - a427590 - feat(ssh): add connection and authentication timeout handling
+  - 5e4ef58 - feat(analytics): add terminal session telemetry tracking
+  - 75067b3 - test(widgets): add comprehensive tests for SshHostSelector widget
