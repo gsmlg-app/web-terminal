@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Run all tests (melos run test)"
+      "action": "Add unit tests for new terminal widgets"
     }
   }
 ]
