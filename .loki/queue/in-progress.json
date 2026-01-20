@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Iteration 16: Expand secure_storage package test coverage"
+      "action": "Iteration 18: Find next package with minimal coverage"
     }
   }
 ]
