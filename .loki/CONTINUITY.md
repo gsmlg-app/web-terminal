@@ -3,7 +3,7 @@
 ## Project: Mobile Shell Experience (Android + iOS)
 
 ### Current State
-- **Phase**: IMPLEMENTATION COMPLETE
+- **Phase**: SDLC COMPLETE
 - **Started**: 2026-01-20T14:19:29Z
 - **Last Updated**: 2026-01-20
 
@@ -142,3 +142,31 @@ Building a native-like shell experience on Android and iOS with:
 - flex_tabs is still used internally for managing tab state (Tabs, TabItem, TabsDocument) but the UI no longer uses TabsView
 - SSH key authentication decrypts stored keys using AesHelper
 - Font settings are applied at runtime via BlocBuilder
+
+### SDLC Phase (Quality Assurance)
+
+#### Code Analysis ✓ COMPLETED
+- Fixed `unnecessary_underscores` warnings in flutter_form_bloc
+- All packages pass `melos run analyze`
+
+#### Unit Tests ✓ COMPLETED
+- Added terminal widget tests (27 tests in test/screens/terminal/widgets/)
+- Added SSH key authentication tests (14 tests in app_lib/terminal_hosts/test/)
+- Added terminal settings tests (22 tests in app_bloc/terminal_settings/test/)
+- Total: 63 new tests added
+
+#### Security Review ✓ COMPLETED
+- Reviewed SSH key handling in SshKeyBloc, SshKeyEncryption, AesHelper
+- Documented findings in `.loki/logs/security-review-ssh-keys.md`
+- Status: PASS with recommendations (static IV is medium priority)
+
+#### Performance Review ✓ COMPLETED
+- Reviewed terminal rendering in xterm widget
+- Documented findings in `.loki/logs/performance-review-terminal-rendering.md`
+- Found: repaint boundary, paragraph caching, visible line culling, VM inlining
+- Status: PASS
+
+#### Documentation ✓ COMPLETED
+- Created comprehensive terminal feature documentation: `docs/TERMINAL.md`
+- Updated documentation index: `docs/INDEX.md`
+- Covers: shell sessions, SSH, settings, architecture, limitations
