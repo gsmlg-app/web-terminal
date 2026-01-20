@@ -392,3 +392,30 @@ Building a native-like shell experience on Android and iOS with:
   - FileSystemEvent: constants, bitwise operations, instance creation (8 tests)
   - FileSystemException: creation, toString, edge cases (5 tests)
 - Tests verify enum completeness and data class correctness
+
+#### Iteration 8: BLoC Test Coverage Expansion ✓ COMPLETED
+- Fixed unused import warning in terminal_core tests
+- **Commit**: d0c0ebf - fix(terminal-core): remove unused dart:typed_data import
+
+- Added comprehensive tests for SshHostBloc (23 tests)
+  - SshIdentityType enum: values, fromValue, null for invalid (3 tests)
+  - SshHostEvent: instantiation, parameter storage (4 tests)
+  - SshHostState: state types, list storage, error handling (5 tests)
+  - SshHostBloc: CRUD operations, error handling, persistence (11 tests)
+- **Commit**: 26b3b80 - test(ssh-blocs): add comprehensive tests for SshHostBloc and SshKeyBloc
+
+- Added comprehensive tests for SshKeyBloc (26 tests)
+  - SshKeyAlgorithm enum: values, fromValue, null for invalid (3 tests)
+  - SshKeyEvent: instantiation, parameter storage (4 tests)
+  - SshKeyState: state types, list storage, error handling (5 tests)
+  - SshKeyBloc: CRUD operations, algorithm support, persistence (14 tests)
+
+- Added comprehensive tests for ThemeBloc (27 tests)
+  - ThemeEvent: ChangeTheme, ChangeThemeMode events (4 tests)
+  - ThemeState: props, copyWith, initial factory (11 tests)
+  - ThemeBloc: state changes, SharedPreferences persistence (10 tests)
+  - themeList: theme availability, light/dark variants (2 tests)
+- **Commit**: 2471ecf - test(theme-bloc): add comprehensive tests for ThemeBloc
+
+- Total new tests this iteration: 76
+- Total project tests: 287+ (accumulated across all packages)

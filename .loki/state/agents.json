@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "agent_id": "orchestrator-main",
+    "tool_id": "orchestrator-main",
+    "agent_type": "orchestrator",
+    "model": "sonnet",
+    "current_task": "Bash: Stage changes",
+    "status": "active",
+    "spawned_at": "2026-01-20T19:42:59.101670Z",
+    "tasks_completed": [],
+    "tool_count": 116
+  },
+  {
+    "agent_id": "agent-toolu_01",
+    "tool_id": "toolu_01CYLheLo4j7EhquAgBeeWyv",
+    "agent_type": "Explore",
+    "model": "sonnet",
+    "current_task": "Find improvements needed",
+    "status": "completed",
+    "spawned_at": "2026-01-20T19:18:56.111394Z",
+    "tasks_completed": [],
+    "completed_at": "2026-01-20T19:20:48.627982Z"
+  }
+]

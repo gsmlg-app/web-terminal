@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Add comprehensive tests for ThemeBloc"
+      "action": "Identify next improvement area"
     }
   }
 ]
