@@ -4,8 +4,9 @@ import 'package:app_ssh/app_ssh.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final isCI = Platform.environment['CI'] == 'true';
-  final isNetworkUnreliable = Platform.environment['SKIP_NETWORK_TESTS'] == 'true';
+  // Network tests are skipped by default because they depend on external services
+  // Set RUN_NETWORK_TESTS=true to enable them
+  final runNetworkTests = Platform.environment['RUN_NETWORK_TESTS'] == 'true';
 
   group('SSHSocket', () {
     test(
@@ -21,9 +22,9 @@ void main() {
         expect(firstPacket, isNotEmpty);
         await socket.close();
       },
-      skip: isCI || isNetworkUnreliable
-          ? 'Skipped - external network connection unreliable'
-          : null,
+      skip: runNetworkTests
+          ? null
+          : 'Skipped by default - set RUN_NETWORK_TESTS=true to enable',
       timeout: Timeout(const Duration(seconds: 15)),
     );
 
