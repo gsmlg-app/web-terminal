@@ -541,3 +541,34 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 4515fc2 - test(web-server): add comprehensive tests for WebSocket message protocol
 - Total new tests this iteration: 60
 - Total project tests: 541+ (accumulated across all packages)
+
+#### Iteration 15: Logging Package Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for app_logging package (120 tests across 3 new files)
+  - LogLevel enum tests (32 tests in log_level_test.dart):
+    - Enum values: 6 levels with correct value/name (7 tests)
+    - Operator >=: verbose/fatal comparisons (6 tests)
+    - Operator >: strict inequality (5 tests)
+    - Operator <=: verbose/fatal comparisons (5 tests)
+    - Operator <: strict inequality (5 tests)
+    - Comparison chaining: sorted order, all >= verbose, all <= fatal (3 tests)
+    - Use case scenarios: filtering by minimum/maximum level (3 tests)
+  - LogRecord tests (46 tests in log_record_test.dart):
+    - Constructor: required params, all params, DateTime.now default, log levels (6 tests)
+    - copyWith: no changes, single field, multiple fields, new instance (11 tests)
+    - toString: level, message, loggerName, error, time, prefix (6 tests)
+    - Equality: equal, identical, different fields, non-LogRecord (9 tests)
+    - HashCode: consistency, equal records same hash (3 tests)
+    - Immutability verification (1 test)
+  - ApiLoggingInterceptor tests (42 tests in api_logging_interceptor_test.dart):
+    - logRequest: method/url, headers, body, tag, all params, HTTP methods (7 tests)
+    - logResponse: status code, headers, body, response time, tag, 2xx/3xx/4xx/5xx (10 tests)
+    - logError: string error, Exception, stack trace, request body, all params (6 tests)
+    - logPerformance: normal/slow/very slow, zero duration, edge cases (8 tests)
+    - logConnectivity: connected, disconnected, network types (5 tests)
+    - logRateLimit: retry durations (3 tests)
+    - logAuth: success/failure, userId, error message, actions (5 tests)
+    - logValidation: single/multiple errors, complex data (4 tests)
+    - Body truncation and map formatting (4 tests)
+- **Commit**: ec32965 - test(logging): add comprehensive tests for LogLevel, LogRecord, and ApiLoggingInterceptor
+- Total new tests this iteration: 120
+- Total project tests: 661+ (accumulated across all packages)
