@@ -346,3 +346,15 @@ Building a native-like shell experience on Android and iOS with:
   - Helper methods: reportError, reportNetworkError, reportValidationError, reportUnexpectedError (4 tests)
 - Fixed missing export of ErrorSeverity in error_handler_bloc.dart
 - Added bloc_test dependency for test infrastructure
+
+#### Iteration 7 (continued): Error Reporting Service Improvements ✓ COMPLETED
+- Fixed hardcoded values in `app_lib/logging/lib/src/error_reporting_service.dart`
+  - Replaced hardcoded `'1.0.0'` with injectable app version via `initialize()` method
+  - Replaced hardcoded `'flutter'` platform with `defaultTargetPlatform.name.toLowerCase()`
+- Added `initialize()` method to set app version during app startup
+- Added `_platformName` getter using Flutter's `defaultTargetPlatform`
+- Added 17 new tests for ErrorReportingService (error_reporting_service_test.dart)
+  - Tests for: singleton pattern, initialization, platform name, reportError, reportException
+  - Tests for: reportFlutterError, getRecentErrors, clearErrorLogs, exportErrorLogs
+  - Tests for: setupGlobalErrorHandler, LogLevel enum values
+- Total logging package tests: 32 (was 15)
