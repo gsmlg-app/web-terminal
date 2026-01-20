@@ -3,6 +3,94 @@ import 'package:pointycastle/asymmetric/api.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('StringHelper', () {
+    group('randomString', () {
+      test('generates string of specified length', () {
+        expect(StringHelper.randomString(10).length, 10);
+        expect(StringHelper.randomString(0).length, 0);
+        expect(StringHelper.randomString(100).length, 100);
+      });
+
+      test('generates alphanumeric characters only', () {
+        final result = StringHelper.randomString(1000);
+        final pattern = RegExp(r'^[a-zA-Z0-9]+$');
+        expect(pattern.hasMatch(result), isTrue);
+      });
+
+      test('generates different strings each time', () {
+        final results = <String>{};
+        for (var i = 0; i < 100; i++) {
+          results.add(StringHelper.randomString(20));
+        }
+        // Very high probability all are unique
+        expect(results.length, 100);
+      });
+
+      test('generates empty string for length 0', () {
+        expect(StringHelper.randomString(0), '');
+      });
+
+      test('contains both uppercase and lowercase over many iterations', () {
+        final result = StringHelper.randomString(1000);
+        final hasUpper = result.contains(RegExp(r'[A-Z]'));
+        final hasLower = result.contains(RegExp(r'[a-z]'));
+        final hasDigit = result.contains(RegExp(r'[0-9]'));
+
+        // With 1000 chars, extremely likely to have all types
+        expect(hasUpper, isTrue);
+        expect(hasLower, isTrue);
+        expect(hasDigit, isTrue);
+      });
+    });
+
+    group('randomAscii', () {
+      test('generates string of specified length', () {
+        expect(StringHelper.randomAscii(10).length, 10);
+        expect(StringHelper.randomAscii(0).length, 0);
+        expect(StringHelper.randomAscii(100).length, 100);
+      });
+
+      test('generates printable ASCII characters only', () {
+        final result = StringHelper.randomAscii(1000);
+        for (var i = 0; i < result.length; i++) {
+          final code = result.codeUnitAt(i);
+          // ASCII printable range: 33-126 (excludes space at 32)
+          expect(code, greaterThanOrEqualTo(33));
+          expect(code, lessThanOrEqualTo(126));
+        }
+      });
+
+      test('generates different strings each time', () {
+        final results = <String>{};
+        for (var i = 0; i < 100; i++) {
+          results.add(StringHelper.randomAscii(20));
+        }
+        expect(results.length, 100);
+      });
+
+      test('generates empty string for length 0', () {
+        expect(StringHelper.randomAscii(0), '');
+      });
+
+      test('includes special characters', () {
+        // With many chars, should include special characters
+        final result = StringHelper.randomAscii(1000);
+        final hasSpecial = result.contains(RegExp(r'[!@#$%^&*()_+\-=\[\]{};:,.<>?/\\|`~]'));
+        expect(hasSpecial, isTrue);
+      });
+
+      test('character distribution covers the range', () {
+        // Generate many characters and check we get a good spread
+        final allChars = StringHelper.randomAscii(10000);
+        final uniqueChars = allChars.split('').toSet();
+
+        // Should have a reasonable number of unique characters
+        // ASCII 33-126 = 94 possible characters
+        expect(uniqueChars.length, greaterThan(50));
+      });
+    });
+  });
+
   group('RsaKeyHelper Test', () {
     final rsaHelper = RsaKeyHelper();
 
