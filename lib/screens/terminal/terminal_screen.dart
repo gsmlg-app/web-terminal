@@ -1,8 +1,5 @@
 import 'dart:async';
 
-import 'package:context_menus/context_menus.dart';
-import 'package:flex_tabs/flex_tabs.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,6 +12,8 @@ import 'package:terminal_plugin/terminal_plugin.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:window_manager/window_manager.dart';
 
+import 'widgets/widgets.dart';
+
 class TerminalScreen extends StatefulWidget {
   static const name = 'TerminalScreen';
   static const path = '/terminal';
@@ -26,9 +25,6 @@ class TerminalScreen extends StatefulWidget {
 }
 
 class _TerminalScreenState extends State<TerminalScreen> {
-  GlobalKey<ContextMenuOverlayState> contextMenuOverlayKey =
-      GlobalKey<ContextMenuOverlayState>();
-
   late final TerminalTabBloc _terminalTabBloc;
   StreamSubscription<TerminalTabState>? _stateSubscription;
   bool _initialTabOpened = false;
@@ -55,10 +51,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final state = _terminalTabBloc.state;
     if (state is TerminalTabLoaded && state.tabs.children.isEmpty) {
       _initialTabOpened = true;
-      final plugin = TerminalPlugin();
-      final manager = PluginManager(LocalHostSpec());
-      final tabItem = PluginTab(plugin, manager);
-      _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+      _openLocalShell();
     }
   }
 
@@ -69,57 +62,93 @@ class _TerminalScreenState extends State<TerminalScreen> {
     super.dispose();
   }
 
-  Future<void> initTabs() async {
-    final root = Tabs();
+  void _openLocalShell() {
+    final plugin = TerminalPlugin();
+    final manager = PluginManager(createDefaultHostSpec());
+    final tabItem = PluginTab(plugin, manager);
+    _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+  }
 
-    context.read<TabsService>().openPlugin(
-          LocalHostSpec(),
-          TerminalPlugin(),
-          tabs: root,
-        );
+  Future<void> _openSshSession() async {
+    final host = await SshHostSelector.show(context);
+    if (host != null && mounted) {
+      final plugin = TerminalPlugin();
+      final manager = PluginManager(SSHHostSpec(host));
+      final tabItem = PluginTab(plugin, manager);
+      _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+    }
+  }
+
+  void _openSftpSession() {
+    // SFTP is planned for future release
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('SFTP support coming soon'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _onSessionSelected(String sessionId) {
+    _terminalTabBloc.add(TerminalTabSelectSession(sessionId));
+  }
+
+  List<SessionInfo> _buildSessionList(TerminalTabLoaded state) {
+    return state.allTabs.map((tab) {
+      String name = 'Terminal';
+      if (tab is PluginTab) {
+        name = tab.plugin.title.value ?? tab.manager.hostSpec.name;
+      }
+      return SessionInfo(
+        id: tab.hashCode.toString(),
+        name: name,
+        onClose: () {
+          _terminalTabBloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
+        },
+      );
+    }).toList();
+  }
+
+  String _getCurrentSessionName(TerminalTabLoaded state) {
+    final activeTab = state.activeTab;
+    if (activeTab == null) return 'Terminal';
+    if (activeTab is PluginTab) {
+      return activeTab.plugin.title.value ?? activeTab.manager.hostSpec.name;
+    }
+    return 'Terminal';
   }
 
   @override
   Widget build(BuildContext context) {
-    final tabsTheme = TabsViewThemeData(
-      selectedLabelColor: Theme.of(context).colorScheme.onPrimary,
-      labelColor: Theme.of(context).colorScheme.onSecondary,
-      selectedBackgroundColor: Theme.of(context).colorScheme.primary,
-      backgroundColor: Theme.of(context).colorScheme.secondary,
-      hoverBackgroundColor: Theme.of(context).colorScheme.secondary,
-      tabSeparatorColor: Theme.of(context).colorScheme.surface,
-      groupDividerColor: Theme.of(context).colorScheme.surface,
-      groupDividerThickness: Theme.of(context).dividerTheme.thickness ?? 4,
-      selctedCloseButtonColor: Theme.of(context).colorScheme.onPrimary,
-      closeButtonColor: Theme.of(context).colorScheme.onSecondary,
-    );
-
     Widget widget = GlobalShortcuts(
       child: GlobalActions(
-        child: ContextMenuOverlay(
-          key: contextMenuOverlayKey,
-          cardBuilder: (context, children) => AppMenuCard(children: children),
-          child: SafeArea(
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(),
-              slivers: <Widget>[
-                SliverFillRemaining(
-                  child: BlocBuilder<TerminalTabBloc, TerminalTabState>(
-                      builder: (context, state) {
-                    if (state is! TerminalTabLoaded) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    }
-                    return TabsView(
-                      state.tabsDocument,
-                      theme: tabsTheme,
-                      actionBuilder: buildTabActions(context),
-                    );
-                  }),
-                ),
-              ],
-            ),
+        child: SafeArea(
+          child: BlocBuilder<TerminalTabBloc, TerminalTabState>(
+            builder: (context, state) {
+              if (state is! TerminalTabLoaded) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+
+              return Column(
+                children: [
+                  // AppBar for session management
+                  TerminalAppBar(
+                    currentSessionName: _getCurrentSessionName(state),
+                    sessions: _buildSessionList(state),
+                    onSessionSelected: _onSessionSelected,
+                    onNewLocalShell: _openLocalShell,
+                    onNewSshSession: _openSshSession,
+                    onNewSftpSession: _openSftpSession,
+                  ),
+                  // Terminal content area
+                  Expanded(
+                    child: _buildTerminalContent(state),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -178,28 +207,46 @@ class _TerminalScreenState extends State<TerminalScreen> {
     );
   }
 
-  List<TabsViewAction> Function(Tabs) buildTabActions(BuildContext context) =>
-      (Tabs tabs) {
-        return [
-          TabsViewAction(
-            icon: CupertinoIcons.chevron_down,
-            onPressed: () {
-              final ContextMenuOverlayState? overlay =
-                  contextMenuOverlayKey.currentState;
-              overlay?.show(
-                DropdownContextMenu(tabs),
-              );
-            },
-          ),
-          TabsViewAction(
-            icon: CupertinoIcons.add,
-            onPressed: () {
-              final plugin = TerminalPlugin();
-              final manager = PluginManager(LocalHostSpec());
-              final tabItem = PluginTab(plugin, manager);
-              context.read<TerminalTabBloc>().add(TerminalTabOpenTab(tabItem));
-            },
-          ),
-        ];
-      };
+  Widget _buildTerminalContent(TerminalTabLoaded state) {
+    final activeTab = state.activeTab;
+
+    if (activeTab == null) {
+      // No active tab, show empty state
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.terminal,
+              size: 64,
+              color: Theme.of(context).colorScheme.outline,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No active session',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.outline,
+                  ),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _openLocalShell,
+              icon: const Icon(Icons.add),
+              label: const Text('Open Local Shell'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // Show the active tab's content
+    final content = activeTab.content.value;
+    if (content != null) {
+      return content;
+    }
+
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
 }
