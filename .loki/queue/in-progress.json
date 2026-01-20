@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Add widget tests for shell profile screen"
+      "action": "Update CONTINUITY.md and state files"
     }
   }
 ]

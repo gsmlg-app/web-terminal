@@ -209,7 +209,10 @@ Building a native-like shell experience on Android and iOS with:
 - Set as default, delete with confirmation dialog
 - Integrated ShellProfileBloc into main.dart providers
 - Added route to settings navigation
+- 9 widget tests for shell profile form dialog
+- Fixed BlocProvider context issue in form submission
 - **Commits**:
   - 9f719e1 - feat(terminal-settings): add shell profile navigation tile
   - daf0b53 - feat(settings): add shell profile management screen
   - 5e90cde - test(ssh): skip network tests by default
+  - d0a81ef - test(shell-profiles): add widget tests for shell profile form
