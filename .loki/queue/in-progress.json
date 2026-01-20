@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Add unit tests for SSH key authentication"
+      "action": "Add unit tests for terminal settings"
     }
   }
 ]
