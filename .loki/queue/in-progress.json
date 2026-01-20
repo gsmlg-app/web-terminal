@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Add comprehensive tests for app_feedback package"
+      "action": "Update CONTINUITY.md with iteration 11 progress"
     }
   }
 ]

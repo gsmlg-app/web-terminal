@@ -447,3 +447,22 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: c453c41 - test(database): add comprehensive tests for AppDatabase, enums, and type converters
 - Total new tests this iteration: 42
 - Total project tests: 361+ (accumulated across all packages)
+
+#### Iteration 11: Feedback Widget Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for app_feedback package (26 tests)
+  - showSuccessToast: title/message display, check icon, action button (3 tests)
+  - showErrorToast: title/message display, error icon, action button (3 tests)
+  - showSnackbar: message display, action button (2 tests)
+  - AppDialogAction: platform-adaptive rendering (8 tests)
+    - TextButton on Android/Linux/Windows
+    - CupertinoDialogAction on iOS/macOS
+    - onPressed callback, null onPressed handling
+  - showAppDialog: title/content display, action buttons (2 tests)
+  - showFullScreenDialog: title display, close button, navigation (3 tests)
+  - BottomSheetAction: required params, custom style (2 tests)
+  - showBottomSheetActionList: action display, tap callbacks (2 tests)
+  - getWidgetSize: size retrieval, null for missing context (2 tests)
+- Fixed test widget patterns using ElevatedButton instead of GestureDetector+SizedBox for proper hit testing
+- **Commit**: 08b8a79 - test(feedback): add comprehensive tests for app_feedback widgets and functions
+- Total new tests this iteration: 26
+- Total project tests: 387+ (accumulated across all packages)
