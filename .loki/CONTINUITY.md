@@ -370,3 +370,15 @@ Building a native-like shell experience on Android and iOS with:
 - Created mock implementations: MockHostSpec, MockHost, MockExecutionResult, MockHostConnector, TestPlugin
 - Tests verify correct lifecycle callback ordering and state management
 - Total terminal_core tests: 33 (was 0)
+
+#### Iteration 7 (continued): File Manager Plugin Tests ✓ COMPLETED
+- Added comprehensive tests for `app_widget/file_manager_plugin` package (27 tests)
+- Test coverage for NavigationStack<T> class:
+  - Initial state: current, canGoBack, canGoForward (3 tests)
+  - Push operations: single, multiple, forward history clearing (7 tests)
+  - Back operations: navigation, edge cases, callbacks (7 tests)
+  - Forward operations: navigation, edge cases, callbacks (7 tests)
+  - Complex navigation: multi-step back/forward, history clearing, generic types (3 tests)
+- Tests verify ChangeNotifier listener notifications
+- Tests verify onNavigate callback invocations
+- Total file_manager_plugin tests: 27 (was 0)
