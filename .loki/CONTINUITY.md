@@ -369,7 +369,7 @@ Building a native-like shell experience on Android and iOS with:
   - ExecutionResult interface (1 test)
 - Created mock implementations: MockHostSpec, MockHost, MockExecutionResult, MockHostConnector, TestPlugin
 - Tests verify correct lifecycle callback ordering and state management
-- Total terminal_core tests: 33 (was 0)
+- Total terminal_core tests: 59 (33 plugin + 26 fs, was 0)
 
 #### Iteration 7 (continued): File Manager Plugin Tests ✓ COMPLETED
 - Added comprehensive tests for `app_widget/file_manager_plugin` package (27 tests)
@@ -382,3 +382,13 @@ Building a native-like shell experience on Android and iOS with:
 - Tests verify ChangeNotifier listener notifications
 - Tests verify onNavigate callback invocations
 - Total file_manager_plugin tests: 27 (was 0)
+
+#### Iteration 7 (continued): Terminal Core FileSystem Tests ✓ COMPLETED
+- Added 26 tests for FileSystem abstractions (fs_test.dart)
+- Test coverage includes:
+  - FileSystemEntityType enum: all values, type names (4 tests)
+  - FileMode enum: all values, mode names (4 tests)
+  - FileStat: constructor, timestamps, file sizes, entity types (5 tests)
+  - FileSystemEvent: constants, bitwise operations, instance creation (8 tests)
+  - FileSystemException: creation, toString, edge cases (5 tests)
+- Tests verify enum completeness and data class correctness
