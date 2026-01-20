@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Update CONTINUITY.md and state files"
+      "action": "Integrate shell profiles with session creation"
     }
   }
 ]
