@@ -466,3 +466,39 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 08b8a79 - test(feedback): add comprehensive tests for app_feedback widgets and functions
 - Total new tests this iteration: 26
 - Total project tests: 387+ (accumulated across all packages)
+
+#### Iteration 12: Adaptive Widget Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for app_adaptive_widgets package (46 tests)
+  - AppAdaptiveActionSize enum: values, indices (2 tests)
+  - AppAdaptiveAction: creation, properties, disabled state (3 tests)
+  - AppAdaptiveActionList small size (PopupMenuButton): 5 tests
+    - Renders PopupMenuButton, shows menu items on tap
+    - Calls onPressed for selected item
+    - Disabled action doesn't trigger callback
+    - Disabled icon uses disabledColor
+  - AppAdaptiveActionList medium size (IconButtons): 4 tests
+    - Renders IconButtons, calls onPressed
+    - Disabled IconButton has null onPressed
+    - Respects vertical direction
+  - AppAdaptiveActionList large size (TextButton.icon): 4 tests
+    - Renders TextButtons with labels
+    - Calls onPressed, disabled button doesn't trigger
+    - Respects horizontal direction by default
+  - hideDisabled behavior: 3 tests
+    - Hides disabled by default
+    - Shows disabled when hideDisabled=false
+    - Filters disabled actions in list
+  - Default values: 3 tests
+  - AppAdaptiveScaffold: 22 tests
+    - Body content rendering
+    - hideNavigation mode
+    - Static breakpoint constants
+    - Default values (9 tests)
+    - Property passing to AdaptiveScaffold
+- Fixed test issues:
+  - Used `find.textContaining()` for Text.rich content with TextSpan
+  - Used `find.byType(PopupMenuItem<int>)` for popup menu item selection
+  - Changed TextButton finder to text content verification for TextButton.icon
+- **Commit**: 7b8463a - test(adaptive): add comprehensive tests for AppAdaptiveAction and AppAdaptiveScaffold
+- Total new tests this iteration: 46
+- Total project tests: 433+ (accumulated across all packages)
