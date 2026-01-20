@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
+import 'package:app_database/app_database.dart';
+import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:web_terminal/destinations.dart';
 import 'package:terminal_core/terminal_core.dart';
@@ -72,11 +74,52 @@ class _TerminalScreenState extends State<TerminalScreen> {
   Future<void> _openSshSession() async {
     final host = await SshHostSelector.show(context);
     if (host != null && mounted) {
+      // Load SSH key if using key authentication
+      SshKeyData? keyData;
+      final identityType = SshIdentityType.fromValue(host.identityType);
+      if (identityType == SshIdentityType.key && host.identityKeyId != null) {
+        try {
+          keyData = await _loadSshKeyData(host.identityKeyId!);
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to load SSH key: $e'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
       final plugin = TerminalPlugin();
-      final manager = PluginManager(SSHHostSpec(host));
+      final manager = PluginManager(SSHHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
       _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
     }
+  }
+
+  /// Loads SSH key data from the database by key ID.
+  Future<SshKeyData> _loadSshKeyData(int keyId) async {
+    final database = context.read<AppDatabase>();
+    final key = await (database.select(database.sshKeys)
+          ..where((t) => t.id.equals(keyId)))
+        .getSingleOrNull();
+
+    if (key == null) {
+      throw Exception('SSH key not found');
+    }
+
+    // Use the extension method to decrypt the key content
+    final pemContent = key.getPrivateKeyPem();
+
+    // The key.password is for the SSH key passphrase (if the key itself is encrypted)
+    // Note: This password is stored encrypted in the database and decrypted with AesHelper
+    return SshKeyData(
+      content: pemContent,
+      passphrase: key.password, // SSH key passphrase (null for unencrypted keys)
+    );
   }
 
   void _openSftpSession() {

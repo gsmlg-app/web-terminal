@@ -11,11 +11,15 @@ class SSHHostSpec implements HostSpec {
   /// The SSH host record from the database.
   final SshHost record;
 
-  SSHHostSpec(this.record);
+  /// Optional SSH key data for key-based authentication.
+  /// Must be provided when [record.identityType] is [SshIdentityType.key].
+  final SshKeyData? keyData;
+
+  SSHHostSpec(this.record, {this.keyData});
 
   @override
   String get name => record.host ?? record.hostname ?? 'SSH Host';
 
   @override
-  HostConnector createConnector() => SSHConnector(record);
+  HostConnector createConnector() => SSHConnector(record, keyData: keyData);
 }
