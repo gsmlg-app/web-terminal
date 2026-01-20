@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
+import 'package:app_logging/app_logging.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
@@ -30,8 +31,10 @@ class TerminalScreen extends StatefulWidget {
 
 class _TerminalScreenState extends State<TerminalScreen> {
   late final TerminalTabBloc _terminalTabBloc;
+  final _analytics = TerminalAnalytics();
   StreamSubscription<TerminalTabState>? _stateSubscription;
   bool _initialTabOpened = false;
+  bool? _previousFullscreenState;
 
   @override
   void initState() {
@@ -48,6 +51,17 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
   void _onStateChanged(TerminalTabState state) {
     _tryOpenInitialTab();
+    _trackFullscreenChange(state);
+  }
+
+  void _trackFullscreenChange(TerminalTabState state) {
+    if (state is! TerminalTabLoaded) return;
+    final isFullscreen = state.isFullscreen;
+    if (_previousFullscreenState != null &&
+        _previousFullscreenState != isFullscreen) {
+      _analytics.trackFullscreenToggled(isFullscreen);
+    }
+    _previousFullscreenState = isFullscreen;
   }
 
   void _tryOpenInitialTab() {
@@ -96,6 +110,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final manager = PluginManager(hostSpec);
     final tabItem = PluginTab(plugin, manager);
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+
+    // Track session creation
+    _analytics.trackSessionCreated(
+      SessionType.local,
+      metadata: profile != null ? {'profile': profile.name} : null,
+    );
   }
 
   /// Checks if opening a new shell would exceed the max open shells limit.
@@ -152,6 +172,15 @@ class _TerminalScreenState extends State<TerminalScreen> {
       final manager = PluginManager(SSHHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
       _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+
+      // Track SSH session creation
+      _analytics.trackSessionCreated(
+        SessionType.ssh,
+        metadata: {
+          'host': host.hostname ?? 'unknown',
+          'auth_type': keyData != null ? 'key' : 'password',
+        },
+      );
     }
   }
 
@@ -268,6 +297,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
         ToggleFullscreenIntent: CallbackAction<ToggleFullscreenIntent>(
           onInvoke: (_) {
             _terminalTabBloc.add(TerminalTabToggleFullscreen());
+            // Analytics tracking is done via _trackFullscreenChange listener
             return null;
           },
         ),
