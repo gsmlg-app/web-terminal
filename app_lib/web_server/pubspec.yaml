@@ -5,9 +5,12 @@ publish_to: "none"
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
+  flutter: ">=3.32.0"
 resolution: workspace
 
 dependencies:
+  flutter:
+    sdk: flutter
   shelf: ^1.4.1
   shelf_web_socket: ^2.0.0
   shelf_static: ^1.1.2
@@ -20,5 +23,6 @@ dependencies:
   app_logging: any
 
 dev_dependencies:
-  test: ^1.26.0
+  flutter_test:
+    sdk: flutter
   flutter_lints: ^6.0.0
