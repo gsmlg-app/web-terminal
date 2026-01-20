@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
+import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
@@ -68,8 +69,31 @@ class _TerminalScreenState extends State<TerminalScreen> {
   void _openLocalShell() {
     if (!_checkMaxShellsLimit()) return;
 
+    selectProfileAndOpenShell(
+      context: context,
+      onProfileSelected: (profile) {
+        _openLocalShellWithProfile(profile);
+      },
+    );
+  }
+
+  void _openLocalShellWithProfile(ShellProfile? profile) {
     final plugin = TerminalPlugin();
-    final manager = PluginManager(createDefaultHostSpec());
+    HostSpec hostSpec;
+
+    if (profile != null) {
+      // Create host spec with profile settings
+      hostSpec = createDefaultHostSpec(
+        name: profile.name,
+        environment: profile.parsedEnvironmentVariables,
+        initCommands: profile.generateInitCommands(),
+      );
+    } else {
+      // Default shell without profile
+      hostSpec = createDefaultHostSpec();
+    }
+
+    final manager = PluginManager(hostSpec);
     final tabItem = PluginTab(plugin, manager);
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
   }

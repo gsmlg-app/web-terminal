@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Integrate shell profiles with session creation"
+      "action": "Create profile selector widget for session creation"
     }
   }
 ]

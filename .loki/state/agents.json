@@ -4,11 +4,11 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Commit shell profile integration",
+    "current_task": "Bash: Commit profile selector integration",
     "status": "active",
     "spawned_at": "2026-01-20T15:39:23.351627Z",
     "tasks_completed": [],
-    "tool_count": 282
+    "tool_count": 297
   },
   {
     "agent_id": "agent-toolu_01",
