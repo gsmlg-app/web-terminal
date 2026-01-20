@@ -1,0 +1,137 @@
+[
+  {
+    "id": "M1-001",
+    "milestone": 1,
+    "title": "Create TerminalAppBar widget with session selector",
+    "description": "Create a new AppBar widget that shows current session in title with popup menu for switching sessions",
+    "priority": 1,
+    "dependencies": [],
+    "files": ["lib/screens/terminal/widgets/terminal_app_bar.dart"]
+  },
+  {
+    "id": "M1-002",
+    "milestone": 1,
+    "title": "Create session dropdown menu widget",
+    "description": "Create plus dropdown menu with options: Local Shell, SSH Shell, SFTP Server",
+    "priority": 1,
+    "dependencies": [],
+    "files": ["lib/screens/terminal/widgets/session_menu.dart"]
+  },
+  {
+    "id": "M1-003",
+    "milestone": 1,
+    "title": "Update TerminalTabBloc for AppBar integration",
+    "description": "Add events/states for session management without flex_tabs dependency in UI",
+    "priority": 2,
+    "dependencies": ["M1-001"],
+    "files": ["app_bloc/terminal_tab/lib/src/bloc.dart", "app_bloc/terminal_tab/lib/src/event.dart", "app_bloc/terminal_tab/lib/src/state.dart"]
+  },
+  {
+    "id": "M1-004",
+    "milestone": 1,
+    "title": "Refactor terminal_screen.dart to use AppBar",
+    "description": "Replace flex_tabs TabsView with AppBar-based layout while keeping tab state",
+    "priority": 2,
+    "dependencies": ["M1-001", "M1-002", "M1-003"],
+    "files": ["lib/screens/terminal/terminal_screen.dart"]
+  },
+  {
+    "id": "M1-005",
+    "milestone": 1,
+    "title": "Implement fullscreen toggle in AppBar",
+    "description": "Move fullscreen toggle to AppBar left action, integrate with existing F11 shortcut",
+    "priority": 2,
+    "dependencies": ["M1-004"],
+    "files": ["lib/screens/terminal/terminal_screen.dart"]
+  },
+  {
+    "id": "M2-001",
+    "milestone": 2,
+    "title": "Verify Android shell plugin initialization",
+    "description": "Test and fix busybox extraction and shell environment setup",
+    "priority": 3,
+    "dependencies": ["M1-004"],
+    "files": ["app_plugin/android_shell/"]
+  },
+  {
+    "id": "M2-002",
+    "milestone": 2,
+    "title": "Fix Android shell home directory startup",
+    "description": "Ensure shell starts in home directory with proper PATH",
+    "priority": 3,
+    "dependencies": ["M2-001"],
+    "files": ["app_plugin/android_shell/android/src/main/kotlin/app/gsmlg/android_shell/AndroidShellPlugin.kt"]
+  },
+  {
+    "id": "M3-001",
+    "milestone": 3,
+    "title": "Verify iOS shell plugin functionality",
+    "description": "Test ios_system command execution and document limitations",
+    "priority": 4,
+    "dependencies": ["M1-004"],
+    "files": ["app_plugin/ios_shell/"]
+  },
+  {
+    "id": "M3-002",
+    "milestone": 3,
+    "title": "Create iOS shell emulator documentation",
+    "description": "Document expected behavior, limitations, and feature roadmap",
+    "priority": 4,
+    "dependencies": ["M3-001"],
+    "files": ["docs/ios_shell_emulator.md"]
+  },
+  {
+    "id": "M4-001",
+    "milestone": 4,
+    "title": "Complete SSH connection workflow",
+    "description": "Implement full SSH connection flow from session menu to terminal",
+    "priority": 5,
+    "dependencies": ["M1-004"],
+    "files": ["app_lib/terminal_hosts/lib/src/ssh_conn.dart"]
+  },
+  {
+    "id": "M4-002",
+    "milestone": 4,
+    "title": "Implement SSH password authentication",
+    "description": "Add password auth flow with UI feedback",
+    "priority": 5,
+    "dependencies": ["M4-001"],
+    "files": ["app_lib/ssh/lib/src/ssh_userauth.dart"]
+  },
+  {
+    "id": "M4-003",
+    "milestone": 4,
+    "title": "Implement SSH key authentication",
+    "description": "Add unencrypted key auth support using configured keys",
+    "priority": 5,
+    "dependencies": ["M4-001"],
+    "files": ["app_lib/ssh/lib/src/ssh_key_pair.dart"]
+  },
+  {
+    "id": "M5-001",
+    "milestone": 5,
+    "title": "Add local shell settings module",
+    "description": "Create settings UI for shell configuration within terminal settings",
+    "priority": 6,
+    "dependencies": ["M1-004"],
+    "files": ["lib/screens/settings/local_shell_settings_screen.dart"]
+  },
+  {
+    "id": "M5-002",
+    "milestone": 5,
+    "title": "Implement max open shells limit",
+    "description": "Add setting for maximum shells (default 10) with enforcement",
+    "priority": 6,
+    "dependencies": ["M5-001"],
+    "files": ["app_bloc/terminal_tab/lib/src/bloc.dart"]
+  },
+  {
+    "id": "M5-003",
+    "milestone": 5,
+    "title": "Add shell profile management",
+    "description": "Implement multiple profiles with shell, env vars, aliases, font, theme",
+    "priority": 6,
+    "dependencies": ["M5-001"],
+    "files": ["app_lib/database/lib/src/tables/shell_profiles.dart"]
+  }
+]

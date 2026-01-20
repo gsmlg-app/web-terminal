@@ -32,7 +32,7 @@ void main() {
           ),
           GoRoute(
             name: 'splash',
-            path: '/',
+            path: '/splash',
             builder: (context, state) => const TestSplashScreen(),
           ),
         ],

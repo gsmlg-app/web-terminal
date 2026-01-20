@@ -5,6 +5,7 @@ analyzer:
     avoid_print: warning
     annotate_overrides: warning
     always_use_package_imports: warning
+    unnecessary_underscores: ignore
 
 linter:
   rules:
