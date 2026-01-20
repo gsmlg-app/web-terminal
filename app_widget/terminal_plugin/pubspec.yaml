@@ -13,6 +13,7 @@ dependencies:
     sdk: flutter
   flutter_bloc: any
   terminal_core: any
+  terminal_settings_bloc: any
   xterm: any
   context_menus: any
   starter_plugin: any

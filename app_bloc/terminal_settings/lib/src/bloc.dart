@@ -6,14 +6,25 @@ import 'package:app_secure_storage/app_secure_storage.dart';
 part 'event.dart';
 part 'state.dart';
 
-/// BLoC for managing terminal settings including environment variables.
+/// BLoC for managing terminal settings including environment variables,
+/// font settings, and session limits.
 ///
 /// Environment variables are stored securely using [VaultRepository] as they
 /// may contain sensitive information like API keys and tokens.
+/// Other settings are also stored in the vault for consistency.
 class TerminalSettingsBloc
     extends Bloc<TerminalSettingsEvent, TerminalSettingsState> {
   /// Prefix for environment variable keys in secure storage.
   static const _envKeyPrefix = 'terminal_env_';
+
+  /// Key for max open shells setting.
+  static const _maxOpenShellsKey = 'terminal_max_open_shells';
+
+  /// Key for font size setting.
+  static const _fontSizeKey = 'terminal_font_size';
+
+  /// Key for font family setting.
+  static const _fontFamilyKey = 'terminal_font_family';
 
   final VaultRepository _vault;
 
@@ -24,6 +35,9 @@ class TerminalSettingsBloc
     on<TerminalSettingsUpdateEnvVar>(_onUpdateEnvVar);
     on<TerminalSettingsRemoveEnvVar>(_onRemoveEnvVar);
     on<TerminalSettingsClearEnvVars>(_onClearEnvVars);
+    on<TerminalSettingsUpdateMaxOpenShells>(_onUpdateMaxOpenShells);
+    on<TerminalSettingsUpdateFontSize>(_onUpdateFontSize);
+    on<TerminalSettingsUpdateFontFamily>(_onUpdateFontFamily);
   }
 
   Future<void> _onLoad(
@@ -44,7 +58,25 @@ class TerminalSettingsBloc
         }
       }
 
-      emit(TerminalSettingsLoaded(environmentVariables: envVars));
+      // Load other settings with defaults
+      final maxOpenShells = int.tryParse(
+            allSecrets[_maxOpenShellsKey] ?? '',
+          ) ??
+          kTerminalDefaultMaxOpenShells;
+
+      final fontSize = double.tryParse(
+            allSecrets[_fontSizeKey] ?? '',
+          ) ??
+          kTerminalDefaultFontSize;
+
+      final fontFamily = allSecrets[_fontFamilyKey] ?? kTerminalDefaultFontFamily;
+
+      emit(TerminalSettingsLoaded(
+        environmentVariables: envVars,
+        maxOpenShells: maxOpenShells,
+        fontSize: fontSize,
+        fontFamily: fontFamily,
+      ));
     } catch (e) {
       emit(TerminalSettingsError(error: e));
     }
@@ -57,14 +89,16 @@ class TerminalSettingsBloc
     if (state is! TerminalSettingsLoaded) return;
 
     final currentState = state as TerminalSettingsLoaded;
-    final newEnvVars = Map<String, String>.from(currentState.environmentVariables);
+    final newEnvVars =
+        Map<String, String>.from(currentState.environmentVariables);
 
     if (event.value.isEmpty) {
       newEnvVars.remove(event.key);
       await _vault.delete(key: '$_envKeyPrefix${event.key}');
     } else {
       newEnvVars[event.key] = event.value;
-      await _vault.write(key: '$_envKeyPrefix${event.key}', value: event.value);
+      await _vault.write(
+          key: '$_envKeyPrefix${event.key}', value: event.value);
     }
 
     emit(currentState.copyWith(environmentVariables: newEnvVars));
@@ -77,7 +111,8 @@ class TerminalSettingsBloc
     if (state is! TerminalSettingsLoaded) return;
 
     final currentState = state as TerminalSettingsLoaded;
-    final newEnvVars = Map<String, String>.from(currentState.environmentVariables);
+    final newEnvVars =
+        Map<String, String>.from(currentState.environmentVariables);
     newEnvVars.remove(event.key);
 
     await _vault.delete(key: '$_envKeyPrefix${event.key}');
@@ -97,6 +132,44 @@ class TerminalSettingsBloc
       await _vault.delete(key: '$_envKeyPrefix$key');
     }
 
-    emit(const TerminalSettingsLoaded(environmentVariables: {}));
+    emit(currentState.copyWith(environmentVariables: const {}));
+  }
+
+  Future<void> _onUpdateMaxOpenShells(
+    TerminalSettingsUpdateMaxOpenShells event,
+    Emitter<TerminalSettingsState> emit,
+  ) async {
+    if (state is! TerminalSettingsLoaded) return;
+
+    final currentState = state as TerminalSettingsLoaded;
+    final value = event.maxOpenShells.clamp(1, 50); // Reasonable limits
+
+    await _vault.write(key: _maxOpenShellsKey, value: value.toString());
+    emit(currentState.copyWith(maxOpenShells: value));
+  }
+
+  Future<void> _onUpdateFontSize(
+    TerminalSettingsUpdateFontSize event,
+    Emitter<TerminalSettingsState> emit,
+  ) async {
+    if (state is! TerminalSettingsLoaded) return;
+
+    final currentState = state as TerminalSettingsLoaded;
+    final value = event.fontSize.clamp(8.0, 32.0); // Reasonable limits
+
+    await _vault.write(key: _fontSizeKey, value: value.toString());
+    emit(currentState.copyWith(fontSize: value));
+  }
+
+  Future<void> _onUpdateFontFamily(
+    TerminalSettingsUpdateFontFamily event,
+    Emitter<TerminalSettingsState> emit,
+  ) async {
+    if (state is! TerminalSettingsLoaded) return;
+
+    final currentState = state as TerminalSettingsLoaded;
+
+    await _vault.write(key: _fontFamilyKey, value: event.fontFamily);
+    emit(currentState.copyWith(fontFamily: event.fontFamily));
   }
 }

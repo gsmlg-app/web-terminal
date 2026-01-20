@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
+import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:web_terminal/destinations.dart';
 import 'package:terminal_core/terminal_core.dart';
@@ -65,13 +66,43 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   void _openLocalShell() {
+    if (!_checkMaxShellsLimit()) return;
+
     final plugin = TerminalPlugin();
     final manager = PluginManager(createDefaultHostSpec());
     final tabItem = PluginTab(plugin, manager);
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
   }
 
+  /// Checks if opening a new shell would exceed the max open shells limit.
+  /// Returns true if a new shell can be opened, false otherwise.
+  bool _checkMaxShellsLimit() {
+    final tabState = _terminalTabBloc.state;
+    if (tabState is! TerminalTabLoaded) return true;
+
+    final settingsState = context.read<TerminalSettingsBloc>().state;
+    final maxShells = settingsState is TerminalSettingsLoaded
+        ? settingsState.maxOpenShells
+        : kTerminalDefaultMaxOpenShells;
+
+    if (tabState.tabCount >= maxShells) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Maximum of $maxShells open sessions reached. '
+            'Close a session or increase the limit in Settings.',
+          ),
+          duration: const Duration(seconds: 3),
+        ),
+      );
+      return false;
+    }
+    return true;
+  }
+
   Future<void> _openSshSession() async {
+    if (!_checkMaxShellsLimit()) return;
+
     final host = await SshHostSelector.show(context);
     if (host != null && mounted) {
       // Load SSH key if using key authentication

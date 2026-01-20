@@ -4,8 +4,10 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
+import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
@@ -114,20 +116,36 @@ class TerminalTabView extends StatefulWidget {
 class _TerminalTabViewState extends State<TerminalTabView> {
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      key: ValueKey(widget.plugin),
-      backgroundColor: Colors.transparent,
-      child: SafeArea(
-        child: ClipRect(
-          child: TerminalView(
-            widget.plugin.terminal,
-            controller: widget.plugin.terminalController,
-            onSecondaryTapDown: (_, __) => showMenu(),
-            backgroundOpacity: 0.8,
-            autofocus: true,
+    return BlocBuilder<TerminalSettingsBloc, TerminalSettingsState>(
+      builder: (context, state) {
+        // Get font settings from state or use defaults
+        final fontSize = state is TerminalSettingsLoaded
+            ? state.fontSize
+            : kTerminalDefaultFontSize;
+        final fontFamily = state is TerminalSettingsLoaded
+            ? state.fontFamily
+            : kTerminalDefaultFontFamily;
+
+        return CupertinoPageScaffold(
+          key: ValueKey(widget.plugin),
+          backgroundColor: Colors.transparent,
+          child: SafeArea(
+            child: ClipRect(
+              child: TerminalView(
+                widget.plugin.terminal,
+                controller: widget.plugin.terminalController,
+                onSecondaryTapDown: (_, __) => showMenu(),
+                backgroundOpacity: 0.8,
+                autofocus: true,
+                textStyle: TerminalStyle(
+                  fontSize: fontSize,
+                  fontFamily: fontFamily,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
