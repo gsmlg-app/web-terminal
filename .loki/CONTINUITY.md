@@ -432,3 +432,18 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 2f02e5f - test(app-utils): add comprehensive tests for GColorUtils and ColorShade
 - Total new tests this iteration: 32
 - Total project tests: 319+ (accumulated across all packages)
+
+#### Iteration 10: Database Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for app_database package (42 tests)
+  - StringListConverter: toSql, fromSql, roundtrip, special characters (9 tests)
+  - SshKeyAlgorithm enum: values, completeness, fromValue, null/invalid (5 tests)
+  - SshIdentityType enum: values, completeness, fromValue, null/invalid (5 tests)
+  - ShellType enum: values, completeness, fromValue, null/invalid (5 tests)
+  - AppDatabase: in-memory creation, schema version (1 test)
+  - SshKeys table: insert, retrieve, update, delete, list (5 tests)
+  - SshHosts table: insert, retrieve, update, delete, key linking (6 tests)
+  - ShellProfiles table: defaults, custom values, update, delete, query, timestamps (6 tests)
+- Fixed drift/matcher `isNull`/`isNotNull` naming conflict with selective import hiding
+- **Commit**: c453c41 - test(database): add comprehensive tests for AppDatabase, enums, and type converters
+- Total new tests this iteration: 42
+- Total project tests: 361+ (accumulated across all packages)
