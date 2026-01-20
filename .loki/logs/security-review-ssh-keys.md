@@ -39,16 +39,17 @@ The SSH key handling implementation follows security best practices with appropr
 - SSHConnector cleans up on authentication failure (socket.close())
 - No key material logged in error messages
 
-### ⚠️ MEDIUM: Static IV in AES Encryption
+### ✅ RESOLVED: Static IV in AES Encryption
 
-**Location**: `app_lib/security/lib/src/aes_helper.dart:4`
-```dart
-IV iv = IV.fromUtf8('Best in my World');
-```
+**Location**: `app_lib/security/lib/src/aes_helper.dart`
 
-**Issue**: Using a static IV reduces the security of AES encryption. While the salt provides some differentiation per-key, a unique random IV per encryption would be more secure.
+**Previous Issue**: Using a static IV reduced the security of AES encryption.
 
-**Recommendation**: Generate a random IV per encryption operation and store it alongside the ciphertext (IVs can be public).
+**Resolution (Iteration 7)**:
+- Implemented random IV generation using SecureRandom
+- IV is prepended to ciphertext: `base64(IV || ciphertext)` format
+- Backward compatible: decryption auto-detects old format (static IV) vs new format
+- New encryptions always use cryptographically random 16-byte IV
 
 ### ⚠️ LOW: Database Not Encrypted
 
@@ -79,11 +80,13 @@ Verified test coverage exists for:
 
 ## Recommendations
 
-1. **Consider using random IVs** - Generate unique IV per encryption
+1. ~~**Consider using random IVs** - Generate unique IV per encryption~~ ✅ IMPLEMENTED (Iteration 7)
 2. **Add key export confirmation** - Require user confirmation before exporting private keys
 3. **Consider SQLCipher** - For enhanced database-level encryption
 4. **Add key usage audit logging** - Log when keys are accessed (not the keys themselves)
 
 ## Conclusion
 
-The SSH key handling implementation demonstrates good security practices with layered encryption and use of platform-native secure storage. The static IV issue is a medium-priority improvement opportunity but does not represent an immediate vulnerability given the per-key salt usage. The codebase passes security review with the recommendations noted above.
+The SSH key handling implementation demonstrates good security practices with layered encryption and use of platform-native secure storage. The static IV issue has been resolved in Iteration 7 by implementing random IV generation with backward compatibility. The codebase passes security review with the remaining recommendations noted above.
+
+**Update (Iteration 7)**: Random IV generation implemented, addressing the medium-priority security improvement. New encryptions use cryptographically secure random IVs while maintaining backward compatibility with existing encrypted data.

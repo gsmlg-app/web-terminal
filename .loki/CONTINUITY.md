@@ -314,3 +314,22 @@ Building a native-like shell experience on Android and iOS with:
   - Improves developer experience with fail-fast error detection
 - Added 3 tests for SSHHostSpec keyData validation
 - **Commit**: fadc898 - fix: close file handles in SSHFile.copy() and validate SSHHostSpec keyData
+
+#### Iteration 7: Security Enhancement - Random IV for AES Encryption ✓ COMPLETED
+- Implemented random IV generation for AES encryption (addresses security review recommendation)
+- Updated AesHelper (app_lib/security/lib/src/aes_helper.dart):
+  - New encryptions generate cryptographically random 16-byte IV using SecureRandom
+  - IV prepended to ciphertext: `base64(IV || ciphertext)` format
+  - Backward compatible: decryption auto-detects old format (static IV) and new format
+  - Existing encrypted SSH keys remain readable
+- Added 8 new tests for random IV functionality:
+  - Encrypting same text twice produces different ciphertext
+  - encrypt64WithSalt produces different ciphertext for same input
+  - Ciphertext length includes IV overhead
+  - Empty input handling
+  - Wrong salt detection
+  - Long text encryption/decryption
+  - Special character handling (unicode, emoji)
+  - Cross-instance decryption works
+- Security benefit: Same plaintext no longer produces same ciphertext, preventing pattern analysis
+- Total AesHelper tests: 16 (was 8)
