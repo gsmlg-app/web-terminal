@@ -228,3 +228,18 @@ Building a native-like shell experience on Android and iOS with:
 - **Commits**:
   - 66f768d - feat(terminal-hosts): add shell profile support to LocalHostSpec
   - 24a22e9 - feat(terminal): integrate shell profiles with session creation
+
+#### Android/iOS Profile Support ✓ COMPLETED (Iteration 3)
+- AndroidHostSpec: Added name, environment, initCommands parameters
+- AndroidConnector: Pass profile parameters to AndroidHost
+- AndroidHost: Merge profile environment vars, send init commands via PTY
+- IosHostSpec: Added name, environment, initCommands parameters
+- IosConnector: Pass profile parameters to IosHost
+- IosHost/IosExecutionSession: Handle init commands (export, alias) silently
+- createDefaultHostSpec(): Now passes profile params on all platforms
+- Profile support consistent across: macOS, Linux, Windows, Android, iOS
+- Added 24 unit tests for Local/Android/iOS HostSpec and Connector classes
+- Total terminal_hosts tests: 46
+- **Commits**:
+  - dcd21fe - feat(terminal-hosts): add shell profile support to Android and iOS hosts
+  - 4e14d7e - test(terminal-hosts): add unit tests for host spec profile support
