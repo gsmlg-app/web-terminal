@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Iteration 20: Add TabsService tests"
+      "action": "Iteration 21: Explore terminal_hosts package for tests"
     }
   }
 ]
