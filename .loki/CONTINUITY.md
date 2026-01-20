@@ -279,3 +279,25 @@ Building a native-like shell experience on Android and iOS with:
   - a427590 - feat(ssh): add connection and authentication timeout handling
   - 5e4ef58 - feat(analytics): add terminal session telemetry tracking
   - 75067b3 - test(widgets): add comprehensive tests for SshHostSelector widget
+
+#### Iteration 5: Test Coverage Expansion ✓ COMPLETED
+- Added ProfileSelector widget tests (21 tests in test/screens/terminal/widgets/)
+  - Tests for showProfileSelector() and selectProfileAndOpenShell() functions
+  - Auto-selection of single default profile without dialog
+  - Dialog display with multiple profiles
+  - Callback handling for profile selection and cancellation
+  - Star icon for default profiles, terminal icon for default shell
+- Added default_host_test.dart (20 tests in app_lib/terminal_hosts/test/)
+  - createDefaultHostSpec() returns correct spec type on desktop platforms
+  - Parameter passing (name, environment, initCommands)
+  - LocalHost instantiation, connectFileSystem(), execute(), disconnect()
+  - LocalExecutionResult stdout/stderr/exitCode handling
+  - LocalFileSystem directory and file access
+- Added ios_host_test.dart (32 tests in app_lib/terminal_hosts/test/)
+  - IosExecutionResult storage of exitCode, stdout, stderr
+  - IosHostSpec and IosConnector parameter handling
+  - Documented IosExecutionSession behavior (export parsing, input handling)
+  - Control character handling (Ctrl+C, Ctrl+D, backspace)
+  - Command execution and environment merging
+- Total terminal_hosts tests now: 111 (was ~46)
+- **Commit**: d4b5d31 - test: add comprehensive widget and host implementation tests
