@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Add comprehensive tests for color_utils"
+      "action": "Identify and expand test coverage for next package"
     }
   }
 ]

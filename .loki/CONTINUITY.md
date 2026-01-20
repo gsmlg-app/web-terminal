@@ -419,3 +419,16 @@ Building a native-like shell experience on Android and iOS with:
 
 - Total new tests this iteration: 76
 - Total project tests: 287+ (accumulated across all packages)
+
+#### Iteration 9: Utility Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for GColorUtils (32 tests)
+  - ColorShade enum: correct values, completeness, ordering (3 tests)
+  - getMaterialColor: predefined colors, custom colors, shade values (5 tests)
+  - estimateBrightnessForColor: white/black/yellow, dark/light greys (6 tests)
+  - getDarkShades: material colors, minShade parameter, custom colors (4 tests)
+  - darken: default amount, specified amount, edge cases, assertions (6 tests)
+  - lighten: default amount, specified amount, edge cases, assertions (6 tests)
+  - Inverse operations: darken/lighten symmetry tests (2 tests)
+- **Commit**: 2f02e5f - test(app-utils): add comprehensive tests for GColorUtils and ColorShade
+- Total new tests this iteration: 32
+- Total project tests: 319+ (accumulated across all packages)
