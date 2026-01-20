@@ -94,6 +94,35 @@ void main() {
       expect(spec.record.port, equals(22));
       expect(spec.record.username, equals('user'));
     });
+
+    test('throws ArgumentError when keyData is null for key identity type', () {
+      expect(
+        () => SSHHostSpec(testHostKey),
+        throwsA(isA<ArgumentError>().having(
+          (e) => e.message,
+          'message',
+          contains('keyData is required'),
+        )),
+      );
+    });
+
+    test('allows null keyData for password identity type', () {
+      // Should not throw
+      final spec = SSHHostSpec(testHostPassword);
+      expect(spec.keyData, isNull);
+    });
+
+    test('allows null keyData when identityType is not set (defaults to password)', () {
+      final hostNoIdentity = SshHost(
+        id: 5,
+        hostname: 'noidentity.example.com',
+        port: 22,
+        username: 'test',
+      );
+      // Should not throw since default identity type is not key
+      final spec = SSHHostSpec(hostNoIdentity);
+      expect(spec.keyData, isNull);
+    });
   });
 
   group('SSHConnector', () {

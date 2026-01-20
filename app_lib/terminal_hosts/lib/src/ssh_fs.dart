@@ -232,8 +232,16 @@ class SSHFile extends File {
   @override
   Future<SSHFile> copy(String newPath) async {
     final file1 = await client.open(path);
-    final file2 = await client.open(newPath, mode: SftpFileOpenMode.create);
-    await file2.write(file1.read());
+    try {
+      final file2 = await client.open(newPath, mode: SftpFileOpenMode.create);
+      try {
+        await file2.write(file1.read());
+      } finally {
+        await file2.close();
+      }
+    } finally {
+      await file1.close();
+    }
     return SSHFile(fileSystem, newPath);
   }
 

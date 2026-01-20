@@ -15,7 +15,18 @@ class SSHHostSpec implements HostSpec {
   /// Must be provided when [record.identityType] is [SshIdentityType.key].
   final SshKeyData? keyData;
 
-  SSHHostSpec(this.record, {this.keyData});
+  /// Creates an SSH host specification.
+  ///
+  /// Throws [ArgumentError] if [keyData] is null when the host's identity type
+  /// is set to key-based authentication.
+  SSHHostSpec(this.record, {this.keyData}) {
+    final identityType = SshIdentityType.fromValue(record.identityType);
+    if (identityType == SshIdentityType.key && keyData == null) {
+      throw ArgumentError(
+        'keyData is required when identityType is SshIdentityType.key',
+      );
+    }
+  }
 
   @override
   String get name => record.host ?? record.hostname ?? 'SSH Host';
