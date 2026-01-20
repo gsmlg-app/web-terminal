@@ -216,3 +216,15 @@ Building a native-like shell experience on Android and iOS with:
   - daf0b53 - feat(settings): add shell profile management screen
   - 5e90cde - test(ssh): skip network tests by default
   - d0a81ef - test(shell-profiles): add widget tests for shell profile form
+
+#### Shell Profile Integration ✓ COMPLETED (Iteration 3)
+- Updated LocalHostSpec to accept environment and initCommands parameters
+- LocalConnector and LocalHost chain profile data through
+- Init commands sent to PTY via Future.delayed after shell starts
+- createDefaultHostSpec() accepts optional profile parameters
+- ProfileSelector widget shows profile options when opening local shell
+- Smart defaults: uses single default profile automatically
+- 'Default Shell' option available for system settings without profile
+- **Commits**:
+  - 66f768d - feat(terminal-hosts): add shell profile support to LocalHostSpec
+  - 24a22e9 - feat(terminal): integrate shell profiles with session creation
