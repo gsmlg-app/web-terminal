@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Run full test suite and commit"
+      "action": "Add comprehensive tests for ThemeBloc"
     }
   }
 ]
