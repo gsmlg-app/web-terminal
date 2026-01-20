@@ -5,6 +5,7 @@ import 'package:web_terminal/screens/settings/host_management.dart';
 import 'package:web_terminal/screens/settings/select_brightness.dart';
 import 'package:web_terminal/screens/settings/select_theme.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
+import 'package:web_terminal/screens/settings/shell_profile_screen.dart';
 import 'package:web_terminal/screens/settings/ssh_key_management.dart';
 import 'package:web_terminal/screens/settings/terminal_env_screen.dart';
 import 'package:web_terminal/screens/settings/web_server/web_server_screen.dart';
@@ -96,6 +97,16 @@ final settingRoute = GoRoute(
         return NoTransitionPage<void>(
           key: state.pageKey,
           child: const WebServerScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      name: ShellProfileScreen.name,
+      path: ShellProfileScreen.path,
+      pageBuilder: (context, state) {
+        return NoTransitionPage<void>(
+          key: state.pageKey,
+          child: const ShellProfileScreen(),
         );
       },
     ),

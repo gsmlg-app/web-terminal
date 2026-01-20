@@ -20,6 +20,7 @@ import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
+import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -111,6 +112,9 @@ Future<void> main() async {
                 sharedPreferences: sharedPrefs,
               );
             },
+          ),
+          BlocProvider<ShellProfileBloc>(
+            create: (BuildContext context) => ShellProfileBloc(database),
           ),
         ],
         child: const App(),
