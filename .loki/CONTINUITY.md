@@ -794,3 +794,21 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 242f443 - test(settings): add comprehensive tests for settings screen configuration
 - Total new tests this iteration: 24
 - Total project tests: 1861+ (via melos run test)
+
+#### Iteration 22: Terminal/Web-Terminal Screen Tests ✓ COMPLETED
+- Added comprehensive tests for terminal screens (19 tests across 2 files):
+  - WebTerminalScreen (8 tests in test/screens/web_terminal/web_terminal_screen_test.dart):
+    - Static name/path constants (2 tests)
+    - Const construction with/without key (2 tests)
+    - StatelessWidget verification (1 test)
+    - Routing conventions: name format, path format (3 tests)
+  - TerminalScreen (11 tests in test/screens/terminal/terminal_screen_test.dart):
+    - Static name/path constants (2 tests)
+    - Const construction with/without key (2 tests)
+    - StatefulWidget verification (1 test)
+    - Routing conventions: path starts with slash, contains "terminal", lowercase (3 tests)
+    - PascalCase naming convention (1 test)
+    - createState verification (1 test)
+- **Commit**: 11c2c9c - test(screens): add comprehensive tests for terminal and web_terminal screens
+- Total new tests this iteration: 19
+- Total project tests: 2982 (via melos run test)
