@@ -1194,4 +1194,29 @@ Building a native-like shell experience on Android and iOS with:
   - README.md: Documented TabItem, Tabs, TabsDocument classes
   - Covered lifecycle callbacks and tab management
 - All 6 packages with TODO placeholders now have complete documentation
-- **Commit**: (pending)
+- **Commit**: af2441f - docs(packages): complete documentation for security, utils, theme, locale, ssh, and flex_tabs
+
+#### Iteration 36: Test Coverage Expansion for Low-Coverage Packages ✓ COMPLETED
+- Expanded test coverage for 3 packages with minimal tests:
+  - **client_info package** (app_plugin/client_info/client_info/test/):
+    - Expanded from 8 tests to 38 tests (+30)
+    - Added ClientInfoData tests: fromMap, toMap, equality, hashCode, toString
+    - Added edge case tests: empty map handling, null additionalData, incomplete data
+    - Added mock platform implementations for different scenarios
+  - **connection_bloc package** (app_bloc/connection/test/):
+    - Expanded from 1 test to 15 tests (+14)
+    - Added bloc_test dependency to pubspec.yaml
+    - Added ConnectionState tests: initial state, copyWith, equality
+    - Added ConnectionEvent tests: UpdateConnectionState construction
+    - Added ConnectionBloc tests: initial state, event handling, lifecycle
+  - **web_server_settings package** (app_widget/web_server_settings/test/):
+    - Expanded from 1 test to 32 tests (+31)
+    - Added export verification tests for all 9 exported widgets
+    - Added WebServerStatusIndicator tests: constructor, size, key, StatelessWidget
+    - Added PendingSessionsBadge tests: constructor, child widgets, key
+    - Added SessionApprovalList/ActiveSessionsList tests: constructor, callback handling
+    - Added ApproveByCodeDialog tests: constructor, StatefulWidget verification
+    - Added ReadOnlyTerminalViewer tests: show method availability
+    - Added OnAttachSession typedef tests
+- Total new tests this iteration: 75 (30 + 14 + 31)
+- All tests pass via `melos run test`
