@@ -7,19 +7,12 @@ import 'package:terminal_tabs/src/shortcut/intents.dart';
 void main() {
   group('GlobalShortcuts', () {
     testWidgets('is a StatelessWidget', (tester) async {
-      expect(
-        const GlobalShortcuts(child: SizedBox()),
-        isA<StatelessWidget>(),
-      );
+      expect(const GlobalShortcuts(child: SizedBox()), isA<StatelessWidget>());
     });
 
     testWidgets('renders child widget', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: GlobalShortcuts(
-            child: Text('Test Child'),
-          ),
-        ),
+        const MaterialApp(home: GlobalShortcuts(child: Text('Test Child'))),
       );
 
       expect(find.text('Test Child'), findsOneWidget);
@@ -27,11 +20,7 @@ void main() {
 
     testWidgets('wraps child in Shortcuts widget', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: GlobalShortcuts(
-            child: Text('Test Child'),
-          ),
-        ),
+        const MaterialApp(home: GlobalShortcuts(child: Text('Test Child'))),
       );
 
       expect(find.byType(Shortcuts), findsWidgets);
@@ -56,9 +45,7 @@ void main() {
               child: GlobalShortcuts(
                 child: Focus(
                   autofocus: true,
-                  child: Builder(
-                    builder: (context) => const Text('Test'),
-                  ),
+                  child: Builder(builder: (context) => const Text('Test')),
                 ),
               ),
             ),
@@ -80,8 +67,9 @@ void main() {
       variant: TargetPlatformVariant.only(TargetPlatform.macOS),
     );
 
-    testWidgets('maps toggleFullscreen shortcut to ToggleFullscreenIntent',
-        (tester) async {
+    testWidgets('maps toggleFullscreen shortcut to ToggleFullscreenIntent', (
+      tester,
+    ) async {
       Intent? receivedIntent;
 
       await tester.pumpWidget(
@@ -98,9 +86,7 @@ void main() {
             child: GlobalShortcuts(
               child: Focus(
                 autofocus: true,
-                child: Builder(
-                  builder: (context) => const Text('Test'),
-                ),
+                child: Builder(builder: (context) => const Text('Test')),
               ),
             ),
           ),
@@ -121,19 +107,14 @@ void main() {
     group('shortcut count', () {
       testWidgets('has exactly 2 shortcuts registered', (tester) async {
         await tester.pumpWidget(
-          const MaterialApp(
-            home: GlobalShortcuts(
-              child: Text('Test'),
-            ),
-          ),
+          const MaterialApp(home: GlobalShortcuts(child: Text('Test'))),
         );
 
         // Find the Shortcuts widget and check its mapping
         final shortcutsWidget = tester.widget<Shortcuts>(
-          find.ancestor(
-            of: find.text('Test'),
-            matching: find.byType(Shortcuts),
-          ).first,
+          find
+              .ancestor(of: find.text('Test'), matching: find.byType(Shortcuts))
+              .first,
         );
 
         expect(shortcutsWidget.shortcuts.length, 2);

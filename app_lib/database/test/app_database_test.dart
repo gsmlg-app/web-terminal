@@ -172,8 +172,7 @@ void main() {
               ),
             );
 
-        final key = await (db.select(db.sshKeys)
-              ..where((t) => t.id.equals(id)))
+        final key = await (db.select(db.sshKeys)..where((t) => t.id.equals(id)))
             .getSingle();
 
         expect(key.name, 'My Key');
@@ -191,8 +190,7 @@ void main() {
         await (db.update(db.sshKeys)..where((t) => t.id.equals(id)))
             .write(const SshKeysCompanion(name: Value('Updated')));
 
-        final key = await (db.select(db.sshKeys)
-              ..where((t) => t.id.equals(id)))
+        final key = await (db.select(db.sshKeys)..where((t) => t.id.equals(id)))
             .getSingle();
 
         expect(key.name, 'Updated');
@@ -207,9 +205,8 @@ void main() {
 
         await (db.delete(db.sshKeys)..where((t) => t.id.equals(id))).go();
 
-        final keys = await (db.select(db.sshKeys)
-              ..where((t) => t.id.equals(id)))
-            .get();
+        final keys =
+            await (db.select(db.sshKeys)..where((t) => t.id.equals(id))).get();
 
         expect(keys, isEmpty);
       });
@@ -288,9 +285,8 @@ void main() {
 
         await (db.delete(db.sshHosts)..where((t) => t.id.equals(id))).go();
 
-        final hosts = await (db.select(db.sshHosts)
-              ..where((t) => t.id.equals(id)))
-            .get();
+        final hosts =
+            await (db.select(db.sshHosts)..where((t) => t.id.equals(id))).get();
 
         expect(hosts, isEmpty);
       });
@@ -343,8 +339,7 @@ void main() {
               ShellProfilesCompanion.insert(
                 name: 'Custom Profile',
                 shellType: const Value(3), // zsh
-                environmentVariables:
-                    const Value('{"TERM":"xterm-256color"}'),
+                environmentVariables: const Value('{"TERM":"xterm-256color"}'),
                 aliases: const Value('{"ll":"ls -la"}'),
                 fontFamily: const Value('JetBrains Mono'),
                 fontSize: const Value(16.0),
@@ -374,9 +369,9 @@ void main() {
 
         await (db.update(db.shellProfiles)..where((t) => t.id.equals(id)))
             .write(const ShellProfilesCompanion(
-              name: Value('Updated Name'),
-              shellType: Value(2), // bash
-            ));
+          name: Value('Updated Name'),
+          shellType: Value(2), // bash
+        ));
 
         final profile = await (db.select(db.shellProfiles)
               ..where((t) => t.id.equals(id)))
@@ -391,8 +386,7 @@ void main() {
               ShellProfilesCompanion.insert(name: 'To Delete'),
             );
 
-        await (db.delete(db.shellProfiles)..where((t) => t.id.equals(id)))
-            .go();
+        await (db.delete(db.shellProfiles)..where((t) => t.id.equals(id))).go();
 
         final profiles = await (db.select(db.shellProfiles)
               ..where((t) => t.id.equals(id)))

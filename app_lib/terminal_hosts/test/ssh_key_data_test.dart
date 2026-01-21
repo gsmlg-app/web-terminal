@@ -5,7 +5,8 @@ void main() {
   group('SshKeyData', () {
     test('creates instance with content only', () {
       const keyData = SshKeyData(
-        content: '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----',
+        content:
+            '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----',
       );
 
       expect(keyData.content, contains('BEGIN RSA PRIVATE KEY'));
@@ -14,7 +15,8 @@ void main() {
 
     test('creates instance with content and passphrase', () {
       const keyData = SshKeyData(
-        content: '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----',
+        content:
+            '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----',
         passphrase: 'secret123',
       );
 

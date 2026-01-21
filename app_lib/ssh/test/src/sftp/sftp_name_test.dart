@@ -14,7 +14,8 @@ void main() {
       );
 
       expect(name.filename, 'test.txt');
-      expect(name.longname, '-rw-r--r-- 1 user group 1024 Jan 20 12:00 test.txt');
+      expect(
+          name.longname, '-rw-r--r-- 1 user group 1024 Jan 20 12:00 test.txt');
       expect(name.attr, attr);
     });
 

@@ -178,7 +178,8 @@ void main() {
       // 0x123456789ABCDEF
       final bigNum = BigInt.parse('123456789ABCDEF', radix: 16);
       final result = encodeBigIntAsUnsigned(bigNum);
-      expect(result, Uint8List.fromList([0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]));
+      expect(result,
+          Uint8List.fromList([0x01, 0x23, 0x45, 0x67, 0x89, 0xAB, 0xCD, 0xEF]));
     });
   });
 

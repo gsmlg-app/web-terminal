@@ -117,7 +117,8 @@ void main() {
       test('forwards output to callback with correct ptyId', () async {
         createSession(id: 'output-test');
 
-        final testData = Uint8List.fromList([72, 101, 108, 108, 111]); // "Hello"
+        final testData =
+            Uint8List.fromList([72, 101, 108, 108, 111]); // "Hello"
         mockExecution.simulateOutput(testData);
 
         // Wait for event to propagate

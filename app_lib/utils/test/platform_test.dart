@@ -228,8 +228,14 @@ void main() {
   group('Exported Platform class', () {
     test('Platform is re-exported from dart:io', () {
       // Verify that Platform is accessible through app_utils
-      expect(Platform.isMacOS || Platform.isWindows || Platform.isLinux ||
-          Platform.isAndroid || Platform.isIOS || Platform.isFuchsia, isTrue);
+      expect(
+          Platform.isMacOS ||
+              Platform.isWindows ||
+              Platform.isLinux ||
+              Platform.isAndroid ||
+              Platform.isIOS ||
+              Platform.isFuchsia,
+          isTrue);
     });
   });
 }

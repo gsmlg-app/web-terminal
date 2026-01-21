@@ -48,7 +48,8 @@ void main() {
       });
 
       test('encodes and decodes large data', () {
-        final largeData = Uint8List.fromList(List.generate(10000, (i) => i % 256));
+        final largeData =
+            Uint8List.fromList(List.generate(10000, (i) => i % 256));
         final original = SSH_Message_Ignore(largeData);
         final encoded = original.encode();
         final decoded = SSH_Message_Ignore.decode(encoded);
@@ -59,8 +60,16 @@ void main() {
 
       test('encodes and decodes random data', () {
         final randomData = Uint8List.fromList([
-          0xFF, 0x00, 0xAB, 0xCD, 0xEF,
-          0x12, 0x34, 0x56, 0x78, 0x9A,
+          0xFF,
+          0x00,
+          0xAB,
+          0xCD,
+          0xEF,
+          0x12,
+          0x34,
+          0x56,
+          0x78,
+          0x9A,
         ]);
         final original = SSH_Message_Ignore(randomData);
         final encoded = original.encode();
@@ -161,7 +170,12 @@ void main() {
 
       test('binary data with null bytes', () {
         final msg = SSH_Message_Ignore(Uint8List.fromList([
-          0x00, 0x01, 0x00, 0x02, 0x00, 0x03,
+          0x00,
+          0x01,
+          0x00,
+          0x02,
+          0x00,
+          0x03,
         ]));
         final decoded = SSH_Message_Ignore.decode(msg.encode());
         expect(decoded.data, [0x00, 0x01, 0x00, 0x02, 0x00, 0x03]);

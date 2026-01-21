@@ -363,8 +363,8 @@ void main() {
     });
 
     test('parses CreatePtyRequest', () {
-      final msg = parseMessage(
-          '{"type":"create_pty","ptyId":"x","cols":80,"rows":24}');
+      final msg =
+          parseMessage('{"type":"create_pty","ptyId":"x","cols":80,"rows":24}');
 
       expect(msg, isA<CreatePtyRequest>());
       expect((msg as CreatePtyRequest).ptyId, 'x');
@@ -386,7 +386,8 @@ void main() {
     });
 
     test('parses PtyExited', () {
-      final msg = parseMessage('{"type":"pty_exited","ptyId":"x","exitCode":0}');
+      final msg =
+          parseMessage('{"type":"pty_exited","ptyId":"x","exitCode":0}');
 
       expect(msg, isA<PtyExited>());
       expect((msg as PtyExited).exitCode, 0);

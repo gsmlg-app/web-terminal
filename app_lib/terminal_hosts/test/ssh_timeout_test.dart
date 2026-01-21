@@ -79,7 +79,10 @@ void main() {
         expect(exception60.toString(), contains('60s'));
 
         const timeout15 = Duration(seconds: 15);
-        const exception15 = SshTimeoutException('Connection timed out', timeout15);
+        const exception15 = SshTimeoutException(
+          'Connection timed out',
+          timeout15,
+        );
         expect(exception15.toString(), contains('15s'));
       });
     });

@@ -46,11 +46,13 @@ void main() {
 
     test('passes all parameters through to spec', () {
       if (!Platform.isAndroid && !Platform.isIOS) {
-        final spec = createDefaultHostSpec(
-          name: 'Dev Shell',
-          environment: {'DEBUG': '1'},
-          initCommands: 'alias ll="ls -la"',
-        ) as LocalHostSpec;
+        final spec =
+            createDefaultHostSpec(
+                  name: 'Dev Shell',
+                  environment: {'DEBUG': '1'},
+                  initCommands: 'alias ll="ls -la"',
+                )
+                as LocalHostSpec;
 
         expect(spec.name, equals('Dev Shell'));
         expect(spec.environment, hasLength(1));
@@ -81,16 +83,12 @@ void main() {
     });
 
     test('accepts environment parameter', () {
-      final host = LocalHost(
-        environment: {'CUSTOM_VAR': 'custom_value'},
-      );
+      final host = LocalHost(environment: {'CUSTOM_VAR': 'custom_value'});
       expect(host, isA<LocalHost>());
     });
 
     test('accepts initCommands parameter', () {
-      final host = LocalHost(
-        initCommands: 'echo "Hello"',
-      );
+      final host = LocalHost(initCommands: 'echo "Hello"');
       expect(host, isA<LocalHost>());
     });
 

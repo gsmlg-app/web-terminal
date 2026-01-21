@@ -22,8 +22,8 @@ class AndroidHost implements Host {
     this._env, {
     Map<String, String> environment = const {},
     String? initCommands,
-  })  : _profileEnvironment = environment,
-        _initCommands = initCommands;
+  }) : _profileEnvironment = environment,
+       _initCommands = initCommands;
 
   @override
   Future<ExecutionResult> execute(

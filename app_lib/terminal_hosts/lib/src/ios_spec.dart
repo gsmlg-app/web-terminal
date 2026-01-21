@@ -19,8 +19,6 @@ class IosHostSpec implements HostSpec {
   });
 
   @override
-  HostConnector createConnector() => IosConnector(
-        environment: environment,
-        initCommands: initCommands,
-      );
+  HostConnector createConnector() =>
+      IosConnector(environment: environment, initCommands: initCommands);
 }

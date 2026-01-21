@@ -537,7 +537,8 @@ void main() {
               onPressed: () {
                 showBottomSheetActionList(
                   context: context,
-                  showBackdrop: false, // Disable backdrop to avoid hit test issues
+                  showBackdrop:
+                      false, // Disable backdrop to avoid hit test issues
                   actions: [
                     BottomSheetAction(
                       title: const Text('Action 1'),
@@ -602,7 +603,8 @@ void main() {
   });
 
   group('getWidgetSize', () {
-    testWidgets('returns size for rendered widget', (WidgetTester tester) async {
+    testWidgets('returns size for rendered widget',
+        (WidgetTester tester) async {
       final GlobalKey testKey = GlobalKey();
       await tester.pumpWidget(MaterialApp(
         home: Scaffold(

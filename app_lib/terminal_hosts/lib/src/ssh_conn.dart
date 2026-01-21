@@ -19,10 +19,7 @@ class SshKeyData {
   /// Passphrase for encrypted keys (null for unencrypted).
   final String? passphrase;
 
-  const SshKeyData({
-    required this.content,
-    this.passphrase,
-  });
+  const SshKeyData({required this.content, this.passphrase});
 }
 
 /// Exception thrown when SSH connection fails.
@@ -122,7 +119,10 @@ class SSHConnector extends HostConnector<SSHHost> {
     } on SshTimeoutException {
       rethrow;
     } catch (error) {
-      throw SshConnectionException('Failed to connect to $hostname:$port', error);
+      throw SshConnectionException(
+        'Failed to connect to $hostname:$port',
+        error,
+      );
     }
 
     // Determine authentication method
@@ -137,10 +137,7 @@ class SSHConnector extends HostConnector<SSHHost> {
         throw const SshKeyParseException('SSH key content is empty');
       }
       try {
-        identities = SSHKeyPair.fromPem(
-          keyData!.content,
-          keyData!.passphrase,
-        );
+        identities = SSHKeyPair.fromPem(keyData!.content, keyData!.passphrase);
       } catch (error) {
         socket.close();
         throw SshKeyParseException('Failed to parse SSH key', error);
@@ -171,7 +168,10 @@ class SSHConnector extends HostConnector<SSHHost> {
       rethrow;
     } catch (error) {
       client.close();
-      throw SshAuthenticationException('Authentication failed for $username@$hostname', error);
+      throw SshAuthenticationException(
+        'Authentication failed for $username@$hostname',
+        error,
+      );
     }
 
     return SSHHost(client);

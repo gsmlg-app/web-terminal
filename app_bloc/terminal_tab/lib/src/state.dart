@@ -36,7 +36,8 @@ final class TerminalTabLoaded extends TerminalTabState {
   });
 
   @override
-  List<Object?> get props => [tabs, tabsDocument, isMounted, isFullscreen, version];
+  List<Object?> get props =>
+      [tabs, tabsDocument, isMounted, isFullscreen, version];
 
   /// Returns the currently active TabItem, if any.
   TabItem? get activeTab => tabs.activeTab;

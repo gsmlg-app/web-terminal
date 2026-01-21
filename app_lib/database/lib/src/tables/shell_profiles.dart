@@ -33,14 +33,16 @@ class ShellProfiles extends Table {
 
   /// Environment variables as JSON string (key-value pairs)
   /// Example: {"TERM": "xterm-256color", "LANG": "en_US.UTF-8"}
-  TextColumn get environmentVariables => text().withDefault(const Constant('{}'))();
+  TextColumn get environmentVariables =>
+      text().withDefault(const Constant('{}'))();
 
   /// Alias definitions as JSON string (name-command pairs)
   /// Example: {"ll": "ls -la", "gs": "git status"}
   TextColumn get aliases => text().withDefault(const Constant('{}'))();
 
   /// Font family for terminal display
-  TextColumn get fontFamily => text().withDefault(const Constant('monospace'))();
+  TextColumn get fontFamily =>
+      text().withDefault(const Constant('monospace'))();
 
   /// Font size for terminal display (in logical pixels)
   RealColumn get fontSize => real().withDefault(const Constant(14.0))();

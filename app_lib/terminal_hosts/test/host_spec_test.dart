@@ -18,9 +18,7 @@ void main() {
     });
 
     test('accepts environment variables', () {
-      final spec = LocalHostSpec(
-        environment: {'FOO': 'bar', 'BAZ': 'qux'},
-      );
+      final spec = LocalHostSpec(environment: {'FOO': 'bar', 'BAZ': 'qux'});
 
       expect(spec.environment, hasLength(2));
       expect(spec.environment['FOO'], equals('bar'));
@@ -28,9 +26,7 @@ void main() {
     });
 
     test('accepts init commands', () {
-      final spec = LocalHostSpec(
-        initCommands: 'export PATH=/custom:\$PATH',
-      );
+      final spec = LocalHostSpec(initCommands: 'export PATH=/custom:\$PATH');
 
       expect(spec.initCommands, equals('export PATH=/custom:\$PATH'));
     });
@@ -72,9 +68,7 @@ void main() {
     });
 
     test('accepts environment variables', () {
-      final spec = AndroidHostSpec(
-        environment: {'HOME': '/data/local/home'},
-      );
+      final spec = AndroidHostSpec(environment: {'HOME': '/data/local/home'});
 
       expect(spec.environment, hasLength(1));
       expect(spec.environment['HOME'], equals('/data/local/home'));
@@ -125,9 +119,7 @@ void main() {
     });
 
     test('accepts environment variables', () {
-      final spec = IosHostSpec(
-        environment: {'LANG': 'en_US.UTF-8'},
-      );
+      final spec = IosHostSpec(environment: {'LANG': 'en_US.UTF-8'});
 
       expect(spec.environment, hasLength(1));
       expect(spec.environment['LANG'], equals('en_US.UTF-8'));

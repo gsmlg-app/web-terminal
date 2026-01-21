@@ -6,9 +6,12 @@ void main() {
   group('AppAdaptiveActionSize', () {
     test('has all expected values', () {
       expect(AppAdaptiveActionSize.values, hasLength(3));
-      expect(AppAdaptiveActionSize.values, contains(AppAdaptiveActionSize.small));
-      expect(AppAdaptiveActionSize.values, contains(AppAdaptiveActionSize.medium));
-      expect(AppAdaptiveActionSize.values, contains(AppAdaptiveActionSize.large));
+      expect(
+          AppAdaptiveActionSize.values, contains(AppAdaptiveActionSize.small));
+      expect(
+          AppAdaptiveActionSize.values, contains(AppAdaptiveActionSize.medium));
+      expect(
+          AppAdaptiveActionSize.values, contains(AppAdaptiveActionSize.large));
     });
 
     test('enum index values are correct', () {
@@ -50,7 +53,8 @@ void main() {
       final actions = [
         AppAdaptiveAction(title: 'Add', icon: Icons.add, onPressed: () {}),
         AppAdaptiveAction(title: 'Edit', icon: Icons.edit, onPressed: () {}),
-        AppAdaptiveAction(title: 'Delete', icon: Icons.delete, onPressed: () {}),
+        AppAdaptiveAction(
+            title: 'Delete', icon: Icons.delete, onPressed: () {}),
       ];
 
       expect(actions[0].icon, Icons.add);
@@ -146,7 +150,8 @@ void main() {
         expect(pressedIndex, 1);
       });
 
-      testWidgets('does not call onPressed for disabled action', (tester) async {
+      testWidgets('does not call onPressed for disabled action',
+          (tester) async {
         final disabledActions = [
           AppAdaptiveAction(
             title: 'Disabled',
@@ -245,7 +250,8 @@ void main() {
         expect(pressedIndex, 1);
       });
 
-      testWidgets('disabled IconButton does not respond to tap', (tester) async {
+      testWidgets('disabled IconButton does not respond to tap',
+          (tester) async {
         final mixedActions = [
           AppAdaptiveAction(
             title: 'Enabled',
@@ -273,7 +279,8 @@ void main() {
         );
 
         // The IconButton for disabled action should have null onPressed
-        final iconButtons = tester.widgetList<IconButton>(find.byType(IconButton));
+        final iconButtons =
+            tester.widgetList<IconButton>(find.byType(IconButton));
         final disabledButton = iconButtons.elementAt(1);
         expect(disabledButton.onPressed, isNull);
       });
@@ -339,7 +346,8 @@ void main() {
         expect(pressedIndex, 2);
       });
 
-      testWidgets('disabled TextButton does not respond to tap', (tester) async {
+      testWidgets('disabled TextButton does not respond to tap',
+          (tester) async {
         final mixedActions = [
           AppAdaptiveAction(
             title: 'Enabled',
@@ -462,8 +470,12 @@ void main() {
         final mixedActions = [
           AppAdaptiveAction(title: 'A', icon: Icons.star, onPressed: () {}),
           AppAdaptiveAction(
-              title: 'B', icon: Icons.star_border, onPressed: () {}, disabled: true),
-          AppAdaptiveAction(title: 'C', icon: Icons.star_half, onPressed: () {}),
+              title: 'B',
+              icon: Icons.star_border,
+              onPressed: () {},
+              disabled: true),
+          AppAdaptiveAction(
+              title: 'C', icon: Icons.star_half, onPressed: () {}),
         ];
 
         final list = AppAdaptiveActionList(
@@ -497,7 +509,8 @@ void main() {
   group('AppAdaptiveScaffold', () {
     final testDestinations = [
       const NavigationDestination(icon: Icon(Icons.home), label: 'Home'),
-      const NavigationDestination(icon: Icon(Icons.settings), label: 'Settings'),
+      const NavigationDestination(
+          icon: Icon(Icons.settings), label: 'Settings'),
     ];
 
     testWidgets('renders body content', (tester) async {
@@ -513,7 +526,8 @@ void main() {
       expect(find.text('Body Content'), findsOneWidget);
     });
 
-    testWidgets('renders only body when hideNavigation is true', (tester) async {
+    testWidgets('renders only body when hideNavigation is true',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: AppAdaptiveScaffold(
@@ -561,9 +575,11 @@ void main() {
     test('has correct static breakpoint constants', () {
       expect(AppAdaptiveScaffold.appSmallBreakpoint, Breakpoints.small);
       expect(AppAdaptiveScaffold.appMediumBreakpoint, Breakpoints.medium);
-      expect(AppAdaptiveScaffold.appMediumLargeBreakpoint, Breakpoints.mediumLarge);
+      expect(AppAdaptiveScaffold.appMediumLargeBreakpoint,
+          Breakpoints.mediumLarge);
       expect(AppAdaptiveScaffold.appLargeBreakpoint, Breakpoints.large);
-      expect(AppAdaptiveScaffold.appExtraLargeBreakpoint, Breakpoints.extraLarge);
+      expect(
+          AppAdaptiveScaffold.appExtraLargeBreakpoint, Breakpoints.extraLarge);
       expect(AppAdaptiveScaffold.appDrawerBreakpoint, Breakpoints.smallDesktop);
     });
 
@@ -619,14 +635,18 @@ void main() {
 
       test('breakpoints use app defaults', () {
         final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
-        expect(scaffold.smallBreakpoint, AppAdaptiveScaffold.appSmallBreakpoint);
-        expect(scaffold.mediumBreakpoint, AppAdaptiveScaffold.appMediumBreakpoint);
+        expect(
+            scaffold.smallBreakpoint, AppAdaptiveScaffold.appSmallBreakpoint);
+        expect(
+            scaffold.mediumBreakpoint, AppAdaptiveScaffold.appMediumBreakpoint);
         expect(scaffold.mediumLargeBreakpoint,
             AppAdaptiveScaffold.appMediumLargeBreakpoint);
-        expect(scaffold.largeBreakpoint, AppAdaptiveScaffold.appLargeBreakpoint);
+        expect(
+            scaffold.largeBreakpoint, AppAdaptiveScaffold.appLargeBreakpoint);
         expect(scaffold.extraLargeBreakpoint,
             AppAdaptiveScaffold.appExtraLargeBreakpoint);
-        expect(scaffold.drawerBreakpoint, AppAdaptiveScaffold.appDrawerBreakpoint);
+        expect(
+            scaffold.drawerBreakpoint, AppAdaptiveScaffold.appDrawerBreakpoint);
       });
     });
 

@@ -85,7 +85,15 @@ void main() {
       });
 
       test('handles different HTTP methods', () {
-        final methods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
+        final methods = [
+          'GET',
+          'POST',
+          'PUT',
+          'PATCH',
+          'DELETE',
+          'HEAD',
+          'OPTIONS'
+        ];
         for (final method in methods) {
           expect(
             () => interceptor.logRequest(

@@ -13,10 +13,7 @@ class IosConnector extends HostConnector<IosHost> {
   /// Optional init commands to run when shell starts.
   final String? initCommands;
 
-  IosConnector({
-    this.environment = const {},
-    this.initCommands,
-  });
+  IosConnector({this.environment = const {}, this.initCommands});
 
   @override
   Future<IosHost> createHost() async {
@@ -26,10 +23,6 @@ class IosConnector extends HostConnector<IosHost> {
       await env.initialize();
     }
 
-    return IosHost(
-      env,
-      environment: environment,
-      initCommands: initCommands,
-    );
+    return IosHost(env, environment: environment, initCommands: initCommands);
   }
 }

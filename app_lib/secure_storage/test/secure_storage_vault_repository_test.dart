@@ -296,13 +296,16 @@ void main() {
         expect(result, isTrue);
       });
 
-      test('containsKey returns false if only non-prefixed key exists', () async {
-        mockStorage.rawStorage['exists'] = 'value';
+      test(
+        'containsKey returns false if only non-prefixed key exists',
+        () async {
+          mockStorage.rawStorage['exists'] = 'value';
 
-        final result = await repository.containsKey(key: 'exists');
+          final result = await repository.containsKey(key: 'exists');
 
-        expect(result, isFalse);
-      });
+          expect(result, isFalse);
+        },
+      );
 
       test('deleteAll only removes keys with namespace prefix', () async {
         mockStorage.rawStorage['myapp_key1'] = 'value1';

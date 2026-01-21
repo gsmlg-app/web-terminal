@@ -19,8 +19,6 @@ class AndroidHostSpec implements HostSpec {
   });
 
   @override
-  HostConnector createConnector() => AndroidConnector(
-        environment: environment,
-        initCommands: initCommands,
-      );
+  HostConnector createConnector() =>
+      AndroidConnector(environment: environment, initCommands: initCommands);
 }

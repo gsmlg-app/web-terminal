@@ -6,11 +6,20 @@ void main() {
     test('has all expected values', () {
       expect(FileSystemEntityType.values, hasLength(6));
       expect(FileSystemEntityType.values, contains(FileSystemEntityType.file));
-      expect(FileSystemEntityType.values, contains(FileSystemEntityType.directory));
+      expect(
+        FileSystemEntityType.values,
+        contains(FileSystemEntityType.directory),
+      );
       expect(FileSystemEntityType.values, contains(FileSystemEntityType.link));
-      expect(FileSystemEntityType.values, contains(FileSystemEntityType.socket));
+      expect(
+        FileSystemEntityType.values,
+        contains(FileSystemEntityType.socket),
+      );
       expect(FileSystemEntityType.values, contains(FileSystemEntityType.pipe));
-      expect(FileSystemEntityType.values, contains(FileSystemEntityType.unknown));
+      expect(
+        FileSystemEntityType.values,
+        contains(FileSystemEntityType.unknown),
+      );
     });
 
     test('file type has correct name', () {

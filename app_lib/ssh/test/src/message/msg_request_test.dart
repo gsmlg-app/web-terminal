@@ -80,7 +80,8 @@ void main() {
 
     group('encode/decode roundtrip', () {
       test('encodes and decodes tcpip-forward', () {
-        final original = SSH_Message_Global_Request.tcpipForward('192.168.1.1', 22);
+        final original =
+            SSH_Message_Global_Request.tcpipForward('192.168.1.1', 22);
         final encoded = original.encode();
         final decoded = SSH_Message_Global_Request.decode(encoded);
 
@@ -171,7 +172,8 @@ void main() {
 
     group('encode/decode roundtrip', () {
       test('encodes and decodes with data', () {
-        final original = SSH_Message_Request_Success(Uint8List.fromList([10, 20, 30]));
+        final original =
+            SSH_Message_Request_Success(Uint8List.fromList([10, 20, 30]));
         final encoded = original.encode();
         final decoded = SSH_Message_Request_Success.decode(encoded);
 
@@ -197,7 +199,8 @@ void main() {
         final decoded = SSH_Message_Request_Success.decode(encoded);
 
         // Create ByteData from the decoded data using sublistView to handle offset
-        final port = ByteData.sublistView(decoded.requestData).getUint32(0, Endian.big);
+        final port =
+            ByteData.sublistView(decoded.requestData).getUint32(0, Endian.big);
         expect(port, 12345);
       });
     });
@@ -212,7 +215,8 @@ void main() {
 
     group('toString', () {
       test('includes hex data', () {
-        final msg = SSH_Message_Request_Success(Uint8List.fromList([0xAB, 0xCD]));
+        final msg =
+            SSH_Message_Request_Success(Uint8List.fromList([0xAB, 0xCD]));
         final str = msg.toString();
         expect(str, contains('SSH_Message_Request_Success'));
         expect(str.toLowerCase(), contains('abcd'));
@@ -282,7 +286,8 @@ void main() {
       ByteData.view(portData.buffer).setUint32(0, 54321, Endian.big);
       final success = SSH_Message_Request_Success(portData);
 
-      final assignedPort = ByteData.view(success.requestData.buffer).getUint32(0, Endian.big);
+      final assignedPort =
+          ByteData.view(success.requestData.buffer).getUint32(0, Endian.big);
       expect(assignedPort, 54321);
     });
 

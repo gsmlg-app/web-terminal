@@ -181,8 +181,7 @@ void main() {
         final state = const WebSessionState.initial().copyWith(
           error: 'Old error',
         );
-        final updated =
-            state.copyWith(clearError: true, error: 'New error');
+        final updated = state.copyWith(clearError: true, error: 'New error');
 
         // clearError takes precedence
         expect(updated.error, isNull);
@@ -192,8 +191,7 @@ void main() {
         final state = const WebSessionState.initial().copyWith(
           serverPort: 8080,
         );
-        final updated =
-            state.copyWith(clearServerPort: true, serverPort: 9000);
+        final updated = state.copyWith(clearServerPort: true, serverPort: 9000);
 
         expect(updated.serverPort, isNull);
       });

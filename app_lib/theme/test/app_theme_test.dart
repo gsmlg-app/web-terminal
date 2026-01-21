@@ -10,7 +10,8 @@ void main() {
       });
 
       test('parses "ThemeMode.system" string', () {
-        expect(ThemeModeExtension.fromString('ThemeMode.system'), ThemeMode.system);
+        expect(ThemeModeExtension.fromString('ThemeMode.system'),
+            ThemeMode.system);
       });
 
       test('parses "light" string', () {
@@ -18,7 +19,8 @@ void main() {
       });
 
       test('parses "ThemeMode.light" string', () {
-        expect(ThemeModeExtension.fromString('ThemeMode.light'), ThemeMode.light);
+        expect(
+            ThemeModeExtension.fromString('ThemeMode.light'), ThemeMode.light);
       });
 
       test('parses "dark" string', () {
@@ -80,7 +82,8 @@ void main() {
     });
 
     group('iconOutlined', () {
-      testWidgets('system mode has brightness_auto_outlined icon', (tester) async {
+      testWidgets('system mode has brightness_auto_outlined icon',
+          (tester) async {
         await tester.pumpWidget(
           MaterialApp(home: ThemeMode.system.iconOutlined),
         );

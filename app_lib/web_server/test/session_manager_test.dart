@@ -444,7 +444,8 @@ void main() {
       test('returns session by approval code', () {
         final created = manager.createSession(clientAddress: '127.0.0.1');
 
-        final retrieved = manager.getSessionByApprovalCode(created.approvalCode);
+        final retrieved =
+            manager.getSessionByApprovalCode(created.approvalCode);
 
         expect(retrieved, created);
       });

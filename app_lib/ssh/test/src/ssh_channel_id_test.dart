@@ -151,7 +151,8 @@ void main() {
 
         // Verify id1 (0) is available for reuse - it was released
         // The allocator tracks which IDs are in use, so 0 is available
-        expect(allocator.allocate(), isNot(id1)); // Sequential continues from _nextId
+        expect(allocator.allocate(),
+            isNot(id1)); // Sequential continues from _nextId
 
         // ID 0 should eventually get reused after wrap
       });

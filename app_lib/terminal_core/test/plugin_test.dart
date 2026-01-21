@@ -158,24 +158,15 @@ void main() {
     });
 
     test('accessing hostSpec before mount throws', () {
-      expect(
-        () => plugin.hostSpec,
-        throwsA(isA<Exception>()),
-      );
+      expect(() => plugin.hostSpec, throwsA(isA<Exception>()));
     });
 
     test('accessing host before connect throws', () {
-      expect(
-        () => plugin.host,
-        throwsA(isA<Exception>()),
-      );
+      expect(() => plugin.host, throwsA(isA<Exception>()));
     });
 
     test('accessing manager before mount throws', () {
-      expect(
-        () => plugin.manager,
-        throwsA(isA<StateError>()),
-      );
+      expect(() => plugin.manager, throwsA(isA<StateError>()));
     });
   });
 
@@ -225,17 +216,11 @@ void main() {
     test('cannot add already mounted plugin', () {
       manager.add(plugin);
 
-      expect(
-        () => manager.add(plugin),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => manager.add(plugin), throwsA(isA<Exception>()));
     });
 
     test('cannot remove unmounted plugin', () {
-      expect(
-        () => manager.remove(plugin),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => manager.remove(plugin), throwsA(isA<Exception>()));
     });
 
     test('didConnected connects all plugins', () {
@@ -290,17 +275,11 @@ void main() {
       final host = MockHost();
       manager.didConnected(host);
 
-      expect(
-        () => manager.didConnected(host),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => manager.didConnected(host), throwsA(isA<Exception>()));
     });
 
     test('cannot call didDisconnected when not connected', () {
-      expect(
-        () => manager.didDisconnected(),
-        throwsA(isA<Exception>()),
-      );
+      expect(() => manager.didDisconnected(), throwsA(isA<Exception>()));
     });
 
     test('didConnectionStatusChanged notifies all plugins', () {
@@ -348,10 +327,22 @@ void main() {
   group('HostConnectorStatus', () {
     test('has all expected values', () {
       expect(HostConnectorStatus.values, hasLength(5));
-      expect(HostConnectorStatus.values, contains(HostConnectorStatus.initialized));
-      expect(HostConnectorStatus.values, contains(HostConnectorStatus.connecting));
-      expect(HostConnectorStatus.values, contains(HostConnectorStatus.connected));
-      expect(HostConnectorStatus.values, contains(HostConnectorStatus.disconnected));
+      expect(
+        HostConnectorStatus.values,
+        contains(HostConnectorStatus.initialized),
+      );
+      expect(
+        HostConnectorStatus.values,
+        contains(HostConnectorStatus.connecting),
+      );
+      expect(
+        HostConnectorStatus.values,
+        contains(HostConnectorStatus.connected),
+      );
+      expect(
+        HostConnectorStatus.values,
+        contains(HostConnectorStatus.disconnected),
+      );
       expect(HostConnectorStatus.values, contains(HostConnectorStatus.aborted));
     });
   });

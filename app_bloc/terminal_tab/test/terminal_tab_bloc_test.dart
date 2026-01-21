@@ -80,7 +80,8 @@ void main() {
         },
         skip: 1, // Skip TerminalTabStart state
         expect: () => [
-          isA<TerminalTabLoaded>().having((s) => s.isMounted, 'isMounted', false),
+          isA<TerminalTabLoaded>()
+              .having((s) => s.isMounted, 'isMounted', false),
         ],
       );
 
@@ -181,7 +182,8 @@ void main() {
         },
         skip: 1, // Skip TerminalTabStart
         expect: () => [
-          isA<TerminalTabLoaded>().having((s) => s.isFullscreen, 'isFullscreen', true),
+          isA<TerminalTabLoaded>()
+              .having((s) => s.isFullscreen, 'isFullscreen', true),
         ],
       );
 
@@ -195,7 +197,8 @@ void main() {
         },
         skip: 2, // Skip first two states
         expect: () => [
-          isA<TerminalTabLoaded>().having((s) => s.isFullscreen, 'isFullscreen', false),
+          isA<TerminalTabLoaded>()
+              .having((s) => s.isFullscreen, 'isFullscreen', false),
         ],
       );
 
@@ -344,7 +347,8 @@ void main() {
         bloc.add(TerminalTabStart());
         await Future.delayed(Duration.zero);
         final state = bloc.state as TerminalTabLoaded;
-        expect(state.props.length, 5); // tabs, tabsDocument, isMounted, isFullscreen, version
+        expect(state.props.length,
+            5); // tabs, tabsDocument, isMounted, isFullscreen, version
       });
 
       test('TerminalTabLoaded copyWith preserves fields', () async {

@@ -92,7 +92,8 @@ void main() {
 
     test('message includes extension name', () {
       final error = SftpExtensionUnsupportedError('posix-rename@openssh.com');
-      expect(error.message, 'Extension "posix-rename@openssh.com" is not supported');
+      expect(error.message,
+          'Extension "posix-rename@openssh.com" is not supported');
     });
 
     test('implements SftpError', () {
@@ -116,13 +117,15 @@ void main() {
 
   group('SftpExtensionVersionMismatchError', () {
     test('stores extension and version', () {
-      final error = SftpExtensionVersionMismatchError('fsync@openssh.com', '2.0');
+      final error =
+          SftpExtensionVersionMismatchError('fsync@openssh.com', '2.0');
       expect(error.extension, 'fsync@openssh.com');
       expect(error.version, '2.0');
     });
 
     test('message includes extension and version', () {
-      final error = SftpExtensionVersionMismatchError('statvfs@openssh.com', '1.5');
+      final error =
+          SftpExtensionVersionMismatchError('statvfs@openssh.com', '1.5');
       expect(
         error.message,
         'Extension "statvfs@openssh.com" of version 1.5 is not supported',
@@ -140,7 +143,8 @@ void main() {
     });
 
     test('toString includes message', () {
-      final error = SftpExtensionVersionMismatchError('limits@openssh.com', '3.0');
+      final error =
+          SftpExtensionVersionMismatchError('limits@openssh.com', '3.0');
       expect(
         error.toString(),
         'SftpExtensionVersionMismatchError: Extension "limits@openssh.com" of version 3.0 is not supported',

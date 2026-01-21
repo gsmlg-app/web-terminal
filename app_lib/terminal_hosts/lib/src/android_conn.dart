@@ -13,10 +13,7 @@ class AndroidConnector extends HostConnector<AndroidHost> {
   /// Optional init commands to run when shell starts.
   final String? initCommands;
 
-  AndroidConnector({
-    this.environment = const {},
-    this.initCommands,
-  });
+  AndroidConnector({this.environment = const {}, this.initCommands});
 
   @override
   Future<AndroidHost> createHost() async {

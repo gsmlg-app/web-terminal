@@ -273,7 +273,8 @@ void main() {
 
       final decoded = SSH_Message_Userauth_Failure.decode(original.encode());
 
-      expect(decoded.methodsLeft, ['publickey', 'password', 'keyboard-interactive']);
+      expect(decoded.methodsLeft,
+          ['publickey', 'password', 'keyboard-interactive']);
       expect(decoded.partialSuccess, true);
     });
 
@@ -359,7 +360,8 @@ void main() {
 
       final decoded = SSH_Message_Userauth_Banner.decode(original.encode());
 
-      expect(decoded.message, 'Authorized users only!\nViolators will be prosecuted.');
+      expect(decoded.message,
+          'Authorized users only!\nViolators will be prosecuted.');
       expect(decoded.language, 'en');
     });
 
@@ -404,7 +406,8 @@ void main() {
         prompt: 'Your password has expired. Please enter a new password:',
       );
 
-      expect(msg.prompt, 'Your password has expired. Please enter a new password:');
+      expect(msg.prompt,
+          'Your password has expired. Please enter a new password:');
     });
 
     test('encodes and decodes', () {
@@ -412,7 +415,8 @@ void main() {
         prompt: 'Password change required',
       );
 
-      final decoded = SSH_Message_Userauth_Passwd_ChangeReq.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_Passwd_ChangeReq.decode(original.encode());
       expect(decoded.prompt, 'Password change required');
     });
 
@@ -461,7 +465,8 @@ void main() {
         ],
       );
 
-      final decoded = SSH_Message_Userauth_InfoRequest.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_InfoRequest.decode(original.encode());
 
       expect(decoded.name, 'MFA');
       expect(decoded.instruction, 'Enter your verification code');
@@ -481,7 +486,8 @@ void main() {
         prompts: [],
       );
 
-      final decoded = SSH_Message_Userauth_InfoRequest.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_InfoRequest.decode(original.encode());
       expect(decoded.prompts, isEmpty);
     });
 
@@ -498,7 +504,8 @@ void main() {
         prompts: prompts,
       );
 
-      final decoded = SSH_Message_Userauth_InfoRequest.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_InfoRequest.decode(original.encode());
       expect(decoded.prompts.length, 10);
       for (var i = 0; i < 10; i++) {
         expect(decoded.prompts[i].promptText, 'Question $i: ');
@@ -538,14 +545,16 @@ void main() {
         responses: ['answer1', 'answer2', 'answer3'],
       );
 
-      final decoded = SSH_Message_Userauth_InfoResponse.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_InfoResponse.decode(original.encode());
       expect(decoded.responses, ['answer1', 'answer2', 'answer3']);
     });
 
     test('handles empty responses', () {
       final original = SSH_Message_Userauth_InfoResponse(responses: []);
 
-      final decoded = SSH_Message_Userauth_InfoResponse.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_InfoResponse.decode(original.encode());
       expect(decoded.responses, isEmpty);
     });
 
@@ -554,7 +563,8 @@ void main() {
         responses: ['密码', 'パスワード', '🔑'],
       );
 
-      final decoded = SSH_Message_Userauth_InfoResponse.decode(original.encode());
+      final decoded =
+          SSH_Message_Userauth_InfoResponse.decode(original.encode());
       expect(decoded.responses, ['密码', 'パスワード', '🔑']);
     });
 

@@ -14,11 +14,9 @@ class LocalHost implements Host {
   /// Optional init commands to run when shell starts.
   final String? _initCommands;
 
-  LocalHost({
-    Map<String, String> environment = const {},
-    String? initCommands,
-  })  : _profileEnvironment = environment,
-        _initCommands = initCommands;
+  LocalHost({Map<String, String> environment = const {}, String? initCommands})
+    : _profileEnvironment = environment,
+      _initCommands = initCommands;
 
   @override
   Future<ExecutionResult> execute(

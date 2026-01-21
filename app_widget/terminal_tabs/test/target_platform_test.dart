@@ -103,8 +103,9 @@ void main() {
       });
 
       test('exactly 3 platforms are Desktop', () {
-        final desktopCount =
-            TargetPlatform.values.where((p) => p.isDesktop).length;
+        final desktopCount = TargetPlatform.values
+            .where((p) => p.isDesktop)
+            .length;
         expect(desktopCount, 3); // Linux, macOS, Windows
       });
     });

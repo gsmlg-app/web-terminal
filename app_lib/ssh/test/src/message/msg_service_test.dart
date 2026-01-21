@@ -138,7 +138,8 @@ void main() {
 
   group('Service message pairs', () {
     test('request and accept have different message ids', () {
-      expect(SSH_Message_Service_Request.messageId, isNot(SSH_Message_Service_Accept.messageId));
+      expect(SSH_Message_Service_Request.messageId,
+          isNot(SSH_Message_Service_Accept.messageId));
     });
 
     test('request is 5, accept is 6', () {

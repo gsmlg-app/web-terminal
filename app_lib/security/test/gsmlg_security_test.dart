@@ -75,7 +75,8 @@ void main() {
       test('includes special characters', () {
         // With many chars, should include special characters
         final result = StringHelper.randomAscii(1000);
-        final hasSpecial = result.contains(RegExp(r'[!@#$%^&*()_+\-=\[\]{};:,.<>?/\\|`~]'));
+        final hasSpecial =
+            result.contains(RegExp(r'[!@#$%^&*()_+\-=\[\]{};:,.<>?/\\|`~]'));
         expect(hasSpecial, isTrue);
       });
 
@@ -320,7 +321,8 @@ o0Nl/137RMM=
     test('encrypt64WithSalt and decrypt64WithSalt with special characters', () {
       final aesHelper = AesHelper(appName);
       final salt = 'test-salt';
-      final specialText = 'Special chars: 你好世界 🎉 <script>alert("xss")</script>';
+      final specialText =
+          'Special chars: 你好世界 🎉 <script>alert("xss")</script>';
 
       final encrypted = aesHelper.encrypt64WithSalt(specialText, salt);
       final decrypted = aesHelper.decrypt64WithSalt(encrypted, salt);

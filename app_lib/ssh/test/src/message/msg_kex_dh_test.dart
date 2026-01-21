@@ -364,10 +364,13 @@ void main() {
       );
 
       // Verify messages encode/decode correctly
-      expect(SSH_Message_KexDH_GexRequest.decode(request.encode()).preferredN, 4096);
+      expect(SSH_Message_KexDH_GexRequest.decode(request.encode()).preferredN,
+          4096);
       expect(SSH_Message_KexDH_GexGroup.decode(group.encode()).g, g);
-      expect(SSH_Message_KexDH_GexInit.decode(clientInit.encode()).e, BigInt.from(123456789));
-      expect(SSH_Message_KexDH_GexReply.decode(serverReply.encode()).f, BigInt.from(987654321));
+      expect(SSH_Message_KexDH_GexInit.decode(clientInit.encode()).e,
+          BigInt.from(123456789));
+      expect(SSH_Message_KexDH_GexReply.decode(serverReply.encode()).f,
+          BigInt.from(987654321));
     });
   });
 }

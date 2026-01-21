@@ -124,7 +124,8 @@ void main() {
 
       test('excludes confusing characters (I, O, 0, 1)', () {
         // Generate many codes to verify exclusion
-        final codes = List.generate(100, (_) => WebSession.generateApprovalCode());
+        final codes =
+            List.generate(100, (_) => WebSession.generateApprovalCode());
         for (final code in codes) {
           expect(code.contains('I'), isFalse);
           expect(code.contains('O'), isFalse);

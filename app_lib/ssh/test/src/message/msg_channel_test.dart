@@ -407,7 +407,8 @@ void main() {
     });
 
     test('handles large data', () {
-      final largeData = Uint8List.fromList(List.generate(10000, (i) => i % 256));
+      final largeData =
+          Uint8List.fromList(List.generate(10000, (i) => i % 256));
       final original = SSH_Message_Channel_Data(
         recipientChannel: 1,
         data: largeData,

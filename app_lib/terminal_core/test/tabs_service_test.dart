@@ -23,16 +23,14 @@ class MockHost implements Host {
     List<String> args = const [],
     bool root = false,
     Map<String, String>? environment,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<ExecutionSession> shell({
     int width = 80,
     int height = 25,
     Map<String, String>? environment,
-  }) async =>
-      throw UnimplementedError();
+  }) async => throw UnimplementedError();
 
   @override
   Future<void> disconnect() async {}
@@ -68,7 +66,8 @@ class MockPlugin with Plugin {
 class MockTabItem extends TabItem {
   final String testId;
 
-  MockTabItem({this.testId = 'mock-tab'}) : super(title: const Text('Mock Tab'));
+  MockTabItem({this.testId = 'mock-tab'})
+    : super(title: const Text('Mock Tab'));
 }
 
 /// Mock FileSystem for testing.
@@ -111,14 +110,10 @@ class MockFile with FileSystemEntity implements File {
   @override
   final FileSystem fileSystem;
 
-  MockFile({
-    required this.fileSystem,
-    String filePath = '/test/test.txt',
-  }) : path = filePath;
+  MockFile({required this.fileSystem, String filePath = '/test/test.txt'})
+    : path = filePath;
 
-  factory MockFile.simple({
-    String path = '/test/test.txt',
-  }) {
+  factory MockFile.simple({String path = '/test/test.txt'}) {
     final fs = MockFileSystem();
     return MockFile(fileSystem: fs, filePath: path);
   }
@@ -140,16 +135,14 @@ class MockFile with FileSystemEntity implements File {
     Uint8List bytes, {
     FileMode mode = FileMode.write,
     bool flush = false,
-  }) async =>
-      this;
+  }) async => this;
 
   @override
   Future<File> writeAsString(
     String contents, {
     FileMode mode = FileMode.write,
     bool flush = false,
-  }) async =>
-      this;
+  }) async => this;
 
   @override
   Future<String> readAsString() async => '';
@@ -167,8 +160,7 @@ class MockFile with FileSystemEntity implements File {
   Stream<FileSystemEvent> watch({
     int events = FileSystemEvent.all,
     bool recursive = false,
-  }) =>
-      const Stream.empty();
+  }) => const Stream.empty();
 }
 
 void main() {
@@ -218,10 +210,7 @@ void main() {
       test('throws StateError if fileTabFactory is not set', () {
         final file = MockFile.simple();
 
-        expect(
-          () => service.openFile(file),
-          throwsA(isA<StateError>()),
-        );
+        expect(() => service.openFile(file), throwsA(isA<StateError>()));
       });
 
       test('throws with descriptive message', () {

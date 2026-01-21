@@ -46,11 +46,7 @@ void main() {
     });
 
     test('name returns "SSH Host" when host and hostname are null', () {
-      final hostMinimal = SshHost(
-        id: 4,
-        port: 22,
-        username: 'test',
-      );
+      final hostMinimal = SshHost(id: 4, port: 22, username: 'test');
       final spec = SSHHostSpec(hostMinimal);
       expect(spec.name, equals('SSH Host'));
     });
@@ -98,11 +94,13 @@ void main() {
     test('throws ArgumentError when keyData is null for key identity type', () {
       expect(
         () => SSHHostSpec(testHostKey),
-        throwsA(isA<ArgumentError>().having(
-          (e) => e.message,
-          'message',
-          contains('keyData is required'),
-        )),
+        throwsA(
+          isA<ArgumentError>().having(
+            (e) => e.message,
+            'message',
+            contains('keyData is required'),
+          ),
+        ),
       );
     });
 
@@ -112,17 +110,20 @@ void main() {
       expect(spec.keyData, isNull);
     });
 
-    test('allows null keyData when identityType is not set (defaults to password)', () {
-      final hostNoIdentity = SshHost(
-        id: 5,
-        hostname: 'noidentity.example.com',
-        port: 22,
-        username: 'test',
-      );
-      // Should not throw since default identity type is not key
-      final spec = SSHHostSpec(hostNoIdentity);
-      expect(spec.keyData, isNull);
-    });
+    test(
+      'allows null keyData when identityType is not set (defaults to password)',
+      () {
+        final hostNoIdentity = SshHost(
+          id: 5,
+          hostname: 'noidentity.example.com',
+          port: 22,
+          username: 'test',
+        );
+        // Should not throw since default identity type is not key
+        final spec = SSHHostSpec(hostNoIdentity);
+        expect(spec.keyData, isNull);
+      },
+    );
   });
 
   group('SSHConnector', () {
@@ -153,7 +154,8 @@ void main() {
       );
 
       const keyData = SshKeyData(
-        content: '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----',
+        content:
+            '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----',
         passphrase: 'keypass',
       );
 
@@ -165,87 +167,107 @@ void main() {
       expect(connector.keyData!.passphrase, equals('keypass'));
     });
 
-    test('createHost throws SshConnectionException when hostname is null', () async {
-      final host = SshHost(
-        id: 1,
-        port: 22,
-        username: 'testuser',
-        identityType: SshIdentityType.password.value,
-      );
+    test(
+      'createHost throws SshConnectionException when hostname is null',
+      () async {
+        final host = SshHost(
+          id: 1,
+          port: 22,
+          username: 'testuser',
+          identityType: SshIdentityType.password.value,
+        );
 
-      final connector = SSHConnector(host);
+        final connector = SSHConnector(host);
 
-      expect(
-        () => connector.createHost(),
-        throwsA(isA<SshConnectionException>().having(
-          (e) => e.message,
-          'message',
-          contains('Hostname is required'),
-        )),
-      );
-    });
+        expect(
+          () => connector.createHost(),
+          throwsA(
+            isA<SshConnectionException>().having(
+              (e) => e.message,
+              'message',
+              contains('Hostname is required'),
+            ),
+          ),
+        );
+      },
+    );
 
-    test('createHost throws SshConnectionException when hostname is empty', () async {
-      final host = SshHost(
-        id: 1,
-        hostname: '',
-        port: 22,
-        username: 'testuser',
-        identityType: SshIdentityType.password.value,
-      );
+    test(
+      'createHost throws SshConnectionException when hostname is empty',
+      () async {
+        final host = SshHost(
+          id: 1,
+          hostname: '',
+          port: 22,
+          username: 'testuser',
+          identityType: SshIdentityType.password.value,
+        );
 
-      final connector = SSHConnector(host);
+        final connector = SSHConnector(host);
 
-      expect(
-        () => connector.createHost(),
-        throwsA(isA<SshConnectionException>().having(
-          (e) => e.message,
-          'message',
-          contains('Hostname is required'),
-        )),
-      );
-    });
+        expect(
+          () => connector.createHost(),
+          throwsA(
+            isA<SshConnectionException>().having(
+              (e) => e.message,
+              'message',
+              contains('Hostname is required'),
+            ),
+          ),
+        );
+      },
+    );
 
-    test('createHost throws SshConnectionException when port is invalid', () async {
-      final host = SshHost(
-        id: 1,
-        hostname: 'example.com',
-        port: 0,
-        username: 'testuser',
-        identityType: SshIdentityType.password.value,
-      );
+    test(
+      'createHost throws SshConnectionException when port is invalid',
+      () async {
+        final host = SshHost(
+          id: 1,
+          hostname: 'example.com',
+          port: 0,
+          username: 'testuser',
+          identityType: SshIdentityType.password.value,
+        );
 
-      final connector = SSHConnector(host);
+        final connector = SSHConnector(host);
 
-      expect(
-        () => connector.createHost(),
-        throwsA(isA<SshConnectionException>().having(
-          (e) => e.message,
-          'message',
-          contains('Invalid port number'),
-        )),
-      );
-    });
+        expect(
+          () => connector.createHost(),
+          throwsA(
+            isA<SshConnectionException>().having(
+              (e) => e.message,
+              'message',
+              contains('Invalid port number'),
+            ),
+          ),
+        );
+      },
+    );
 
-    test('createHost throws SshAuthenticationException when username is null', () async {
-      final host = SshHost(
-        id: 1,
-        hostname: 'example.com',
-        port: 22,
-        identityType: SshIdentityType.password.value,
-      );
+    test(
+      'createHost throws SshAuthenticationException when username is null',
+      () async {
+        final host = SshHost(
+          id: 1,
+          hostname: 'example.com',
+          port: 22,
+          identityType: SshIdentityType.password.value,
+        );
 
-      final connector = SSHConnector(host);
+        final connector = SSHConnector(host);
 
-      expect(
-        () => connector.createHost(),
-        throwsA(isA<SshAuthenticationException>().having(
-          (e) => e.message,
-          'message',
-          contains('Username is required'),
-        )),
-      );
-    });
+        expect(
+          () => connector.createHost(),
+          throwsA(
+            isA<SshAuthenticationException>().having(
+              (e) => e.message,
+              'message',
+              contains('Username is required'),
+            ),
+          ),
+        );
+      },
+    );
 
     // Note: Tests for key parsing and network connection errors require mocking
     // SSHSocket.connect which is not feasible in unit tests. These validations
@@ -259,7 +281,10 @@ void main() {
     });
 
     test('SshConnectionException toString includes cause', () {
-      final exception = SshConnectionException('Connection failed', Exception('Network error'));
+      final exception = SshConnectionException(
+        'Connection failed',
+        Exception('Network error'),
+      );
       expect(exception.toString(), contains('Connection failed'));
       expect(exception.toString(), contains('Network error'));
     });

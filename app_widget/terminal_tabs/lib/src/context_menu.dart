@@ -85,9 +85,9 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
     AppDatabase database,
     int keyId,
   ) async {
-    final key = await (database.select(database.sshKeys)
-          ..where((t) => t.id.equals(keyId)))
-        .getSingleOrNull();
+    final key = await (database.select(
+      database.sshKeys,
+    )..where((t) => t.id.equals(keyId))).getSingleOrNull();
 
     if (key == null) {
       throw Exception('SSH key not found');
@@ -98,7 +98,8 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
 
     return SshKeyData(
       content: pemContent,
-      passphrase: key.password, // SSH key passphrase (null for unencrypted keys)
+      passphrase:
+          key.password, // SSH key passphrase (null for unencrypted keys)
     );
   }
 

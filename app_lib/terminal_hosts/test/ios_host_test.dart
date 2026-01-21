@@ -8,11 +8,7 @@ import 'package:terminal_hosts/terminal_hosts.dart';
 void main() {
   group('IosExecutionResult', () {
     test('stores exitCode', () {
-      final result = IosExecutionResult(
-        exitCode: 0,
-        stdout: '',
-        stderr: '',
-      );
+      final result = IosExecutionResult(exitCode: 0, stdout: '', stderr: '');
       expect(result.exitCode, equals(0));
     });
 
@@ -121,17 +117,13 @@ cd ~/Documents
     });
 
     test('passes environment to connector', () {
-      final spec = IosHostSpec(
-        environment: {'DEBUG': '1'},
-      );
+      final spec = IosHostSpec(environment: {'DEBUG': '1'});
       final connector = spec.createConnector() as IosConnector;
       expect(connector.environment['DEBUG'], equals('1'));
     });
 
     test('passes initCommands to connector', () {
-      final spec = IosHostSpec(
-        initCommands: 'echo hello',
-      );
+      final spec = IosHostSpec(initCommands: 'echo hello');
       final connector = spec.createConnector() as IosConnector;
       expect(connector.initCommands, equals('echo hello'));
     });
@@ -145,16 +137,12 @@ cd ~/Documents
     });
 
     test('stores environment variables', () {
-      final connector = IosConnector(
-        environment: {'VAR': 'value'},
-      );
+      final connector = IosConnector(environment: {'VAR': 'value'});
       expect(connector.environment['VAR'], equals('value'));
     });
 
     test('stores init commands', () {
-      final connector = IosConnector(
-        initCommands: 'some commands',
-      );
+      final connector = IosConnector(initCommands: 'some commands');
       expect(connector.initCommands, equals('some commands'));
     });
   });
@@ -293,16 +281,18 @@ cd ~/Documents
       // execute('ls', args: ['-la', '/']) should produce 'ls -la /'
       const executable = 'ls';
       const args = ['-la', '/'];
-      final command =
-          args.isEmpty ? executable : '$executable ${args.join(' ')}';
+      final command = args.isEmpty
+          ? executable
+          : '$executable ${args.join(' ')}';
       expect(command, equals('ls -la /'));
     });
 
     test('expected: execute without args uses just executable', () {
       const executable = 'pwd';
       const args = <String>[];
-      final command =
-          args.isEmpty ? executable : '$executable ${args.join(' ')}';
+      final command = args.isEmpty
+          ? executable
+          : '$executable ${args.join(' ')}';
       expect(command, equals('pwd'));
     });
 
@@ -311,10 +301,7 @@ cd ~/Documents
       final profileEnv = {'TERM': 'xterm', 'FOO': 'profile'};
       final sessionEnv = {'FOO': 'session', 'BAR': 'baz'};
 
-      final merged = {
-        ...profileEnv,
-        ...sessionEnv,
-      };
+      final merged = {...profileEnv, ...sessionEnv};
 
       expect(merged['TERM'], equals('xterm'));
       expect(merged['FOO'], equals('session')); // Session overrides profile

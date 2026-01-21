@@ -230,8 +230,8 @@ void main() {
 
     test('Ping/Pong roundtrip', () {
       const ping = Ping(sentAt: 999999);
-      final pong = Pong.fromJson(Ping.fromJson(ping.toJson()).toJson()
-        ..['type'] = 'pong');
+      final pong = Pong.fromJson(
+          Ping.fromJson(ping.toJson()).toJson()..['type'] = 'pong');
       expect(pong.sentAt, ping.sentAt);
     });
   });

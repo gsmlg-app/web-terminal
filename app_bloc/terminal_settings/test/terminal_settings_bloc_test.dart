@@ -63,10 +63,22 @@ void main() {
       expect: () => [
         isA<TerminalSettingsLoading>(),
         isA<TerminalSettingsLoaded>()
-            .having((s) => s.environmentVariables, 'environmentVariables', isEmpty)
-            .having((s) => s.maxOpenShells, 'maxOpenShells', kTerminalDefaultMaxOpenShells)
+            .having(
+              (s) => s.environmentVariables,
+              'environmentVariables',
+              isEmpty,
+            )
+            .having(
+              (s) => s.maxOpenShells,
+              'maxOpenShells',
+              kTerminalDefaultMaxOpenShells,
+            )
             .having((s) => s.fontSize, 'fontSize', kTerminalDefaultFontSize)
-            .having((s) => s.fontFamily, 'fontFamily', kTerminalDefaultFontFamily),
+            .having(
+              (s) => s.fontFamily,
+              'fontFamily',
+              kTerminalDefaultFontFamily,
+            ),
       ],
     );
 
@@ -82,12 +94,11 @@ void main() {
       act: (bloc) => bloc.add(TerminalSettingsLoad()),
       expect: () => [
         isA<TerminalSettingsLoading>(),
-        isA<TerminalSettingsLoaded>()
-            .having(
-              (s) => s.environmentVariables,
-              'environmentVariables',
-              {'PATH': '/usr/bin', 'HOME': '/home/user'},
-            ),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.environmentVariables,
+          'environmentVariables',
+          {'PATH': '/usr/bin', 'HOME': '/home/user'},
+        ),
       ],
     );
 
@@ -115,14 +126,15 @@ void main() {
       'UpdateEnvVar adds new environment variable',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(TerminalSettingsUpdateEnvVar(key: 'API_KEY', value: 'secret123')),
+      act: (bloc) => bloc.add(
+        TerminalSettingsUpdateEnvVar(key: 'API_KEY', value: 'secret123'),
+      ),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having(
-              (s) => s.environmentVariables,
-              'environmentVariables',
-              {'API_KEY': 'secret123'},
-            ),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.environmentVariables,
+          'environmentVariables',
+          {'API_KEY': 'secret123'},
+        ),
       ],
     );
 
@@ -132,10 +144,14 @@ void main() {
       seed: () => const TerminalSettingsLoaded(
         environmentVariables: {'API_KEY': 'secret123'},
       ),
-      act: (bloc) => bloc.add(TerminalSettingsUpdateEnvVar(key: 'API_KEY', value: '')),
+      act: (bloc) =>
+          bloc.add(TerminalSettingsUpdateEnvVar(key: 'API_KEY', value: '')),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.environmentVariables, 'environmentVariables', isEmpty),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.environmentVariables,
+          'environmentVariables',
+          isEmpty,
+        ),
       ],
     );
 
@@ -147,12 +163,11 @@ void main() {
       ),
       act: (bloc) => bloc.add(TerminalSettingsRemoveEnvVar(key: 'API_KEY')),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having(
-              (s) => s.environmentVariables,
-              'environmentVariables',
-              {'OTHER': 'value'},
-            ),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.environmentVariables,
+          'environmentVariables',
+          {'OTHER': 'value'},
+        ),
       ],
     );
 
@@ -164,8 +179,11 @@ void main() {
       ),
       act: (bloc) => bloc.add(TerminalSettingsClearEnvVars()),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.environmentVariables, 'environmentVariables', isEmpty),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.environmentVariables,
+          'environmentVariables',
+          isEmpty,
+        ),
       ],
     );
 
@@ -173,10 +191,14 @@ void main() {
       'UpdateMaxOpenShells updates the max shells setting',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20)),
+      act: (bloc) =>
+          bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20)),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.maxOpenShells, 'maxOpenShells', 20),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.maxOpenShells,
+          'maxOpenShells',
+          20,
+        ),
       ],
     );
 
@@ -184,10 +206,14 @@ void main() {
       'UpdateMaxOpenShells clamps value to minimum of 1',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 0)),
+      act: (bloc) =>
+          bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 0)),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.maxOpenShells, 'maxOpenShells', 1),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.maxOpenShells,
+          'maxOpenShells',
+          1,
+        ),
       ],
     );
 
@@ -195,10 +221,14 @@ void main() {
       'UpdateMaxOpenShells clamps value to maximum of 50',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 100)),
+      act: (bloc) =>
+          bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 100)),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.maxOpenShells, 'maxOpenShells', 50),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.maxOpenShells,
+          'maxOpenShells',
+          50,
+        ),
       ],
     );
 
@@ -208,8 +238,11 @@ void main() {
       seed: () => const TerminalSettingsLoaded(),
       act: (bloc) => bloc.add(TerminalSettingsUpdateFontSize(fontSize: 16.0)),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.fontSize, 'fontSize', 16.0),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.fontSize,
+          'fontSize',
+          16.0,
+        ),
       ],
     );
 
@@ -219,8 +252,11 @@ void main() {
       seed: () => const TerminalSettingsLoaded(),
       act: (bloc) => bloc.add(TerminalSettingsUpdateFontSize(fontSize: 4.0)),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.fontSize, 'fontSize', 8.0),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.fontSize,
+          'fontSize',
+          8.0,
+        ),
       ],
     );
 
@@ -230,8 +266,11 @@ void main() {
       seed: () => const TerminalSettingsLoaded(),
       act: (bloc) => bloc.add(TerminalSettingsUpdateFontSize(fontSize: 64.0)),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.fontSize, 'fontSize', 32.0),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.fontSize,
+          'fontSize',
+          32.0,
+        ),
       ],
     );
 
@@ -239,10 +278,14 @@ void main() {
       'UpdateFontFamily updates the font family',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(TerminalSettingsUpdateFontFamily(fontFamily: 'Fira Code')),
+      act: (bloc) =>
+          bloc.add(TerminalSettingsUpdateFontFamily(fontFamily: 'Fira Code')),
       expect: () => [
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.fontFamily, 'fontFamily', 'Fira Code'),
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.fontFamily,
+          'fontFamily',
+          'Fira Code',
+        ),
       ],
     );
 
@@ -276,24 +319,18 @@ void main() {
       final copied = original.copyWith(fontSize: 18.0);
 
       expect(copied.fontSize, equals(18.0));
-      expect(copied.environmentVariables, equals(original.environmentVariables));
+      expect(
+        copied.environmentVariables,
+        equals(original.environmentVariables),
+      );
       expect(copied.maxOpenShells, equals(original.maxOpenShells));
       expect(copied.fontFamily, equals(original.fontFamily));
     });
 
     test('TerminalSettingsLoaded equality works correctly', () {
-      const state1 = TerminalSettingsLoaded(
-        maxOpenShells: 10,
-        fontSize: 13.0,
-      );
-      const state2 = TerminalSettingsLoaded(
-        maxOpenShells: 10,
-        fontSize: 13.0,
-      );
-      const state3 = TerminalSettingsLoaded(
-        maxOpenShells: 20,
-        fontSize: 13.0,
-      );
+      const state1 = TerminalSettingsLoaded(maxOpenShells: 10, fontSize: 13.0);
+      const state2 = TerminalSettingsLoaded(maxOpenShells: 10, fontSize: 13.0);
+      const state3 = TerminalSettingsLoaded(maxOpenShells: 20, fontSize: 13.0);
 
       expect(state1, equals(state2));
       expect(state1, isNot(equals(state3)));

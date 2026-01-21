@@ -266,42 +266,73 @@ void main() {
           debugDefaultTargetPlatformOverride = platform;
           addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
-          expect(openSettings.meta, isTrue,
-              reason: 'openSettings should use meta on $platform');
-          expect(openNewWindow.meta, isTrue,
-              reason: 'openNewWindow should use meta on $platform');
-          expect(terminalCopy.meta, isTrue,
-              reason: 'terminalCopy should use meta on $platform');
-          expect(terminalPaste.meta, isTrue,
-              reason: 'terminalPaste should use meta on $platform');
-          expect(terminalSelectAll.meta, isTrue,
-              reason: 'terminalSelectAll should use meta on $platform');
+          expect(
+            openSettings.meta,
+            isTrue,
+            reason: 'openSettings should use meta on $platform',
+          );
+          expect(
+            openNewWindow.meta,
+            isTrue,
+            reason: 'openNewWindow should use meta on $platform',
+          );
+          expect(
+            terminalCopy.meta,
+            isTrue,
+            reason: 'terminalCopy should use meta on $platform',
+          );
+          expect(
+            terminalPaste.meta,
+            isTrue,
+            reason: 'terminalPaste should use meta on $platform',
+          );
+          expect(
+            terminalSelectAll.meta,
+            isTrue,
+            reason: 'terminalSelectAll should use meta on $platform',
+          );
         }
       });
 
       test(
-          'Non-Apple platforms use control modifier (except tabClose which uses meta)',
-          () {
-        for (final platform in [
-          TargetPlatform.windows,
-          TargetPlatform.linux,
-          TargetPlatform.android
-        ]) {
-          debugDefaultTargetPlatformOverride = platform;
-          addTearDown(() => debugDefaultTargetPlatformOverride = null);
+        'Non-Apple platforms use control modifier (except tabClose which uses meta)',
+        () {
+          for (final platform in [
+            TargetPlatform.windows,
+            TargetPlatform.linux,
+            TargetPlatform.android,
+          ]) {
+            debugDefaultTargetPlatformOverride = platform;
+            addTearDown(() => debugDefaultTargetPlatformOverride = null);
 
-          expect(openSettings.control, isTrue,
-              reason: 'openSettings should use control on $platform');
-          expect(openNewWindow.control, isTrue,
-              reason: 'openNewWindow should use control on $platform');
-          expect(terminalCopy.control, isTrue,
-              reason: 'terminalCopy should use control on $platform');
-          expect(terminalPaste.control, isTrue,
-              reason: 'terminalPaste should use control on $platform');
-          expect(terminalSelectAll.control, isTrue,
-              reason: 'terminalSelectAll should use control on $platform');
-        }
-      });
+            expect(
+              openSettings.control,
+              isTrue,
+              reason: 'openSettings should use control on $platform',
+            );
+            expect(
+              openNewWindow.control,
+              isTrue,
+              reason: 'openNewWindow should use control on $platform',
+            );
+            expect(
+              terminalCopy.control,
+              isTrue,
+              reason: 'terminalCopy should use control on $platform',
+            );
+            expect(
+              terminalPaste.control,
+              isTrue,
+              reason: 'terminalPaste should use control on $platform',
+            );
+            expect(
+              terminalSelectAll.control,
+              isTrue,
+              reason: 'terminalSelectAll should use control on $platform',
+            );
+          }
+        },
+      );
     });
   });
 }

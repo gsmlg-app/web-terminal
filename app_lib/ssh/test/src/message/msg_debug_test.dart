@@ -148,7 +148,8 @@ void main() {
         );
 
         expect(debugMsg.alwaysDisplay, false);
-        expect(String.fromCharCodes(debugMsg.message), 'Authentication succeeded');
+        expect(
+            String.fromCharCodes(debugMsg.message), 'Authentication succeeded');
       });
 
       test('critical debug message', () {

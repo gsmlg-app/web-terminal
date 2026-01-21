@@ -58,7 +58,8 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
             ShellProfilesCompanion.insert(
               name: event.name,
               shellType: Value(event.shellType.value),
-              environmentVariables: Value(jsonEncode(event.environmentVariables)),
+              environmentVariables:
+                  Value(jsonEncode(event.environmentVariables)),
               aliases: Value(jsonEncode(event.aliases)),
               fontFamily: Value(event.fontFamily),
               fontSize: Value(event.fontSize),
@@ -98,14 +99,18 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
         aliases: event.aliases != null
             ? Value(jsonEncode(event.aliases))
             : const Value.absent(),
-        fontFamily:
-            event.fontFamily != null ? Value(event.fontFamily!) : const Value.absent(),
-        fontSize:
-            event.fontSize != null ? Value(event.fontSize!) : const Value.absent(),
-        colorTheme:
-            event.colorTheme != null ? Value(event.colorTheme!) : const Value.absent(),
-        isDefault:
-            event.isDefault != null ? Value(event.isDefault!) : const Value.absent(),
+        fontFamily: event.fontFamily != null
+            ? Value(event.fontFamily!)
+            : const Value.absent(),
+        fontSize: event.fontSize != null
+            ? Value(event.fontSize!)
+            : const Value.absent(),
+        colorTheme: event.colorTheme != null
+            ? Value(event.colorTheme!)
+            : const Value.absent(),
+        isDefault: event.isDefault != null
+            ? Value(event.isDefault!)
+            : const Value.absent(),
         updatedAt: Value(DateTime.now()),
       );
 

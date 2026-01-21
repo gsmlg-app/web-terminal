@@ -36,8 +36,9 @@ void main() {
       });
 
       test('read | write | append combines all three', () {
-        final mode =
-            SftpFileOpenMode.read | SftpFileOpenMode.write | SftpFileOpenMode.append;
+        final mode = SftpFileOpenMode.read |
+            SftpFileOpenMode.write |
+            SftpFileOpenMode.append;
         expect(mode.flag, 7); // 1 | 2 | 4 = 7
       });
 

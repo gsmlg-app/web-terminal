@@ -24,8 +24,8 @@ class IosHost implements Host {
     this._env, {
     Map<String, String> environment = const {},
     String? initCommands,
-  })  : _profileEnvironment = environment,
-        _initCommands = initCommands;
+  }) : _profileEnvironment = environment,
+       _initCommands = initCommands;
 
   @override
   Future<ExecutionResult> execute(
@@ -59,10 +59,7 @@ class IosHost implements Host {
     Map<String, String>? environment,
   }) async {
     // Merge environment: profile → session-specific
-    final mergedEnv = {
-      ..._profileEnvironment,
-      ...environment ?? {},
-    };
+    final mergedEnv = {..._profileEnvironment, ...environment ?? {}};
 
     // Create a simulated shell session for iOS
     // Note: width/height are accepted for API compatibility but iOS

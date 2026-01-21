@@ -12,8 +12,9 @@ class IosShellPlugin {
   /// - `tmpPath`: Temporary files directory
   /// - `initialized`: Whether initialization succeeded
   static Future<Map<String, String>> initialize() async {
-    final result =
-        await _channel.invokeMethod<Map<Object?, Object?>>('initialize');
+    final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'initialize',
+    );
     return result?.map((k, v) => MapEntry(k.toString(), v.toString())) ?? {};
   }
 
@@ -39,10 +40,9 @@ class IosShellPlugin {
 
   /// Checks if a specific command is available.
   static Future<bool> isCommandAvailable(String command) async {
-    final result = await _channel.invokeMethod<bool>(
-      'isCommandAvailable',
-      {'command': command},
-    );
+    final result = await _channel.invokeMethod<bool>('isCommandAvailable', {
+      'command': command,
+    });
     return result ?? false;
   }
 
@@ -54,10 +54,9 @@ class IosShellPlugin {
 
   /// Sets the current working directory for command execution.
   static Future<bool> setCurrentDirectory(String path) async {
-    final result = await _channel.invokeMethod<bool>(
-      'setCurrentDirectory',
-      {'path': path},
-    );
+    final result = await _channel.invokeMethod<bool>('setCurrentDirectory', {
+      'path': path,
+    });
     return result ?? false;
   }
 

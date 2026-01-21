@@ -64,10 +64,7 @@ class MockHostSpec implements HostSpec {
 
   final HostConnector Function() connectorFactory;
 
-  MockHostSpec({
-    this.name = 'Mock',
-    required this.connectorFactory,
-  });
+  MockHostSpec({this.name = 'Mock', required this.connectorFactory});
 
   @override
   HostConnector createConnector() => connectorFactory();

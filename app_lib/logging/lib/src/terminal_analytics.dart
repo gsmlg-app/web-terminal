@@ -52,7 +52,8 @@ class TerminalAnalytics {
   ///
   /// [sessionType] - The type of session created (local, ssh, sftp).
   /// [metadata] - Optional metadata about the session.
-  void trackSessionCreated(SessionType sessionType, {Map<String, dynamic>? metadata}) {
+  void trackSessionCreated(SessionType sessionType,
+      {Map<String, dynamic>? metadata}) {
     final event = AnalyticsEvent(
       type: TerminalEvent.sessionCreated,
       properties: {

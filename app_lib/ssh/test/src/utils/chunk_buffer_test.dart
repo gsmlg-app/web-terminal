@@ -223,7 +223,8 @@ void main() {
     group('real-world scenarios', () {
       test('socket-like data accumulation', () {
         // Simulate receiving partial data packets
-        buffer.add(Uint8List.fromList([0x00, 0x00, 0x00, 0x05])); // Length header
+        buffer
+            .add(Uint8List.fromList([0x00, 0x00, 0x00, 0x05])); // Length header
         buffer.add(Uint8List.fromList([0x68, 0x65])); // "he"
         buffer.add(Uint8List.fromList([0x6c, 0x6c, 0x6f])); // "llo"
 

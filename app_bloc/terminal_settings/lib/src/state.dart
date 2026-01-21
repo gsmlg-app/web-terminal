@@ -47,11 +47,11 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
 
   @override
   List<Object?> get props => [
-        environmentVariables,
-        maxOpenShells,
-        fontSize,
-        fontFamily,
-      ];
+    environmentVariables,
+    maxOpenShells,
+    fontSize,
+    fontFamily,
+  ];
 
   TerminalSettingsLoaded copyWith({
     Map<String, String>? environmentVariables,

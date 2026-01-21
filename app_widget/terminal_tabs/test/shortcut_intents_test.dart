@@ -45,13 +45,18 @@ void main() {
     });
 
     group('Intent distinct types', () {
-      test('NewWindowIntent and ToggleFullscreenIntent are different types',
-          () {
-        const newWindowIntent = NewWindowIntent();
-        const toggleFullscreenIntent = ToggleFullscreenIntent();
+      test(
+        'NewWindowIntent and ToggleFullscreenIntent are different types',
+        () {
+          const newWindowIntent = NewWindowIntent();
+          const toggleFullscreenIntent = ToggleFullscreenIntent();
 
-        expect(newWindowIntent.runtimeType, isNot(toggleFullscreenIntent.runtimeType));
-      });
+          expect(
+            newWindowIntent.runtimeType,
+            isNot(toggleFullscreenIntent.runtimeType),
+          );
+        },
+      );
     });
   });
 }

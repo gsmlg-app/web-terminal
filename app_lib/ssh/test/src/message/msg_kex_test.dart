@@ -20,10 +20,13 @@ void main() {
         firstKexPacketFollows: false,
       );
 
-      expect(msg.kexAlgorithms, ['curve25519-sha256', 'diffie-hellman-group14-sha256']);
+      expect(msg.kexAlgorithms,
+          ['curve25519-sha256', 'diffie-hellman-group14-sha256']);
       expect(msg.serverHostKeyAlgorithms, ['ssh-ed25519', 'ssh-rsa']);
-      expect(msg.encryptionClientToServer, ['aes256-gcm@openssh.com', 'aes128-ctr']);
-      expect(msg.encryptionServerToClient, ['aes256-gcm@openssh.com', 'aes128-ctr']);
+      expect(msg.encryptionClientToServer,
+          ['aes256-gcm@openssh.com', 'aes128-ctr']);
+      expect(msg.encryptionServerToClient,
+          ['aes256-gcm@openssh.com', 'aes128-ctr']);
       expect(msg.macClientToServer, ['hmac-sha2-256', 'hmac-sha1']);
       expect(msg.macServerToClient, ['hmac-sha2-256', 'hmac-sha1']);
       expect(msg.compressionClientToServer, ['none', 'zlib']);
@@ -52,7 +55,10 @@ void main() {
       final original = SSH_Message_KexInit(
         kexAlgorithms: ['curve25519-sha256', 'diffie-hellman-group14-sha256'],
         serverHostKeyAlgorithms: ['ssh-ed25519', 'rsa-sha2-256'],
-        encryptionClientToServer: ['aes256-gcm@openssh.com', 'chacha20-poly1305@openssh.com'],
+        encryptionClientToServer: [
+          'aes256-gcm@openssh.com',
+          'chacha20-poly1305@openssh.com'
+        ],
         encryptionServerToClient: ['aes128-ctr', 'aes256-ctr'],
         macClientToServer: ['hmac-sha2-256', 'hmac-sha2-512'],
         macServerToClient: ['hmac-sha2-256', 'hmac-sha1'],
@@ -68,12 +74,16 @@ void main() {
 
       expect(decoded.kexAlgorithms, original.kexAlgorithms);
       expect(decoded.serverHostKeyAlgorithms, original.serverHostKeyAlgorithms);
-      expect(decoded.encryptionClientToServer, original.encryptionClientToServer);
-      expect(decoded.encryptionServerToClient, original.encryptionServerToClient);
+      expect(
+          decoded.encryptionClientToServer, original.encryptionClientToServer);
+      expect(
+          decoded.encryptionServerToClient, original.encryptionServerToClient);
       expect(decoded.macClientToServer, original.macClientToServer);
       expect(decoded.macServerToClient, original.macServerToClient);
-      expect(decoded.compressionClientToServer, original.compressionClientToServer);
-      expect(decoded.compressionServerToClient, original.compressionServerToClient);
+      expect(decoded.compressionClientToServer,
+          original.compressionClientToServer);
+      expect(decoded.compressionServerToClient,
+          original.compressionServerToClient);
       expect(decoded.languagesClientToServer, original.languagesClientToServer);
       expect(decoded.languagesServerToClient, original.languagesServerToClient);
       expect(decoded.firstKexPacketFollows, true);
@@ -257,8 +267,14 @@ void main() {
       final clientKexInit = SSH_Message_KexInit(
         kexAlgorithms: ['curve25519-sha256', 'diffie-hellman-group14-sha256'],
         serverHostKeyAlgorithms: ['ssh-ed25519', 'rsa-sha2-256'],
-        encryptionClientToServer: ['aes256-gcm@openssh.com', 'chacha20-poly1305@openssh.com'],
-        encryptionServerToClient: ['aes256-gcm@openssh.com', 'chacha20-poly1305@openssh.com'],
+        encryptionClientToServer: [
+          'aes256-gcm@openssh.com',
+          'chacha20-poly1305@openssh.com'
+        ],
+        encryptionServerToClient: [
+          'aes256-gcm@openssh.com',
+          'chacha20-poly1305@openssh.com'
+        ],
         macClientToServer: ['hmac-sha2-256'],
         macServerToClient: ['hmac-sha2-256'],
         compressionClientToServer: ['none'],

@@ -72,8 +72,8 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
             SettingsTile(
               leading: const Icon(Icons.tab),
               title: const Text('Max Open Sessions'),
-              description:
-                  Text('$maxShells concurrent session${maxShells > 1 ? 's' : ''}'),
+              description: Text(
+                  '$maxShells concurrent session${maxShells > 1 ? 's' : ''}'),
               trailing: DropdownButton<int>(
                 value: maxShells,
                 underline: const SizedBox(),

@@ -172,15 +172,16 @@ void main() {
     group('use case scenarios', () {
       test('filtering logs by minimum level', () {
         const minimumLevel = LogLevel.warning;
-        final passedLevels = LogLevel.values
-            .where((level) => level >= minimumLevel)
-            .toList();
+        final passedLevels =
+            LogLevel.values.where((level) => level >= minimumLevel).toList();
 
-        expect(passedLevels, containsAll([
-          LogLevel.warning,
-          LogLevel.error,
-          LogLevel.fatal,
-        ]));
+        expect(
+            passedLevels,
+            containsAll([
+              LogLevel.warning,
+              LogLevel.error,
+              LogLevel.fatal,
+            ]));
         expect(passedLevels, isNot(contains(LogLevel.verbose)));
         expect(passedLevels, isNot(contains(LogLevel.debug)));
         expect(passedLevels, isNot(contains(LogLevel.info)));
@@ -188,15 +189,16 @@ void main() {
 
       test('filtering logs by maximum level', () {
         const maximumLevel = LogLevel.info;
-        final passedLevels = LogLevel.values
-            .where((level) => level <= maximumLevel)
-            .toList();
+        final passedLevels =
+            LogLevel.values.where((level) => level <= maximumLevel).toList();
 
-        expect(passedLevels, containsAll([
-          LogLevel.verbose,
-          LogLevel.debug,
-          LogLevel.info,
-        ]));
+        expect(
+            passedLevels,
+            containsAll([
+              LogLevel.verbose,
+              LogLevel.debug,
+              LogLevel.info,
+            ]));
         expect(passedLevels, isNot(contains(LogLevel.warning)));
         expect(passedLevels, isNot(contains(LogLevel.error)));
         expect(passedLevels, isNot(contains(LogLevel.fatal)));

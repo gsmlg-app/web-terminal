@@ -422,8 +422,7 @@ void main() {
 
       await file.writeAsBytes(Uint8List.fromList([1, 2, 3, 4, 5]));
 
-      final bytes =
-          await io.File('${tempDir.path}/bytes.bin').readAsBytes();
+      final bytes = await io.File('${tempDir.path}/bytes.bin').readAsBytes();
       expect(bytes, equals([1, 2, 3, 4, 5]));
     });
 

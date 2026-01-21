@@ -2,7 +2,9 @@ import 'package:flutter/services.dart';
 
 /// Plugin class for communicating with native Android shell setup code.
 class AndroidShellPlugin {
-  static const MethodChannel _channel = MethodChannel('app.gsmlg/android_shell');
+  static const MethodChannel _channel = MethodChannel(
+    'app.gsmlg/android_shell',
+  );
 
   /// Initializes the shell environment by extracting binaries if needed.
   ///
@@ -13,7 +15,9 @@ class AndroidShellPlugin {
   /// - `shellPath`: Path to the sh executable
   /// - `arch`: Detected CPU architecture
   static Future<Map<String, String>> initialize() async {
-    final result = await _channel.invokeMethod<Map<Object?, Object?>>('initialize');
+    final result = await _channel.invokeMethod<Map<Object?, Object?>>(
+      'initialize',
+    );
     return result?.map((k, v) => MapEntry(k.toString(), v.toString())) ?? {};
   }
 

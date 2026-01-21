@@ -29,8 +29,8 @@ class TerminalSettingsBloc
   final VaultRepository _vault;
 
   TerminalSettingsBloc({required VaultRepository vault})
-      : _vault = vault,
-        super(const TerminalSettingsInitial()) {
+    : _vault = vault,
+      super(const TerminalSettingsInitial()) {
     on<TerminalSettingsLoad>(_onLoad);
     on<TerminalSettingsUpdateEnvVar>(_onUpdateEnvVar);
     on<TerminalSettingsRemoveEnvVar>(_onRemoveEnvVar);
@@ -59,24 +59,25 @@ class TerminalSettingsBloc
       }
 
       // Load other settings with defaults
-      final maxOpenShells = int.tryParse(
-            allSecrets[_maxOpenShellsKey] ?? '',
-          ) ??
+      final maxOpenShells =
+          int.tryParse(allSecrets[_maxOpenShellsKey] ?? '') ??
           kTerminalDefaultMaxOpenShells;
 
-      final fontSize = double.tryParse(
-            allSecrets[_fontSizeKey] ?? '',
-          ) ??
+      final fontSize =
+          double.tryParse(allSecrets[_fontSizeKey] ?? '') ??
           kTerminalDefaultFontSize;
 
-      final fontFamily = allSecrets[_fontFamilyKey] ?? kTerminalDefaultFontFamily;
+      final fontFamily =
+          allSecrets[_fontFamilyKey] ?? kTerminalDefaultFontFamily;
 
-      emit(TerminalSettingsLoaded(
-        environmentVariables: envVars,
-        maxOpenShells: maxOpenShells,
-        fontSize: fontSize,
-        fontFamily: fontFamily,
-      ));
+      emit(
+        TerminalSettingsLoaded(
+          environmentVariables: envVars,
+          maxOpenShells: maxOpenShells,
+          fontSize: fontSize,
+          fontFamily: fontFamily,
+        ),
+      );
     } catch (e) {
       emit(TerminalSettingsError(error: e));
     }
@@ -89,16 +90,16 @@ class TerminalSettingsBloc
     if (state is! TerminalSettingsLoaded) return;
 
     final currentState = state as TerminalSettingsLoaded;
-    final newEnvVars =
-        Map<String, String>.from(currentState.environmentVariables);
+    final newEnvVars = Map<String, String>.from(
+      currentState.environmentVariables,
+    );
 
     if (event.value.isEmpty) {
       newEnvVars.remove(event.key);
       await _vault.delete(key: '$_envKeyPrefix${event.key}');
     } else {
       newEnvVars[event.key] = event.value;
-      await _vault.write(
-          key: '$_envKeyPrefix${event.key}', value: event.value);
+      await _vault.write(key: '$_envKeyPrefix${event.key}', value: event.value);
     }
 
     emit(currentState.copyWith(environmentVariables: newEnvVars));
@@ -111,8 +112,9 @@ class TerminalSettingsBloc
     if (state is! TerminalSettingsLoaded) return;
 
     final currentState = state as TerminalSettingsLoaded;
-    final newEnvVars =
-        Map<String, String>.from(currentState.environmentVariables);
+    final newEnvVars = Map<String, String>.from(
+      currentState.environmentVariables,
+    );
     newEnvVars.remove(event.key);
 
     await _vault.delete(key: '$_envKeyPrefix${event.key}');

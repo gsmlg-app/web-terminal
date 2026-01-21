@@ -25,7 +25,8 @@ void main() {
 
     test('handles 32-byte curve25519 public key', () {
       // X25519 public keys are 32 bytes
-      final publicKey = Uint8List.fromList(List.generate(32, (i) => i * 7 % 256));
+      final publicKey =
+          Uint8List.fromList(List.generate(32, (i) => i * 7 % 256));
       final original = SSH_Message_KexECDH_Init(publicKey);
 
       final decoded = SSH_Message_KexECDH_Init.decode(original.encode());
@@ -35,7 +36,8 @@ void main() {
 
     test('handles 65-byte NIST P-256 public key (uncompressed)', () {
       // P-256 uncompressed public keys are 65 bytes (0x04 prefix + 32 bytes X + 32 bytes Y)
-      final publicKey = Uint8List.fromList([0x04, ...List.generate(64, (i) => i)]);
+      final publicKey =
+          Uint8List.fromList([0x04, ...List.generate(64, (i) => i)]);
       final original = SSH_Message_KexECDH_Init(publicKey);
 
       final decoded = SSH_Message_KexECDH_Init.decode(original.encode());
@@ -45,7 +47,8 @@ void main() {
 
     test('handles 97-byte NIST P-384 public key (uncompressed)', () {
       // P-384 uncompressed public keys are 97 bytes (0x04 prefix + 48 bytes X + 48 bytes Y)
-      final publicKey = Uint8List.fromList([0x04, ...List.generate(96, (i) => i % 256)]);
+      final publicKey =
+          Uint8List.fromList([0x04, ...List.generate(96, (i) => i % 256)]);
       final original = SSH_Message_KexECDH_Init(publicKey);
 
       final decoded = SSH_Message_KexECDH_Init.decode(original.encode());
@@ -100,7 +103,8 @@ void main() {
     test('encodes and decodes', () {
       // Use same size for host and ecdh keys to work around encode/decode order mismatch
       final hostPublicKey = Uint8List.fromList(List.generate(32, (i) => i));
-      final ecdhPublicKey = Uint8List.fromList(List.generate(32, (i) => i + 100));
+      final ecdhPublicKey =
+          Uint8List.fromList(List.generate(32, (i) => i + 100));
       final signature = Uint8List.fromList(List.generate(64, (i) => 255 - i));
 
       final original = SSH_Message_KexECDH_Reply(
@@ -122,9 +126,11 @@ void main() {
       // ed25519 public key (32 bytes)
       final hostPublicKey = Uint8List.fromList(List.generate(32, (i) => i));
       // X25519 ephemeral public key (32 bytes)
-      final ecdhPublicKey = Uint8List.fromList(List.generate(32, (i) => i + 100));
+      final ecdhPublicKey =
+          Uint8List.fromList(List.generate(32, (i) => i + 100));
       // ed25519 signature (64 bytes)
-      final signature = Uint8List.fromList(List.generate(64, (i) => i * 3 % 256));
+      final signature =
+          Uint8List.fromList(List.generate(64, (i) => i * 3 % 256));
 
       final original = SSH_Message_KexECDH_Reply(
         hostPublicKey: hostPublicKey,
@@ -142,7 +148,8 @@ void main() {
     test('handles different sized keys', () {
       // Use same size for both to work around encode/decode field order issue
       final hostPublicKey = Uint8List.fromList(List.generate(64, (i) => i));
-      final ecdhPublicKey = Uint8List.fromList(List.generate(64, (i) => i + 100));
+      final ecdhPublicKey =
+          Uint8List.fromList(List.generate(64, (i) => i + 100));
       final signature = Uint8List.fromList(List.generate(256, (i) => i));
 
       final original = SSH_Message_KexECDH_Reply(
@@ -223,7 +230,8 @@ void main() {
 
       // Verify round trip
       final decodedInit = SSH_Message_KexECDH_Init.decode(clientInit.encode());
-      final decodedReply = SSH_Message_KexECDH_Reply.decode(serverReply.encode());
+      final decodedReply =
+          SSH_Message_KexECDH_Reply.decode(serverReply.encode());
 
       expect(decodedInit.ecdhPublicKey.length, 32);
       expect(decodedReply.ecdhPublicKey.length, 32);
@@ -250,14 +258,16 @@ void main() {
       );
 
       final serverReply = SSH_Message_KexECDH_Reply(
-        hostPublicKey: Uint8List.fromList([0x04, ...List.generate(64, (i) => i + 200)]),
+        hostPublicKey:
+            Uint8List.fromList([0x04, ...List.generate(64, (i) => i + 200)]),
         ecdhPublicKey: serverPublicKey,
         signature: signature,
       );
 
       // Verify round trip
       final decodedInit = SSH_Message_KexECDH_Init.decode(clientInit.encode());
-      final decodedReply = SSH_Message_KexECDH_Reply.decode(serverReply.encode());
+      final decodedReply =
+          SSH_Message_KexECDH_Reply.decode(serverReply.encode());
 
       expect(decodedInit.ecdhPublicKey[0], 0x04); // Uncompressed point prefix
       expect(decodedInit.ecdhPublicKey.length, 65);
