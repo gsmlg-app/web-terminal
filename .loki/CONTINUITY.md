@@ -1220,3 +1220,31 @@ Building a native-like shell experience on Android and iOS with:
     - Added OnAttachSession typedef tests
 - Total new tests this iteration: 75 (30 + 14 + 31)
 - All tests pass via `melos run test`
+
+#### Iteration 37: xterm Package Test Expansion ✓ COMPLETED
+- Expanded xterm package test coverage significantly:
+  - **xterm_test.dart** (app_widget/xterm/test/):
+    - Expanded from 1 test to 85+ tests
+    - Terminal construction tests: maxLines, viewWidth, viewHeight, platform, reflowEnabled
+    - Terminal callback tests: onOutput, onTitleChange, onIconChange, onBell, onResize
+    - Terminal write tests: text, newlines, carriage return, CRLF
+    - Terminal resize tests: viewWidth/viewHeight changes, onResize callback
+    - Terminal buffer tests: mainBuffer, altBuffer, isUsingAltBuffer, lines
+    - Terminal state tests: all state flags (insertMode, lineFeedMode, cursorKeysMode, etc.)
+    - Terminal input tests: keyInput, charInput, textInput, paste, mouseInput
+    - Escape sequence tests: ED, CUP, CUU, CUD, CUF, CUB, OSC title setting
+    - TerminalTargetPlatform enum tests
+    - MouseMode enum tests with reportScroll property
+    - TerminalKey enum tests
+  - **keytab_test.dart** (app_widget/xterm/test/src/core/input/keytab/):
+    - Expanded from 1 test to 24 tests
+    - Keytab construction tests: name, records
+    - Keytab parse tests: simple bindings, multiple bindings, keytab name
+    - Keytab defaultKeytab tests: common key bindings
+    - Keytab find() tests: keyPad matching, default parameters
+    - Special keys tests: Home, End, Insert, Delete, PageUp, PageDown
+- Fixed analyzer warnings:
+  - Removed unused variable `newIcon` in xterm_test.dart
+  - Fixed unrelated type equality checks in client_info_test.dart
+  - Fixed prefer_function_declarations_over_variables in web_server_settings_test.dart
+- All tests pass via `melos run test`

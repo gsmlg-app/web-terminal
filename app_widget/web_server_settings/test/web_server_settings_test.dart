@@ -18,8 +18,9 @@ void main() {
     });
 
     test('OnAttachSession typedef exists', () {
-      // Verify typedef works by creating a function that matches it
-      OnAttachSession handler = (session) {};
+      // Verify typedef works by creating a callback that matches it
+      void testHandler(dynamic session) {}
+      OnAttachSession handler = testHandler;
       expect(handler, isA<Function>());
     });
 
@@ -184,9 +185,8 @@ void main() {
   group('OnAttachSession typedef', () {
     test('is valid function type', () {
       // Create a function matching the typedef
-      OnAttachSession handler = (session) {
-        // Handle session
-      };
+      void testHandler(dynamic session) {}
+      OnAttachSession handler = testHandler;
       expect(handler, isA<Function>());
     });
 

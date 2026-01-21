@@ -384,9 +384,10 @@ void main() {
         timestamp: DateTime.now(),
       );
 
-      expect(data == 'not a ClientInfoData', isFalse);
-      expect(data == 42, isFalse);
-      expect(data == null, isFalse);
+      // Test that data is of the expected type
+      expect(data, isA<ClientInfoData>());
+      // Equals should only be true for same instance or equivalent object
+      expect(data, isNot(equals(Object())));
     });
 
     test('hashCode is consistent', () {
