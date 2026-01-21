@@ -4,11 +4,11 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Commit the fix",
+    "current_task": "Bash: Commit session_menu test expansion",
     "status": "active",
     "spawned_at": "2026-01-21T06:56:41.000860Z",
     "tasks_completed": [],
-    "tool_count": 62
+    "tool_count": 107
   },
   {
     "agent_id": "agent-toolu_01",
