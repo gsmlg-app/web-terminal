@@ -1402,3 +1402,16 @@ Building a native-like shell experience on Android and iOS with:
     - Icon size verification (8)
     - Const construction and key parameter
 - **Commit**: 558d067 - test(file_manager_plugin): add comprehensive tests for NavigationBreadcrumbs
+
+#### Iteration 42 (continued): terminal_tabs macos_form.dart Tests ✓ COMPLETED
+- Added comprehensive tests for macos_form.dart (30 tests):
+  - MacosFormRow widget (18 tests):
+    - Unit tests: labelWidth constant, const construction, key, property storage
+    - Widget tests: child rendering, label rendering, SizedBox spacer
+    - Layout tests: padding (4.0), Row layout, Expanded wrapper
+    - Label tests: alignment (centerRight), container width (labelWidth)
+  - MacosTextFormRow widget (12 tests):
+    - Unit tests: const construction, key, all property defaults
+    - Property tests: label, placeholder, obscureText, onChanged, controller
+- Note: Used CupertinoApp wrapper instead of MacosApp to avoid native timer issues
+- **Commit**: 22ee417 - test(terminal_tabs): add comprehensive tests for macos_form.dart
