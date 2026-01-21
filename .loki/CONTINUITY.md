@@ -949,3 +949,24 @@ Building a native-like shell experience on Android and iOS with:
 - Total new tests this iteration: 85 (71 + 14)
 - Total test files: 190 (was 186)
 - Total project tests: 3299+ (via melos run test)
+
+#### Iteration 29 (continued): terminal_tabs Additional Tab & Menu Tests ✓ COMPLETED
+- Added comprehensive tests for AddHostTab and PlaygroundTab (25 tests across 2 files):
+  - add_host_tab_test.dart (11 tests):
+    - AddHostTab: extends TabItem, title "Connect", content AddHostTabView (6 tests)
+    - AddHostTabView: StatefulWidget, const construction, key, state creation (5 tests)
+  - playground_test.dart (14 tests):
+    - PlaygroundTab: extends TabItem, title "Playground", content PlaygroundView (6 tests)
+    - PlaygroundView: StatefulWidget, const construction, key, state creation (5 tests)
+    - Widget tests: Stack rendering, SizedBox 300x300, "Hello" text (3 tests)
+- Added tests for DropdownContextMenu (13 tests):
+  - context_menu_test.dart (13 tests):
+    - DropdownContextMenu: StatefulWidget, tabs reference, key, state creation (8 tests)
+    - DropdownContextMenuState: type verification, fresh state instances (2 tests)
+    - Tabs integration: empty tabs, children, active tab behavior (3 tests)
+- **Commits**:
+  - 36774b6 - test(terminal_tabs): add comprehensive tests for AddHostTab and PlaygroundTab
+  - 998e3e6 - test(terminal_tabs): add tests for DropdownContextMenu
+- Total new tests this sub-iteration: 38 (25 + 13)
+- Total test files: 193 (was 190)
+- Total project tests: 3337+ (via melos run test)
