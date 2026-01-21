@@ -780,3 +780,17 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: f0a2f67 - test(widgets): add comprehensive tests for artwork and web_view packages
 - Total new tests this iteration: 37 (23 artwork + 16 web_view - 2 golden kept)
 - Total project tests verified: 1837+ (via melos run test)
+
+#### Iteration 21: Settings Screen Configuration Tests ✓ COMPLETED
+- Added comprehensive tests for main app settings screens (24 tests):
+  - SettingsScreen: static name/path constants, const construction (4 tests)
+  - SettingsScreenNames: all 10 screen name constants (10 tests)
+    - settings, terminalEnv, hostManagement, sshKeyManagement, deviceInfo
+    - wifiInfo, selectBrightness, selectTheme, webServer, shellProfiles
+  - rootSettingListConfig: RootSettingListConfig property verification (10 tests)
+    - terminalEnvScreenName, hostScreenName, sshKeyScreenName, deviceInfoScreenName
+    - wifiInfoScreenName, selectBrightnessScreenName, selectThemeScreenName
+    - webServerScreenName, shellProfilesScreenName
+- **Commit**: 242f443 - test(settings): add comprehensive tests for settings screen configuration
+- Total new tests this iteration: 24
+- Total project tests: 1861+ (via melos run test)
