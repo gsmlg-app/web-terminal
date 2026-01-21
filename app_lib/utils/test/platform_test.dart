@@ -1,5 +1,3 @@
-import 'dart:io' show Platform;
-
 import 'package:app_utils/app_utils.dart';
 import 'package:test/test.dart';
 

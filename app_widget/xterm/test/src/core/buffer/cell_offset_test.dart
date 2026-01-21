@@ -256,12 +256,13 @@ void main() {
 
       test('== returns false for non-CellOffset', () {
         const offset = CellOffset(5, 10);
-        expect(offset == 'not a cell offset', isFalse);
-        expect(offset == 5, isFalse);
-        // Note: Dart's type system ensures CellOffset can't be null at compile time
-        // Test with dynamic to verify runtime behavior for untyped contexts
-        final dynamic dynamicNull = null;
-        expect(offset == dynamicNull, isFalse);
+        // Using dynamic to test runtime behavior with different types
+        final dynamic stringValue = 'not a cell offset';
+        final dynamic intValue = 5;
+        final dynamic nullValue = null;
+        expect(offset == stringValue, isFalse);
+        expect(offset == intValue, isFalse);
+        expect(offset == nullValue, isFalse);
       });
 
       test('identical returns true for same const instance', () {

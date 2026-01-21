@@ -314,20 +314,20 @@ void main() {
 
   group('TabsService factory types', () {
     test('PluginTabFactory type accepts Plugin and PluginManager', () {
-      PluginTabFactory factory = (Plugin plugin, PluginManager manager) {
+      TabItem pluginTabFactory(Plugin plugin, PluginManager manager) {
         return MockTabItem();
-      };
+      }
 
-      final tab = factory(MockPlugin(), PluginManager(MockHostSpec()));
+      final tab = pluginTabFactory(MockPlugin(), PluginManager(MockHostSpec()));
       expect(tab, isA<TabItem>());
     });
 
     test('FileTabFactory type accepts File', () {
-      FileTabFactory factory = (File file) {
+      TabItem fileTabFactory(File file) {
         return MockTabItem();
-      };
+      }
 
-      final tab = factory(MockFile.simple());
+      final tab = fileTabFactory(MockFile.simple());
       expect(tab, isA<TabItem>());
     });
   });

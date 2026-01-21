@@ -179,13 +179,9 @@ void main() {
       });
 
       test('handles consecutive keys', () {
-        final table = FastLookupTable<int>(
-          Map.fromIterable(
-            List.generate(100, (i) => i),
-            key: (i) => i as int,
-            value: (i) => (i as int) * 10,
-          ),
-        );
+        final table = FastLookupTable<int>({
+          for (final i in List.generate(100, (i) => i)) i: i * 10,
+        });
         expect(table[0], 0);
         expect(table[50], 500);
         expect(table[99], 990);
