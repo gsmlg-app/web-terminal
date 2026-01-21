@@ -1,39 +1,54 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# app_adaptive_widgets
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+Adaptive widgets that respond to different screen sizes and platforms. This package provides reusable components for building responsive Flutter applications.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **AppAdaptiveActionList**: A list of actions that adapts its presentation based on available space:
+  - `small`: Shows a popup menu button (compact for small screens)
+  - `medium`: Shows icon buttons in a wrap layout
+  - `large`: Shows text buttons with icons for spacious layouts
+
+- **AppAdaptiveScaffold**: An adaptive scaffold wrapper around flutter_adaptive_scaffold
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add the package to your pubspec.yaml:
+
+```yaml
+dependencies:
+  app_adaptive_widgets: any
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
 ```dart
-const like = 'sample';
+import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
+
+// Create adaptive actions
+final actions = [
+  AppAdaptiveAction(
+    title: 'Save',
+    icon: Icons.save,
+    onPressed: () => saveDocument(),
+  ),
+  AppAdaptiveAction(
+    title: 'Delete',
+    icon: Icons.delete,
+    onPressed: () => deleteDocument(),
+    disabled: isReadOnly,
+  ),
+];
+
+// Use in your widget tree
+AppAdaptiveActionList(
+  size: AppAdaptiveActionSize.medium,
+  actions: actions,
+  direction: Axis.horizontal,
+  hideDisabled: true, // Hide disabled actions
+)
 ```
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+This package is part of the web_terminal monorepo and designed for internal use.
