@@ -1248,3 +1248,21 @@ Building a native-like shell experience on Android and iOS with:
   - Fixed unrelated type equality checks in client_info_test.dart
   - Fixed prefer_function_declarations_over_variables in web_server_settings_test.dart
 - All tests pass via `melos run test`
+
+#### Iteration 38: SSH Algorithm Test Expansion ✓ COMPLETED
+- Expanded SSH algorithm test coverage:
+  - **ssh_hostkey_type_test.dart** (app_lib/ssh/test/src/algorithm/):
+    - Expanded from 2 tests to 16 tests
+    - Static constants tests: individual tests for each hostkey type (rsaSha1-ed25519)
+    - toString() tests: format verification for all hostkey types
+    - Name property tests: accessibility and string type verification
+    - Uniqueness tests: all names are unique
+  - **ssh_mac_type_test.dart** (app_lib/ssh/test/src/algorithm/):
+    - Expanded from 5 tests to 28 tests
+    - Static constants tests: name and keySize for each MAC type
+    - toString() tests: format verification for all MAC types
+    - createMac() tests: correct instance creation for all types
+    - Error handling tests: ArgumentError for wrong key lengths
+    - Uniqueness tests: unique names and keySizes
+    - MAC computation tests: output sizes, consistency, key differentiation
+- All tests pass via `melos run test`
