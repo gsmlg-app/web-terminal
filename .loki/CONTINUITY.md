@@ -970,3 +970,17 @@ Building a native-like shell experience on Android and iOS with:
 - Total new tests this sub-iteration: 38 (25 + 13)
 - Total test files: 193 (was 190)
 - Total project tests: 3337+ (via melos run test)
+
+#### Iteration 29 (continued): GlobalPlatformMenu Tests ✓ COMPLETED
+- Added comprehensive tests for GlobalPlatformMenu and ActiveTabService (17 tests):
+  - platform_menu_test.dart (17 tests):
+    - ActiveTabService abstract class: mock implementations, getActiveTab variations (4 tests)
+    - GlobalPlatformMenu: StatefulWidget, child storage, key, state creation (9 tests)
+    - State verification: state type name (1 test)
+    - Nested widgets: Text, Container, Column, nested GlobalPlatformMenu (4 tests)
+- **Commit**: b738a03 - test(terminal_tabs): add tests for GlobalPlatformMenu and ActiveTabService
+- Total new tests this sub-iteration: 17
+- Total test files: 194 (was 193)
+- Total iteration 29 tests: 140 (85 + 38 + 17)
+- Total project tests: 3354+ (via melos run test)
+- All terminal_tabs/lib/src/*.dart files now have test coverage
