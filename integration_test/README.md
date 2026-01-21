@@ -4,6 +4,37 @@ Integration tests for the web terminal application. These tests verify end-to-en
 
 ## Test Files
 
+### Component Integration Tests (New - Iteration 32)
+- **bloc_to_bloc_integration_test.dart** - BLoC-to-BLoC interactions (13 tests)
+  - TerminalTabBloc + TerminalSettingsBloc coordination
+  - ThemeBloc + ShellProfileBloc integration
+  - SshHostBloc + SshKeyBloc relationships
+  - ErrorHandlerBloc centralized error handling
+  - Cross-BLoC state coordination
+
+- **bloc_to_plugin_integration_test.dart** - BLoC-to-Plugin interactions (12 tests)
+  - TerminalTabBloc + PTY Plugin lifecycle management
+  - TerminalSettingsBloc + PTY Plugin configuration
+  - Shell plugin integration (Android/iOS)
+  - Error handling in plugin operations
+  - PTY data flow (bidirectional streams)
+
+- **service_layer_integration_test.dart** - Service Layer coordination (12 tests)
+  - SSH Service + Database integration
+  - Terminal Hosts + PTY Plugin coordination
+  - SSH + SFTP connection sharing
+  - Database transaction coordination
+  - Service layer error propagation
+  - Data consistency across services
+
+- **database_to_bloc_integration_test.dart** - Database-to-BLoC sync (14 tests)
+  - Database changes trigger BLoC updates
+  - BLoC events persist to database
+  - Cascading updates and referential integrity
+  - Database stream synchronization
+  - Transaction rollback behavior
+  - Data consistency verification
+
 ### Integration Tests (Component-Level)
 - **app_startup_test.dart** - App initialization and startup flows
 - **local_shell_test.dart** - Local shell session creation and management
@@ -19,12 +50,31 @@ Integration tests for the web terminal application. These tests verify end-to-en
 
 ## Running Integration Tests
 
-Integration tests require a running device or emulator.
+### Component Integration Tests (Unit-Style)
 
-### Run all integration tests on macOS
+The new component integration tests (bloc_to_bloc, bloc_to_plugin, service_layer, database_to_bloc) can be run like unit tests without a device:
 
 ```bash
-flutter test integration_test/ -d macos
+# Run all new integration tests
+flutter test integration_test/bloc_to_bloc_integration_test.dart
+flutter test integration_test/bloc_to_plugin_integration_test.dart
+flutter test integration_test/service_layer_integration_test.dart
+flutter test integration_test/database_to_bloc_integration_test.dart
+
+# Or run all at once
+flutter test integration_test/ --name="Integration Tests"
+```
+
+These tests use in-memory databases and mock dependencies, so they run quickly and don't require device setup.
+
+### E2E Integration Tests (Device-Required)
+
+The widget-based integration tests require a running device or emulator.
+
+### Run all E2E integration tests on macOS
+
+```bash
+flutter test integration_test/ -d macos --exclude-tags=unit-integration
 ```
 
 ### Run a specific test file
