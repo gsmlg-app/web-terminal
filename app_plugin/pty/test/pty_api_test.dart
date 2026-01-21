@@ -490,7 +490,8 @@ void main() {
         const processExiting = true;
         const writingData = true;
 
-        expect(processExiting || writingData, isTrue);
+        expect(processExiting, isTrue);
+        expect(writingData, isTrue);
       });
 
       test('multiple PTY instances', () {
