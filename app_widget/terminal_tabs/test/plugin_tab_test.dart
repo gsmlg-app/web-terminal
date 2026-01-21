@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';

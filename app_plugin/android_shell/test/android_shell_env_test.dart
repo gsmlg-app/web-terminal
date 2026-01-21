@@ -266,20 +266,21 @@ void main() {
 
   group('ProgressCallback typedef', () {
     test('can create progress callback function', () {
-      ProgressCallback callback = (message, progress) {
+      void callback(String message, double progress) {
         // Callback implementation
-      };
-      expect(callback, isNotNull);
+      }
+
+      expect(callback, isA<ProgressCallback>());
     });
 
     test('progress callback accepts message and progress', () {
       String? receivedMessage;
       double? receivedProgress;
 
-      ProgressCallback callback = (message, progress) {
+      void callback(String message, double progress) {
         receivedMessage = message;
         receivedProgress = progress;
-      };
+      }
 
       callback('test message', 0.5);
 

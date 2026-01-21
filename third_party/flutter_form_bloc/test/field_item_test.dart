@@ -20,7 +20,7 @@ void main() {
     });
 
     test('can set isEnabled to false', () {
-      const item = FieldItem(child: Text('Test'), isEnabled: false);
+      const item = FieldItem(isEnabled: false, child: Text('Test'));
       expect(item.isEnabled, isFalse);
     });
 
@@ -31,8 +31,8 @@ void main() {
 
     test('can set custom alignment', () {
       const item = FieldItem(
-        child: Text('Test'),
         alignment: Alignment.center,
+        child: Text('Test'),
       );
       expect(item.alignment, equals(Alignment.center));
     });
@@ -44,7 +44,7 @@ void main() {
 
     test('can set onTap callback', () {
       callback() {}
-      final item = FieldItem(child: const Text('Test'), onTap: callback);
+      final item = FieldItem(onTap: callback, child: const Text('Test'));
       expect(item.onTap, equals(callback));
     });
 
@@ -148,8 +148,8 @@ void main() {
           home: Scaffold(
             body: Column(
               children: [
-                FieldItem(child: Text('Enabled'), isEnabled: true),
-                FieldItem(child: Text('Disabled'), isEnabled: false),
+                FieldItem(isEnabled: true, child: Text('Enabled')),
+                FieldItem(isEnabled: false, child: Text('Disabled')),
               ],
             ),
           ),
@@ -175,8 +175,8 @@ void main() {
     testWidgets('FieldItemBuilder produces correct FieldItem', (tester) async {
       FieldItem builder(BuildContext context, String value) {
         return FieldItem(
-          child: Text('Value: $value'),
           isEnabled: value != 'disabled',
+          child: Text('Value: $value'),
         );
       }
 

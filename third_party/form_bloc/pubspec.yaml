@@ -19,6 +19,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  test: ^1.20.1
   mocktail: ^1.0.3
   bloc_test: ^10.0.0
   fire_line_diff: ^1.5.3

@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Update CONTINUITY.md with iteration progress"
+      "action": "Commit all analyzer fixes"
     }
   }
 ]

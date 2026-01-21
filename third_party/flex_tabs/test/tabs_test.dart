@@ -10,8 +10,7 @@ class TestTabItem extends TabItem {
   bool wasUnmounted = false;
   bool wasDisposed = false;
 
-  TestTabItem(this.testId, {Widget? title, Widget? content})
-      : super(title: title, content: content);
+  TestTabItem(this.testId, {super.title, super.content});
 
   @override
   void didActivate() {
