@@ -677,3 +677,32 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 2c63412 - test(ssh): add tests for SSHAlgorithm, SSHKeepAlive, SftpName, SftpStatVfs
 - Total new tests this iteration: 279 (128 + 89 + 62)
 - Total project tests: 982+ (accumulated across all packages)
+
+#### Iteration 18: Code Quality & Plugin Test Coverage ✓ COMPLETED
+- Fixed analyzer warnings across test files:
+  - Converted app_ssh tests from flutter_test to test package (pure Dart package)
+  - Fixed unused variable warnings in ssh_channel_id_test.dart
+  - Removed unused import in conn_test.dart (dart:typed_data)
+  - Fixed unnecessary_null_comparison in cell_offset_test.dart
+  - Fixed equal_elements_in_set warning by using addAll()
+- **Commit**: 1c10a07 - fix(tests): resolve analyzer warnings across test files
+
+- Added comprehensive tests for starter_plugin package (19 tests):
+  - StarterPlugin: extends Plugin, ValueNotifier title, mount/connect state (4 tests)
+  - Lifecycle: didMounted title, mounted state, connected state, disconnect (4 tests)
+  - Build: Card widget, initial "Waiting..." text, Center, ValueListenableBuilder (4 tests)
+  - Connection behavior: uptime updates, error handling (unit tests) (3 tests)
+  - Manager integration: add/remove, hostSpec, host access (4 tests)
+
+- Added comprehensive tests for terminal_plugin package (27 tests):
+  - TerminalPlugin: extends Plugin, Terminal instance, TerminalController (3 tests)
+  - Terminal config: maxLines 10000, initial state (3 tests)
+  - Lifecycle: didMounted/didConnected/didDisconnected title changes (6 tests)
+  - onConnectionStatus: connecting/connected/disconnected handlers (3 tests)
+  - Terminal callbacks: onTitleChange updates terminalTitle (1 test)
+  - Manager integration: add/remove, hostSpec, host access (4 tests)
+  - TerminalTabView: TerminalView widget, font settings, SafeArea (3 tests)
+  - MockExecutionSession: output streaming, exit code handling (4 tests)
+- Total new tests this iteration: 46 (19 + 27)
+- All packages now pass `melos run analyze` with zero warnings
+- Total project tests: 1028+ (accumulated across all packages)
