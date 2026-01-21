@@ -637,6 +637,22 @@ Building a native-like shell experience on Android and iOS with:
     - Typical userauth scenarios: password, publickey, keyboard-interactive (5 tests)
     - Password change flow (2 tests)
 - Discovered encode/decode asymmetries in implementation (documented as test expectations)
-- **Commit**: pending
-- Total new tests this iteration: 128
-- Total project tests: 831+ (accumulated across all packages)
+- **Commit**: 9224113 - test(ssh): add comprehensive tests for SSH message types
+- Total new tests this sub-iteration: 128
+
+#### Iteration 17 (continued): SSH Channel Message Tests ✓ COMPLETED
+- Added comprehensive tests for SSH channel messages (89 tests in msg_channel_test.dart)
+  - SSH_Message_Channel_Open: session, x11, forwarded-tcpip, direct-tcpip factories (18 tests)
+  - SSH_Message_Channel_Confirmation: encode/decode, data handling (5 tests)
+  - SSH_Message_Channel_Open_Failure: reason codes, error messages (7 tests)
+  - SSH_Message_Channel_Window_Adjust: window size handling (4 tests)
+  - SSH_Message_Channel_Data: data transfer, empty/large data (5 tests)
+  - SSH_Message_Channel_Extended_Data: stderr handling (4 tests)
+  - SSH_Message_Channel_EOF/Close: lifecycle messages (8 tests)
+  - SSHChannelRequestType: all request type constants (1 test)
+  - SSH_Message_Channel_Request: pty, shell, exec, subsystem, env, window-change, signal, exit-status, exit-signal, x11 (30 tests)
+  - SSH_Message_Channel_Success/Failure: response messages (10 tests)
+  - Typical usage scenarios: open/confirm, pty/shell, data, close, port forwarding (5 tests)
+- **Commit**: 565fc8f - test(ssh): add comprehensive tests for SSH channel messages
+- Total new tests this iteration: 217 (128 + 89)
+- Total project tests: 920+ (accumulated across all packages)
