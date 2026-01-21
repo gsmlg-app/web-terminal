@@ -1017,3 +1017,46 @@ Building a native-like shell experience on Android and iOS with:
 - Total new tests this iteration: 62
 - Total test files: 199 (was 194)
 - Total project tests: 3416+ (via melos run test)
+
+#### Iteration 31: settings_ui Third-Party Package Tests ✓ COMPLETED
+- Added comprehensive tests for settings_ui third-party package (148 tests across 6 files):
+  - platform_utils_test.dart (11 tests):
+    - DevicePlatform enum: all 8 values (android, fuchsia, iOS, linux, macOS, windows, web, custom)
+    - DevicePlatform.detect(): returns valid platform based on runtime
+    - All values unique verification
+  - settings_theme_test.dart (25 tests):
+    - SettingsThemeData: construction, all 11 color properties, defaults to null
+    - copyWith: no changes, single field, all fields update
+    - merge: null theme returns self, overrides with provided theme
+    - withColorScheme: platform-specific themes (android, iOS, web, linux, macOS, windows)
+    - SettingsTheme InheritedWidget: of(), maybeOf(), platform storage, updateShouldNotify
+  - settings_tile_test.dart (44 tests):
+    - SettingsTileType enum: simpleTile, switchTile, navigationTile, checkTile (5 tests)
+    - Default constructor: title, leading, trailing, value, description, enabled (13 tests)
+    - SettingsTile.navigation: creates navigation tile, stores all properties (2 tests)
+    - SettingsTile.switchTile: initialValue, onToggle, activeSwitchColor (6 tests)
+    - SettingsTile.checkTile: checked true/false, null properties (6 tests)
+    - addCheckedTrailing: check icon colors (green/transparent), trailing fallback (3 tests)
+    - Platform builds: android, iOS, web, linux, macOS, windows (6 tests)
+    - Key parameter: all 4 constructors (4 tests)
+  - settings_section_test.dart (17 tests):
+    - SettingsSection: const construction, tiles list, title, margin, key storage
+    - Platform builds: android, iOS, web, linux, macOS, windows
+    - Multiple tiles, no title, empty tiles list rendering
+  - settings_list_test.dart (33 tests):
+    - SettingsList: StatelessWidget, sections, shrinkWrap, physics, platform, contentPadding
+    - Build: empty sections, single section, multiple sections
+    - Widget tree: ListView, LayoutBuilder usage
+    - calculateDefaultPadding: wide screens (>810), narrow screens, platform-specific padding
+    - Boundary cases: 810, 811 width thresholds
+  - custom_widgets_test.dart (18 tests):
+    - AbstractSettingsTile: StatelessWidget base, key parameter
+    - AbstractSettingsSection: StatelessWidget base, key parameter
+    - CustomSettingsTile: child storage, rendering, build returns child directly
+    - CustomSettingsSection: child storage, rendering, build returns child directly
+    - Integration: tiles/sections work together
+- Settings_ui package went from 1 test to 149 tests (148 new)
+- **Commit**: 3dd6131 - test(settings_ui): add comprehensive tests for settings_ui package (148 tests)
+- Total new tests this iteration: 148
+- Total test files: 205 (was 199)
+- Total project tests: 3564+ (via melos run test)
