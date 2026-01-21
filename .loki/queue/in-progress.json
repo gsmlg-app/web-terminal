@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Commit breadcrumbs tests"
+      "action": "Commit tests and update CONTINUITY.md"
     }
   }
 ]

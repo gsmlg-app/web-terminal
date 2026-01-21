@@ -4,10 +4,10 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Commit breadcrumbs tests",
+    "current_task": "Bash: Commit macos_form tests",
     "status": "active",
     "spawned_at": "2026-01-21T06:36:28.316443Z",
     "tasks_completed": [],
-    "tool_count": 79
+    "tool_count": 108
   }
 ]

@@ -1380,3 +1380,25 @@ Building a native-like shell experience on Android and iOS with:
   - Fix duplicate import: `app_adaptive_widgets` in web_server_screen.dart
 - All modified tests pass
 - **Commit**: e7c12f6 - fix(tests): resolve analyzer warnings and deprecation issues
+
+#### Iteration 42 (continued): file_manager_plugin Test Expansion ✓ COMPLETED
+- Added comprehensive tests for NavigationBreadcrumbs widgets (25 tests):
+  - NavigationBreadcrumbs widget (12 tests):
+    - Empty, single, and multiple breadcrumbs rendering
+    - onTap callback with correct breadcrumbs sublist (first, middle, last)
+    - Horizontal scrolling via SingleChildScrollView
+    - Padding verification (EdgeInsets.symmetric(horizontal: 8))
+    - Row layout for breadcrumbs
+    - Const construction and key parameter
+  - BreadcrumbButton widget (9 tests):
+    - Text rendering with breadcrumb string
+    - onPressed callback invocation
+    - TextButton as underlying widget
+    - Null onPressed handling (no crash)
+    - Const construction and key parameter
+    - isPrimary property (defaults to false)
+  - BreadcrumbSeprator widget (4 tests):
+    - Chevron right icon rendering
+    - Icon size verification (8)
+    - Const construction and key parameter
+- **Commit**: 558d067 - test(file_manager_plugin): add comprehensive tests for NavigationBreadcrumbs
