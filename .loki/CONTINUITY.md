@@ -654,5 +654,26 @@ Building a native-like shell experience on Android and iOS with:
   - SSH_Message_Channel_Success/Failure: response messages (10 tests)
   - Typical usage scenarios: open/confirm, pty/shell, data, close, port forwarding (5 tests)
 - **Commit**: 565fc8f - test(ssh): add comprehensive tests for SSH channel messages
-- Total new tests this iteration: 217 (128 + 89)
-- Total project tests: 920+ (accumulated across all packages)
+- Total new tests this sub-iteration: 89
+
+#### Iteration 17 (continued): SSH Utility Class Tests ✓ COMPLETED
+- Added tests for previously untested SSH utility classes (62 tests across 4 files)
+  - ssh_algorithm_test.dart (24 tests):
+    - SSHAlgorithm mixin: name getter, toString (2 tests)
+    - SSHAlgorithmList extension: toNameList, getByName, type-specific lists (8 tests)
+    - SSHAlgorithms: default values, custom lists, empty lists (14 tests)
+  - ssh_keepalive_test.dart (11 tests):
+    - Timer lifecycle: start/stop, idempotency, restart (7 tests)
+    - Interval: default, custom, zero (3 tests)
+    - Async ping function (1 test)
+  - sftp_name_test.dart (13 tests):
+    - SftpName constructor, unicode, special characters (5 tests)
+    - readFrom/writeTo round trip (4 tests)
+    - Typical scenarios: directory, file, symlink, hidden (4 tests)
+  - sftp_statvfs_test.dart (14 tests):
+    - Constructor: all fields, flag combinations (4 tests)
+    - fromReply factory: flag parsing, field copying (6 tests)
+    - Edge cases and typical scenarios (4 tests)
+- **Commit**: 2c63412 - test(ssh): add tests for SSHAlgorithm, SSHKeepAlive, SftpName, SftpStatVfs
+- Total new tests this iteration: 279 (128 + 89 + 62)
+- Total project tests: 982+ (accumulated across all packages)
