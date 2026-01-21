@@ -1094,3 +1094,31 @@ Building a native-like shell experience on Android and iOS with:
 - Total new tests this iteration: 115
 - Total test files: 210 (was 205)
 - Total project tests: 3679+ (via melos run test)
+
+#### Iteration 33: flutter_form_bloc Utility Classes Tests ✓ COMPLETED
+- Added additional tests for flutter_form_bloc utility classes (88 more tests across 5 files):
+  - material_states_test.dart (24 tests):
+    - SimpleMaterialStateProperty: const construction, WidgetStateProperty implementation
+    - resolve: empty state returns normal, disabled state returns disabled
+    - Multiple states: disabled takes precedence, other states return normal
+    - Equality, props, toString, generic types (double, int, String, nullable)
+  - functions_test.dart (14 tests):
+    - fieldBlocBuilderOnChange: returns null when disabled, returns callback when enabled
+    - Callback invokes onChanged when not readOnly, skips when readOnly
+    - Focus handling: requests focus on nextFocusNode after change
+    - widgetBasedOnPlatform: returns mobile widget on Android/iOS, other on desktop
+  - style_test.dart (17 tests):
+    - inputDecorationWithoutBorder: const, all borders null, contentPadding zero
+    - resolveTextStyle: applies normal/disabled color based on isEnabled
+    - getGroupFieldBlocContentPadding: adds top/bottom when visible, left when not
+    - getInputBorder: decoration > theme > default UnderlineInputBorder
+  - typedefs_test.dart (6 tests):
+    - FieldBlocErrorBuilder: typedef signature, null return, BuildContext integration
+  - widgets_test.dart (27 tests):
+    - DefaultFieldBlocBuilderTextStyle: const, StatelessWidget, isEnabled/style/child
+    - DefaultFieldBlocBuilderPadding: const, StatelessWidget, uses FormTheme padding
+    - GroupInputDecorator: Stack with 2 InputDecorators, Opacity for invisible layer
+- **Commit**: 333b24f - test(flutter_form_bloc): add tests for utility classes and themes (88 more tests)
+- Total flutter_form_bloc tests: 203 (was 115)
+- Total test files: 215 (was 210)
+- Total project tests: 3767+ (via melos run test)
