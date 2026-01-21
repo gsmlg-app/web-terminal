@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/sftp/sftp_statvfs.dart';
 import 'package:app_ssh/src/sftp/sftp_packet_ext.dart';
 

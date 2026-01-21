@@ -258,7 +258,10 @@ void main() {
         const offset = CellOffset(5, 10);
         expect(offset == 'not a cell offset', isFalse);
         expect(offset == 5, isFalse);
-        expect(offset == null, isFalse);
+        // Note: Dart's type system ensures CellOffset can't be null at compile time
+        // Test with dynamic to verify runtime behavior for untyped contexts
+        final dynamic dynamicNull = null;
+        expect(offset == dynamicNull, isFalse);
       });
 
       test('identical returns true for same const instance', () {
@@ -283,11 +286,13 @@ void main() {
       });
 
       test('works in Set', () {
-        final set = <CellOffset>{
+        // Test that duplicates are correctly handled when using addAll
+        final set = <CellOffset>{};
+        set.addAll([
           const CellOffset(0, 0),
           const CellOffset(1, 1),
-          const CellOffset(0, 0), // duplicate
-        };
+          const CellOffset(0, 0), // duplicate - will be deduplicated by addAll
+        ]);
         expect(set.length, 2);
       });
 

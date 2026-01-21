@@ -1,6 +1,4 @@
-import 'dart:typed_data';
-
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/sftp/sftp_name.dart';
 import 'package:app_ssh/src/sftp/sftp_file_attrs.dart';
 import 'package:app_ssh/src/ssh_message.dart';

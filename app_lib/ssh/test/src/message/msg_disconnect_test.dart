@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/message/msg_disconnect.dart';
 
 void main() {

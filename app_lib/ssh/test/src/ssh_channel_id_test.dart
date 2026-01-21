@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/ssh_channel_id.dart';
 
 void main() {
@@ -51,8 +51,8 @@ void main() {
 
       test('released id can be reallocated', () {
         final id1 = allocator.allocate();
-        final id2 = allocator.allocate();
-        final id3 = allocator.allocate();
+        allocator.allocate(); // id2
+        allocator.allocate(); // id3
 
         allocator.release(id1);
 
@@ -141,7 +141,7 @@ void main() {
       test('released id can be reallocated', () {
         // Allocate and release, then verify slot becomes available
         final id1 = allocator.allocate(); // 0
-        final id2 = allocator.allocate(); // 1
+        allocator.allocate(); // 1 (id2 not used in assertions)
         allocator.release(id1);
 
         // Fill up to near capacity, but not quite

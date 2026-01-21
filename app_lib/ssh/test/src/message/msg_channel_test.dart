@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/message/msg_channel.dart';
 
 void main() {
@@ -987,7 +987,7 @@ void main() {
         data: Uint8List.fromList('ls -la\n'.codeUnits),
       );
 
-      // Receive output
+      // Receive output - demonstrates receiving data from server
       final receiveData = SSH_Message_Channel_Data(
         recipientChannel: 0,
         data: Uint8List.fromList('file.txt  2024-01-01'.codeUnits),
@@ -1001,6 +1001,7 @@ void main() {
       );
 
       expect(String.fromCharCodes(sendData.data), 'ls -la\n');
+      expect(String.fromCharCodes(receiveData.data), 'file.txt  2024-01-01');
       expect(stderrData.dataTypeCode, 1);
     });
 

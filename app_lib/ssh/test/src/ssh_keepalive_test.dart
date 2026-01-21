@@ -1,6 +1,4 @@
-import 'dart:async';
-
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/ssh_keepalive.dart';
 
 void main() {

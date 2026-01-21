@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+import 'package:test/test.dart';
 import 'package:app_ssh/src/ssh_algorithm.dart';
 import 'package:app_ssh/src/algorithm/ssh_cipher_type.dart';
 import 'package:app_ssh/src/algorithm/ssh_hostkey_type.dart';
