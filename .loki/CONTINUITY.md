@@ -763,3 +763,20 @@ Building a native-like shell experience on Android and iOS with:
 - Fixed formatting in app_bloc/, app_lib/, app_plugin/, app_widget/, third_party/
 - **Commit**: e387172 - style: apply dart formatter across all packages
 - Total project tests verified: 1802 (via melos run test)
+
+#### Iteration 20: Widget Package Test Coverage ✓ COMPLETED
+- Added comprehensive tests for app_artwork package (23 tests, was 2 golden-only):
+  - LogoGSMLGDEV: CustomPaint rendering, AspectRatio 10:2, child widget, size 1000x200 (7 tests)
+  - LaddingPageLottie: all parameter accessors (width, height, fit, alignment, animate, etc.) (14 tests)
+  - Export verification (2 tests)
+- Added comprehensive tests for app_web_view package (16 tests, was 1 placeholder):
+  - LocalHtmlViewer: construction, file path handling, StatefulWidget verification (6 tests)
+  - Retry logic: maxRetries=5, delay pattern verification (2 tests)
+  - Error handling: message format validation (1 test)
+  - Gesture recognizers: vertical/horizontal drag, scale, tap documentation (4 tests)
+  - JavaScript injection: overflow CSS verification (1 test)
+  - File path handling: Uri.file normalization, spaces support (2 tests)
+- Added shared_preferences dev dependency to terminal_settings for test compatibility
+- **Commit**: f0a2f67 - test(widgets): add comprehensive tests for artwork and web_view packages
+- Total new tests this iteration: 37 (23 artwork + 16 web_view - 2 golden kept)
+- Total project tests verified: 1837+ (via melos run test)
