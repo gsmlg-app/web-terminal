@@ -11,7 +11,10 @@ import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
-  final terminal = Terminal(maxLines: 10000);
+  final terminal = Terminal(
+    maxLines: 10000,
+    batchWrites: true, // Enable write batching for better performance
+  );
 
   final terminalController = TerminalController();
 
@@ -114,6 +117,12 @@ class TerminalTabView extends StatefulWidget {
 }
 
 class _TerminalTabViewState extends State<TerminalTabView> {
+  @override
+  void dispose() {
+    widget.plugin.terminal.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TerminalSettingsBloc, TerminalSettingsState>(
