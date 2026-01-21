@@ -1,7 +1,12 @@
 part of 'bloc.dart';
 
 @immutable
-sealed class SshHostEvent {}
+sealed class SshHostEvent extends Equatable {
+  const SshHostEvent();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class SshHostLoad extends SshHostEvent {}
 
@@ -25,10 +30,25 @@ class SshHostAdd extends SshHostEvent {
     this.identityType,
     this.identityKeyId,
   });
+
+  @override
+  List<Object?> get props => [
+        host,
+        hostname,
+        port,
+        username,
+        password,
+        salt,
+        identityType,
+        identityKeyId,
+      ];
 }
 
 class SshHostDelete extends SshHostEvent {
   final SshHost sshHost;
 
   SshHostDelete(this.sshHost);
+
+  @override
+  List<Object?> get props => [sshHost];
 }

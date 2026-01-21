@@ -1,6 +1,7 @@
 import 'package:app_database/app_database.dart';
 import 'package:bloc/bloc.dart';
 import 'package:drift/drift.dart';
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
 /// Re-export SshHost and SshIdentityType from app_database for convenience
@@ -12,7 +13,7 @@ part 'state.dart';
 class SshHostBloc extends Bloc<SshHostEvent, SshHostState> {
   final AppDatabase database;
 
-  SshHostBloc(this.database) : super(SshHostInitial()) {
+  SshHostBloc(this.database) : super(const SshHostInitial()) {
     on<SshHostLoad>((event, emit) async {
       final data = await database.select(database.sshHosts).get();
       emit(SshHostLoaded(data));
