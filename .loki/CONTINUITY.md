@@ -984,3 +984,36 @@ Building a native-like shell experience on Android and iOS with:
 - Total iteration 29 tests: 140 (85 + 38 + 17)
 - Total project tests: 3354+ (via melos run test)
 - All terminal_tabs/lib/src/*.dart files now have test coverage
+
+#### Iteration 30: terminal_tabs Shared Widget Tests ✓ COMPLETED
+- Added comprehensive tests for terminal_tabs shared widgets (62 tests across 5 files):
+  - app_menu_card_test.dart (14 tests):
+    - AppMenuCard: renders child widget, Card foundation, border radius 8.0 (6 tests)
+    - Layout: background color (scheme.surfaceContainerHighest), padding EdgeInsets.all(8) (4 tests)
+    - Constraints: minimum width 250, ConstrainedBox usage (2 tests)
+    - Construction: const construction, key parameter (2 tests)
+  - fluent_back_button_test.dart (10 tests):
+    - FluentBackButton: navigation callback, icon rendering (Fluent.arrow_left_24_regular) (5 tests)
+    - Callbacks: onPressed invocation, null callback handling (3 tests)
+    - Construction: const construction with key, StatelessWidget verification (2 tests)
+  - fluent_form_test.dart (18 tests):
+    - FluentFormDivider: Column layout with spacing, Divider rendering (6 tests)
+    - FluentFormHeader: header text rendering, 8px spacing below, Column layout (7 tests)
+    - FluentFormSeparator: SizedBox with height 8.0, multiple usage in Column (5 tests)
+  - fluent_navigator_test.dart (13 tests):
+    - FluentNavigatorCommandBar: Row layout, MainAxisAlignment.end (4 tests)
+    - Children: Container with right padding 8, CrossAxisAlignment.center (4 tests)
+    - Buttons: ElevatedButton, TextButton, tap callbacks (3 tests)
+    - Construction: const construction, key, StatelessWidget (2 tests)
+  - macos_titlebar_test.dart (7 tests):
+    - kMacosTitlebarHeight: constant value 28.0 (1 test)
+    - MacosTitlebar: color property storage, StatefulWidget verification (3 tests)
+    - Construction: const construction, key parameter, createState (3 tests)
+- Fixed test issues:
+  - Used find.descendant() to scope widget searches (ConstrainedBox, Column, Divider)
+  - Handled Divider internal SizedBox by testing for Divider presence instead of counting
+  - Used find.byType(FluentBackButton) instead of find.byType(TextButton) for reliable matching
+- **Commit**: 2008c4c - test(terminal_tabs): add tests for shared widgets (62 tests)
+- Total new tests this iteration: 62
+- Total test files: 199 (was 194)
+- Total project tests: 3416+ (via melos run test)
