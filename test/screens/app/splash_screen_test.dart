@@ -39,7 +39,47 @@ class TestSplashScreen extends StatelessWidget {
 }
 
 void main() {
-  group('SplashScreen Tests', () {
+  group('SplashScreen static constants', () {
+    test('has correct static name', () {
+      expect(SplashScreen.name, 'splash');
+    });
+
+    test('has correct static path', () {
+      expect(SplashScreen.path, '/splash');
+    });
+
+    test('path starts with slash (absolute path)', () {
+      expect(SplashScreen.path.startsWith('/'), isTrue);
+    });
+
+    test('name and path are related', () {
+      expect(SplashScreen.path, contains(SplashScreen.name));
+    });
+
+    test('is a StatefulWidget', () {
+      const screen = SplashScreen();
+      expect(screen, isA<StatefulWidget>());
+    });
+
+    test('can be const constructed', () {
+      const screen = SplashScreen();
+      expect(screen, isA<SplashScreen>());
+    });
+
+    test('can be const constructed with key', () {
+      const screen = SplashScreen(key: Key('splash'));
+      expect(screen.key, const Key('splash'));
+    });
+
+    test('createState returns State', () {
+      const screen = SplashScreen();
+      final state = screen.createState();
+      expect(state, isNotNull);
+      expect(state, isA<State<SplashScreen>>());
+    });
+  });
+
+  group('SplashScreen Widget Tests', () {
     testWidgets('SplashScreen renders correctly with logo container', (
       WidgetTester tester,
     ) async {
