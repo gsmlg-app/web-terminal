@@ -916,3 +916,36 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: f96cfc9 - test(flex_tabs): add comprehensive tests for TabItem, Tabs, and TabsDocument
 - Total new tests this iteration: 37
 - Total project tests: 3228+ (via melos run test)
+
+#### Iteration 29: terminal_tabs & client_info_platform_interface Tests ✓ COMPLETED
+- Added comprehensive tests for terminal_tabs tab components (71 tests across 3 files):
+  - plugin_tab_test.dart (24 tests):
+    - PluginTab: TabItem extension, plugin/manager references, content setup (7 tests)
+    - PluginTabView: StatefulWidget, plugin reference, key construction (3 tests)
+    - MockPlugin/MockHostSpec/MockHostConnector: proper mocking for testing (7 tests)
+    - PluginManager integration: hostSpec, add/remove plugins (2 tests)
+    - HostConnector lifecycle: status transitions, host availability (5 tests)
+  - devtools_tab_test.dart (14 tests):
+    - DevToolsTab: TabItem extension, Terminal instance, title/content setup (6 tests)
+    - DevToolsTabView: StatefulWidget, tab reference, key construction (3 tests)
+    - PlayGround: StatelessWidget, const construction, key support (3 tests)
+    - Terminal integration: write output, carriage return newline (2 tests)
+  - code_editor_tab_test.dart (33 tests):
+    - File interface: MockFile implementation, basename, read/write, unicode (6 tests)
+    - CodeEditorTab construction: TabItem, file reference, title, content, codeController (6 tests)
+    - File types: .dart, .js, .json, .txt, Makefile, .py, .yaml (7 tests)
+    - CodeEditorView: StatelessWidget, tab reference, fontFamily/fontFamilyFallback (8 tests)
+    - Multiple instances: file sharing, separate codeControllers (4 tests)
+    - loadContent with valid code: JavaScript, Python content loading (3 tests)
+- Added comprehensive tests for client_info_platform_interface package (14 tests):
+  - ClientInfoPlatform: default instance, set instance, base class UnimplementedError (4 tests)
+  - MockClientInfoPlatform: getData with mock data, refresh flag, instance setting (4 tests)
+  - MethodChannelClientInfo: ClientInfoPlatform type, methodChannel property, instantiation (3 tests)
+  - Platform interface: token verification, inheritance verification (3 tests)
+- Fixed MockHost/MockHostConnector to properly implement terminal_core interfaces
+- Fixed CodeEditorTab tests to provide valid JavaScript content for language detection
+- Created test directory and added mockito dependency for client_info_platform_interface
+- **Commit**: 3508cd8 - test(terminal_tabs, client_info): add comprehensive tests for tab components and platform interface
+- Total new tests this iteration: 85 (71 + 14)
+- Total test files: 190 (was 186)
+- Total project tests: 3299+ (via melos run test)
