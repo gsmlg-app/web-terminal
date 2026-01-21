@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_terminal/app.dart';
 import 'package:web_terminal/constant.dart';
 import 'package:app_database/app_database.dart';
-import 'package:connection_bloc/connection_bloc.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
@@ -95,10 +94,7 @@ Future<void> main() async {
                 storage: context.read<FlutterSecureStorage>(),
                 namespace: 'terminal',
               ),
-            )..add(TerminalSettingsLoad()),
-          ),
-          BlocProvider<ConnectionBloc>(
-            create: (BuildContext context) => ConnectionBloc(),
+            )..add(const TerminalSettingsLoad()),
           ),
           BlocProvider<WebSessionBloc>(
             create: (BuildContext context) {

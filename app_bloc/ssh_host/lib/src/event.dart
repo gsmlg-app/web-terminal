@@ -8,7 +8,9 @@ sealed class SshHostEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-class SshHostLoad extends SshHostEvent {}
+class SshHostLoad extends SshHostEvent {
+  const SshHostLoad();
+}
 
 class SshHostAdd extends SshHostEvent {
   final String? host;
@@ -20,7 +22,7 @@ class SshHostAdd extends SshHostEvent {
   final int? identityType;
   final int? identityKeyId;
 
-  SshHostAdd({
+  const SshHostAdd({
     this.host,
     this.hostname,
     this.port,
@@ -47,7 +49,7 @@ class SshHostAdd extends SshHostEvent {
 class SshHostDelete extends SshHostEvent {
   final SshHost sshHost;
 
-  SshHostDelete(this.sshHost);
+  const SshHostDelete(this.sshHost);
 
   @override
   List<Object?> get props => [sshHost];
