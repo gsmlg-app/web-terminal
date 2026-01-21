@@ -4,11 +4,18 @@ Integration tests for the web terminal application. These tests verify end-to-en
 
 ## Test Files
 
+### Integration Tests (Component-Level)
 - **app_startup_test.dart** - App initialization and startup flows
 - **local_shell_test.dart** - Local shell session creation and management
 - **ssh_session_test.dart** - SSH connection flow and host selection
 - **terminal_settings_test.dart** - Terminal settings configuration
 - **session_management_test.dart** - Session switching, fullscreen, and lifecycle
+
+### End-to-End Tests (Complete User Journeys)
+- **e2e_complete_ssh_workflow_test.dart** - Complete SSH workflow from setup to connection
+- **e2e_multi_session_power_user_test.dart** - Multi-session power user scenarios
+- **e2e_settings_persistence_test.dart** - Settings persistence across navigation
+- **e2e_error_recovery_test.dart** - Error handling and recovery flows
 
 ## Running Integration Tests
 
@@ -137,6 +144,44 @@ For device-specific testing, consider using:
 - ✅ Close a session
 - ✅ Session list updates dynamically
 - ✅ Unique session names
+
+### E2E Tests Coverage
+
+#### Complete SSH Workflow (e2e_complete_ssh_workflow_test.dart)
+- ✅ Full SSH host setup flow from settings
+- ✅ Add SSH host with all parameters
+- ✅ Navigate back to terminal
+- ✅ Open SSH connection from session menu
+- ✅ Select configured host
+- ✅ Error handling for unreachable hosts
+- ✅ Empty state handling (no hosts)
+
+#### Multi-Session Power User (e2e_multi_session_power_user_test.dart)
+- ✅ Create multiple shell sessions (3+)
+- ✅ Switch between sessions via selector
+- ✅ Close sessions individually
+- ✅ Session limit enforcement
+- ✅ Session isolation verification
+- ✅ Fullscreen toggle with multiple sessions
+- ✅ Rapid session creation and cleanup
+
+#### Settings Persistence (e2e_settings_persistence_test.dart)
+- ✅ Change terminal font settings
+- ✅ Modify font family
+- ✅ Adjust max shells limit
+- ✅ Create and edit shell profiles
+- ✅ Add environment variables
+- ✅ Theme changes
+- ✅ Verify settings persist across navigation
+
+#### Error Recovery (e2e_error_recovery_test.dart)
+- ✅ SSH connection failure handling
+- ✅ Retry/cancel flows
+- ✅ Session limit exceeded warnings
+- ✅ Empty state error handling
+- ✅ Invalid settings input validation
+- ✅ Rapid interaction stress testing
+- ✅ App stability after errors
 
 ## Debugging Integration Tests
 
