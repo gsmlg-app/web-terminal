@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Update CONTINUITY.md with iteration 17 progress"
+      "action": "Commit CONTINUITY.md update"
     }
   }
 ]
