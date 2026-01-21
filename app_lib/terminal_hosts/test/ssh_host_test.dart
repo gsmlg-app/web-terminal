@@ -368,6 +368,11 @@ class MockSSHExecutionSession implements ExecutionSession {
   Future<void> write(Uint8List data) async {
     writtenData.add(data);
   }
+
+  @override
+  void ackRead() {
+    // Mock implementation, no-op
+  }
 }
 
 /// Mock implementation of Host for testing

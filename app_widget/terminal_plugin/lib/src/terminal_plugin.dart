@@ -69,7 +69,10 @@ class TerminalPlugin extends Plugin {
     session!.output
         .cast<List<int>>()
         .transform(const Utf8Decoder())
-        .listen(terminal.write);
+        .listen((data) {
+      terminal.write(data);
+      session?.ackRead(); // Acknowledge read for flow control
+    });
 
     session!.exitCode.then((code) {
       session = null;

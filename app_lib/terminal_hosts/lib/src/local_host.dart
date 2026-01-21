@@ -56,6 +56,7 @@ class LocalHost implements Host {
       environment: mergedEnv,
       rows: height,
       columns: width,
+      ackRead: true, // Enable backpressure to prevent message queue flooding
     );
 
     // Send init commands if provided (after a short delay for shell to start)
@@ -120,6 +121,11 @@ class LocalExecutionSession implements ExecutionSession {
   @override
   Future<void> write(Uint8List data) async {
     _pty.write(data);
+  }
+
+  @override
+  void ackRead() {
+    _pty.ackRead();
   }
 }
 

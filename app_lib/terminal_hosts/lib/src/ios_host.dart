@@ -305,4 +305,9 @@ class IosExecutionSession implements ExecutionSession {
       _output('cd: no such file or directory: $path\r\n');
     }
   }
+
+  @override
+  void ackRead() {
+    // iOS shell doesn't use PTY backpressure, no-op
+  }
 }

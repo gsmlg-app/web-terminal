@@ -65,6 +65,11 @@ class MockExecutionSession implements ExecutionSession {
       _exitCodeCompleter.complete(code);
     }
   }
+
+  @override
+  void ackRead() {
+    // Mock implementation, no-op
+  }
 }
 
 class MockHost implements Host {

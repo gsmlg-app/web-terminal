@@ -71,6 +71,7 @@ class AndroidHost implements Host {
       workingDirectory: _env.homePath,
       rows: height,
       columns: width,
+      ackRead: true, // Enable backpressure to prevent message queue flooding
     );
 
     // Send init commands if provided (after a short delay for shell to start)
@@ -158,5 +159,10 @@ class AndroidExecutionSession implements ExecutionSession {
   @override
   Future<void> write(Uint8List data) async {
     _pty.write(data);
+  }
+
+  @override
+  void ackRead() {
+    _pty.ackRead();
   }
 }
