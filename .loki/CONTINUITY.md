@@ -1146,3 +1146,15 @@ Building a native-like shell experience on Android and iOS with:
 - All packages now pass `melos run analyze` with zero warnings
 - All tests pass: `melos run test` succeeds
 - **Commit**: 4b3be36 - fix(tests): resolve analyzer warnings across multiple packages
+
+#### Iteration 34 (continued): Package Documentation Updates ✓ COMPLETED
+- Updated app_widget/adaptive package documentation:
+  - README.md: Documented AppAdaptiveAction, AppAdaptiveActionList, and AppAdaptiveActionSize
+  - CHANGELOG.md: Added proper initial release notes
+  - LICENSE: Added MIT License
+- Updated app_widget/feedback package documentation:
+  - README.md: Documented toast, snackbar, dialog, fullscreen dialog, and bottom sheet components
+  - CHANGELOG.md: Added proper initial release notes
+  - LICENSE: Added MIT License
+- Removed all TODO placeholders from package metadata files
+- **Commit**: e010f11 - docs(packages): update README, CHANGELOG, and LICENSE for adaptive and feedback packages
