@@ -146,6 +146,8 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   test: ^1.26.3
   analyzer: any
   bloc_test: ^10.0.0
