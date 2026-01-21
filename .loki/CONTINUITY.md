@@ -1122,3 +1122,15 @@ Building a native-like shell experience on Android and iOS with:
 - Total flutter_form_bloc tests: 203 (was 115)
 - Total test files: 215 (was 210)
 - Total project tests: 3767+ (via melos run test)
+
+#### Iteration 34: form_bloc Test Infrastructure Fix ✓ COMPLETED
+- Fixed form_bloc test infrastructure issue preventing tests from running with `dart test`
+- Root cause: form_bloc uses Dart `part` files which the dart test runner had trouble loading
+- Solution: Added Flutter SDK as dependency to form_bloc package
+  - Added `flutter: sdk: flutter` to dependencies
+  - Changed `test: ^1.20.1` to `flutter_test: sdk: flutter` in dev_dependencies
+  - Melos now correctly classifies form_bloc as a Flutter package and uses `flutter test`
+- This enables the full form_bloc test suite (115+ tests) to run as part of the CI pipeline
+- **Commit**: 74c414e - fix(form_bloc): add Flutter SDK dependency to enable flutter test runner
+- All tests pass: `melos run test` succeeds
+- Total project tests: 3767+ (unchanged, tests were always there, now runnable)

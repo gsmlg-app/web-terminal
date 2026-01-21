@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Commit the form_bloc test fix"
+      "action": "Update CONTINUITY.md with iteration progress"
     }
   }
 ]
