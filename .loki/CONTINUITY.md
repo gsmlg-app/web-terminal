@@ -1158,3 +1158,18 @@ Building a native-like shell experience on Android and iOS with:
   - LICENSE: Added MIT License
 - Removed all TODO placeholders from package metadata files
 - **Commit**: e010f11 - docs(packages): update README, CHANGELOG, and LICENSE for adaptive and feedback packages
+
+#### Iteration 35: Widget Package Documentation ✓ COMPLETED
+- Updated app_widget/artwork package documentation:
+  - README.md: Documented LogoGSMLGDEV and LaddingPageLottie widgets with usage examples
+  - CHANGELOG.md: Added proper initial release notes
+  - LICENSE: Added MIT License
+- Created app_widget/web_view package documentation:
+  - README.md: Documented LocalHtmlViewer with retry logic, gesture support, and error handling
+  - CHANGELOG.md: Added initial release notes
+  - LICENSE: Added MIT License
+- Updated app_lib/theme package documentation:
+  - README.md: Comprehensive documentation for AppTheme, ThemeModeExtension, and all theme classes
+  - Documented all four pre-built themes (Violet, Green, Fire, Wheat) and DynamicTheme
+- Removed all TODO placeholders from package metadata files
+- **Commit**: (pending)
