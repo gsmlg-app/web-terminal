@@ -1,18 +1,30 @@
 part of 'bloc.dart';
 
-@immutable
-sealed class SshKeyState {}
+sealed class SshKeyState extends Equatable {
+  const SshKeyState();
 
-final class SshKeyInitial extends SshKeyState {}
+  @override
+  List<Object?> get props => [];
+}
+
+final class SshKeyInitial extends SshKeyState {
+  const SshKeyInitial();
+}
 
 final class SshKeyLoaded extends SshKeyState {
   final List<SshKey> sshKeys;
 
-  SshKeyLoaded(this.sshKeys);
+  const SshKeyLoaded(this.sshKeys);
+
+  @override
+  List<Object?> get props => [sshKeys];
 }
 
 final class SshKeyError extends SshKeyState {
   final Object error;
 
-  SshKeyError(this.error);
+  const SshKeyError(this.error);
+
+  @override
+  List<Object?> get props => [error];
 }

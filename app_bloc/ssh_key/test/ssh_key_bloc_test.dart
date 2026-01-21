@@ -293,25 +293,27 @@ void main() {
       'load returns all keys after multiple adds',
       build: () => SshKeyBloc(database),
       act: (bloc) async {
-        bloc.add(SshKeyAdd(
+        bloc.add(const SshKeyAdd(
           name: 'Key A',
           content: 'contentA',
           salt: 'saltA',
           algorithm: 1,
         ));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(SshKeyAdd(
+        bloc.add(const SshKeyAdd(
           name: 'Key B',
           content: 'contentB',
           salt: 'saltB',
           algorithm: 2,
         ));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(SshKeyLoad());
+        bloc.add(const SshKeyLoad());
       },
-      skip: 2, // Skip the two add emissions
+      skip: 1, // Skip the first add emission, capture second add emission
       expect: () => [
         isA<SshKeyLoaded>().having((s) => s.sshKeys.length, 'count', 2),
+        // Note: SshKeyLoad does not emit a new state because the list contents
+        // are identical to the previous state (Equatable prevents duplicate emissions)
       ],
     );
 

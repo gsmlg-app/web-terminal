@@ -1,7 +1,7 @@
 import 'package:app_database/app_database.dart';
 import 'package:bloc/bloc.dart';
 import 'package:drift/drift.dart';
-import 'package:meta/meta.dart';
+import 'package:equatable/equatable.dart';
 
 /// Re-export SshKey from app_database for convenience
 export 'package:app_database/app_database.dart' show SshKey, SshKeyAlgorithm;
@@ -15,7 +15,7 @@ part 'state.dart';
 class SshKeyBloc extends Bloc<SshKeyEvent, SshKeyState> {
   final AppDatabase database;
 
-  SshKeyBloc(this.database) : super(SshKeyInitial()) {
+  SshKeyBloc(this.database) : super(const SshKeyInitial()) {
     on<SshKeyLoad>((event, emit) async {
       final data = await database.select(database.sshKeys).get();
       emit(SshKeyLoaded(data));
