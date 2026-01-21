@@ -829,3 +829,22 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 77aefe4 - test(settings): add comprehensive tests for all settings sub-screens
 - Total new tests this iteration: 79
 - Total project tests: 3061+ (via melos run test)
+
+#### Iteration 24: Main App Infrastructure Tests ✓ COMPLETED
+- Added tests for 3 core app files (26 tests across 3 files in test/lib/):
+  - constant_test.dart (6 tests):
+    - Constant.appName: definition, value "Web Terminal"
+    - Constant.appDescription: definition, content verification (web-based terminal, shell commands)
+    - Class namespace verification
+  - destinations_test.dart (7 tests):
+    - Static constants: terminalScreenName, webTerminalScreenName, settingsScreenName
+    - Uniqueness verification
+    - Method references: navs, indexOf, changeHandler
+  - router_test.dart (13 tests):
+    - navigatorKey: GlobalKey<NavigatorState> type, debugLabel "routerKey"
+    - router: GoRouter instance, configuration verification
+    - routes: list non-empty, contains splash/error/terminal/web_terminal/settings routes
+    - Route verification: pageBuilder presence, name uniqueness
+- **Commit**: b10015e - test(lib): add tests for main app infrastructure files
+- Total new tests this iteration: 26
+- Total project tests: 3087+ (via melos run test)
