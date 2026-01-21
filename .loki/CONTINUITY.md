@@ -869,3 +869,21 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: c20f0cc - test(settings): add tests for setting config, route, and paint_logo
 - Total new tests this iteration: 46
 - Total project tests: 3133+ (via melos run test)
+
+#### Iteration 26: App Widget and Screen Tests ✓ COMPLETED
+- Added tests for App widget and expanded screen tests (17 tests across 3 files):
+  - app_test.dart (5 tests):
+    - App: const construction, key parameter, StatelessWidget verification
+    - Class existence and runtime type verification
+  - error_screen_test.dart (4 new static constant tests):
+    - ErrorScreen.name: 'Error' value verification
+    - ErrorScreen.path: '/error' value, absolute path check
+    - Name and path uniqueness
+  - splash_screen_test.dart (8 new static constant tests):
+    - SplashScreen.name: 'splash' value verification
+    - SplashScreen.path: '/splash' value, absolute path check
+    - Name/path relationship, StatefulWidget verification
+    - Const construction with/without key, createState verification
+- **Commit**: 1df5166 - test(app): add tests for App widget and expand screen tests
+- Total new tests this iteration: 17
+- Total project tests: 3150+ (via melos run test)
