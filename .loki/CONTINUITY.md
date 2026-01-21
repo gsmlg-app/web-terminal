@@ -1172,4 +1172,26 @@ Building a native-like shell experience on Android and iOS with:
   - README.md: Comprehensive documentation for AppTheme, ThemeModeExtension, and all theme classes
   - Documented all four pre-built themes (Violet, Green, Fire, Wheat) and DynamicTheme
 - Removed all TODO placeholders from package metadata files
+- **Commit**: dab5243 - docs(packages): update documentation for artwork, web_view, and theme packages
+
+#### Iteration 35 (continued): Core Package Documentation ✓ COMPLETED
+- Updated app_lib/security package documentation:
+  - README.md: Documented AesHelper, RsaKeyHelper, StringHelper with usage examples
+  - Covered encryption/decryption, key parsing, and secure random generation
+- Updated app_lib/utils package documentation:
+  - README.md: Documented GColorUtils, ColorShade enum, and PlatformExt class
+  - Covered color manipulation and platform detection utilities
+- Updated app_bloc/theme package documentation:
+  - README.md: Documented ThemeBloc, ThemeEvent, ThemeState with BlocProvider setup
+  - Covered SharedPreferences persistence and theme switching
+- Updated app_lib/locale package documentation:
+  - README.md: Documented AppLocale class with all 14 supported languages
+  - Covered BuildContext extension and l10n string access
+- Updated app_lib/ssh package documentation:
+  - README.md: Documented SSHClient, SFTP operations, port forwarding
+  - Covered authentication methods and supported algorithms
+- Updated third_party/flex_tabs package documentation:
+  - README.md: Documented TabItem, Tabs, TabsDocument classes
+  - Covered lifecycle callbacks and tab management
+- All 6 packages with TODO placeholders now have complete documentation
 - **Commit**: (pending)

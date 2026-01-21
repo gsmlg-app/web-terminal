@@ -1,39 +1,112 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Theme BLoC
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
-
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
-
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+A Flutter BLoC package for managing application theme and theme mode with SharedPreferences persistence.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- **Theme Management**: Change between pre-defined color themes (Violet, Green, Fire, Wheat)
+- **Theme Mode**: Switch between system, light, and dark modes
+- **Persistence**: Automatically saves preferences to SharedPreferences
+- **Initial State**: Restores saved theme preferences on startup
 
-## Getting started
+## Installation
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  theme_bloc:
+    path: ../app_bloc/theme
+```
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+### Setup with BlocProvider
 
 ```dart
-const like = 'sample';
+import 'package:theme_bloc/theme_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  runApp(
+    BlocProvider(
+      create: (_) => ThemeBloc(prefs),
+      child: MyApp(),
+    ),
+  );
+}
 ```
 
-## Additional information
+### Using ThemeBloc in MaterialApp
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ThemeBloc, ThemeState>(
+      builder: (context, state) {
+        return MaterialApp(
+          theme: state.theme.lightTheme,
+          darkTheme: state.theme.darkTheme,
+          themeMode: state.themeMode,
+          home: HomePage(),
+        );
+      },
+    );
+  }
+}
+```
+
+### Changing Theme
+
+```dart
+// Change color theme
+context.read<ThemeBloc>().add(ChangeTheme(GreenTheme()));
+
+// Change theme mode
+context.read<ThemeBloc>().add(ChangeThemeMode(ThemeMode.dark));
+```
+
+## Components
+
+### ThemeEvent
+
+Sealed class with two event types:
+
+| Event | Description |
+|-------|-------------|
+| `ChangeTheme(AppTheme)` | Switch to a different color theme |
+| `ChangeThemeMode(ThemeMode)` | Switch between system/light/dark |
+
+### ThemeState
+
+State containing current theme preferences.
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `theme` | `AppTheme` | Current color theme |
+| `themeMode` | `ThemeMode` | Current mode (system/light/dark) |
+
+### ThemeBloc
+
+BLoC that manages theme state and persistence.
+
+- Constructor: `ThemeBloc(SharedPreferences pref)`
+- Persists `themeName` and `themeMode` keys to SharedPreferences
+- Restores preferences via `ThemeState.initial(pref)` factory
+
+## Persistence Keys
+
+| Key | Value |
+|-----|-------|
+| `themeName` | Theme name string (e.g., "Violet", "Green") |
+| `themeMode` | Mode name string ("system", "light", "dark") |
+
+## Dependencies
+
+- `bloc` - BLoC state management
+- `equatable` - Value equality for state
+- `app_theme` - Theme definitions (AppTheme, themeList)
+- `shared_preferences` - Local storage persistence
