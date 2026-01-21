@@ -26,10 +26,12 @@ void main() {
       );
 
       // LogoGSMLGDEV contains a CustomPaint (Scaffold may have its own)
-      expect(find.descendant(
-        of: find.byType(LogoGSMLGDEV),
-        matching: find.byType(CustomPaint),
-      ), findsOneWidget);
+      expect(
+          find.descendant(
+            of: find.byType(LogoGSMLGDEV),
+            matching: find.byType(CustomPaint),
+          ),
+          findsOneWidget);
     });
 
     testWidgets('wraps in AspectRatio with 10:2 ratio', (tester) async {
