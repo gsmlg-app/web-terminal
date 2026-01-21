@@ -887,3 +887,19 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 1df5166 - test(app): add tests for App widget and expand screen tests
 - Total new tests this iteration: 17
 - Total project tests: 3150+ (via melos run test)
+
+#### Iteration 27: Shell Plugin Environment Tests ✓ COMPLETED
+- Added tests for Android and iOS shell plugin environment classes (41 tests across 2 files):
+  - android_shell_env_test.dart (26 tests):
+    - AndroidShellEnv singleton: instance identity, reset, isInitialized (3 tests)
+    - Path computation verification: usr, bin, etc, home, tmp, sh, profile (7 tests)
+    - Shell command structure: -c flag, sh shell, command chain pattern (3 tests)
+    - Environment variables: 10 expected keys (PREFIX, HOME, PATH, etc.) (11 tests)
+    - ProgressCallback typedef (2 tests)
+  - ios_shell_env_test.dart (15 tests):
+    - IosExecutionResult: construction, exitCode, stdout, stderr, success getter (10 tests)
+    - IosShellEnv singleton: instance identity, reset, isInitialized (3 tests)
+    - Shell command: shellPath='dash', getShellCommand returns tuple (2 tests)
+- **Commit**: 393e37d - test(plugins): add tests for Android and iOS shell environment classes
+- Total new tests this iteration: 41
+- Total project tests: 3191+ (via melos run test)
