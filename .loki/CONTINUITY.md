@@ -1415,3 +1415,25 @@ Building a native-like shell experience on Android and iOS with:
     - Property tests: label, placeholder, obscureText, onChanged, controller
 - Note: Used CupertinoApp wrapper instead of MacosApp to avoid native timer issues
 - **Commit**: 22ee417 - test(terminal_tabs): add comprehensive tests for macos_form.dart
+
+#### Iteration 42 (continued): AppLogger Tests ✓ COMPLETED
+- Added comprehensive tests for AppLogger class (21 tests):
+  - Singleton pattern tests (2 tests):
+    - Factory constructor returns same instance
+    - Instance is not null
+  - Initialization tests (4 tests):
+    - Default parameters, custom log level
+    - Stack trace disabled, all parameters combined
+  - LogStream tests (2 tests):
+    - Broadcast stream verification
+    - Multiple listeners support
+  - Logging method tests (6 tests):
+    - v(), d(), i(), w(), e(), f() with level verification
+  - Error/stack trace tests (3 tests):
+    - Error object, custom stack trace, both combined
+  - Log level filtering tests (2 tests):
+    - Filter logs below current level
+    - Include all logs when level is verbose
+  - LogRecord structure tests (2 tests):
+    - Logger name, timestamp verification
+- **Commit**: 75ae73e - test(logging): add comprehensive tests for AppLogger class
