@@ -706,3 +706,22 @@ Building a native-like shell experience on Android and iOS with:
 - Total new tests this iteration: 46 (19 + 27)
 - All packages now pass `melos run analyze` with zero warnings
 - Total project tests: 1028+ (accumulated across all packages)
+
+#### Iteration 18 (continued): terminal_tabs Shortcut Tests ✓ COMPLETED
+- Added 36 new tests for terminal_tabs shortcut/keyboard system:
+  - shortcuts_test.dart (23 tests):
+    - Platform-specific shortcuts (meta vs control modifiers)
+    - openSettings, openDevTools, openNewWindow, tabClose
+    - terminalCopy, terminalPaste, terminalSelectAll, toggleFullscreen
+    - Platform consistency validation
+  - shortcut_intents_test.dart (7 tests):
+    - NewWindowIntent: Intent extension, const constructible
+    - ToggleFullscreenIntent: Intent extension, const constructible
+    - Type distinction between intent classes
+  - global_shortcuts_test.dart (6 tests):
+    - GlobalShortcuts widget structure and child rendering
+    - Shortcut-to-Intent mapping verification
+- Fixed existing lint issues in target_platform_test.dart (unused variables)
+- **Commit**: 016c3a6 - test(terminal_tabs): add comprehensive tests for shortcuts and intents
+- Total new tests this iteration: 82 (46 + 36)
+- Total project tests: 1064+ (accumulated across all packages)
