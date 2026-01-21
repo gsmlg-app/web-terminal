@@ -1266,3 +1266,34 @@ Building a native-like shell experience on Android and iOS with:
     - Uniqueness tests: unique names and keySizes
     - MAC computation tests: output sizes, consistency, key differentiation
 - All tests pass via `melos run test`
+
+#### Iteration 39: xterm Buffer/Core Test Expansion ✓ COMPLETED
+- Expanded xterm buffer and core component test coverage:
+  - **tabs_test.dart** (app_widget/xterm/test/src/core/):
+    - Expanded from 5 tests to 25 tests
+    - Construction tests: default tab stops at 8 column intervals
+    - isSetAt() tests: position checking behavior
+    - setAt() tests: setting individual and multiple tab stops
+    - clearAt() tests: clearing tab stops at various positions
+    - clearAll() tests: clearing all tab stops
+    - reset() tests: restoring defaults after modifications
+    - find() tests: searching for tab stops in ranges
+    - Edge cases: high column indices, position 0 handling
+  - **segment_test.dart** (app_widget/xterm/test/src/core/buffer/):
+    - Expanded from 1 test to 59 tests
+    - CellOffset tests (30 tests):
+      - Construction: coordinate storage, zero values, const construction
+      - Comparison: isEqual, isBefore, isAfter, isBeforeOrSame, isAfterOrSame
+      - Position: isAtSameRow, isAtSameColumn
+      - toString() and equality/hashCode
+    - BufferSegment tests (13 tests):
+      - isWithin() for multi-line and single-line ranges
+      - Segment property tests: start, end, middle segments
+      - toString() and equality/hashCode
+    - BufferRangeLine tests (16 tests):
+      - Construction and coordinate storage
+      - isNormalized and isCollapsed behavior
+      - contains() for various positions
+      - toSegments() segment generation
+      - toString() and equality/hashCode
+- All 84 tests pass
