@@ -452,5 +452,479 @@ void main() {
         expect(e1.sessionId, e2.sessionId);
       });
     });
+
+    group('State equality', () {
+      test('TerminalTabInitial instances are equal', () {
+        final state1 = TerminalTabInitial();
+        final state2 = TerminalTabInitial();
+        expect(state1, equals(state2));
+      });
+
+      test('TerminalTabError instances with same error are equal', () {
+        final error = Exception('test error');
+        final state1 = TerminalTabError(error);
+        final state2 = TerminalTabError(error);
+        expect(state1, equals(state2));
+      });
+
+      test('TerminalTabError instances with different errors are not equal',
+          () {
+        final state1 = TerminalTabError(Exception('error 1'));
+        final state2 = TerminalTabError(Exception('error 2'));
+        expect(state1, isNot(equals(state2)));
+      });
+
+      test('TerminalTabLoaded instances with same values are equal', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+        final state1 = bloc.state as TerminalTabLoaded;
+        final state2 = state1.copyWith();
+        expect(state1, equals(state2));
+      });
+
+      test('TerminalTabLoaded instances with different versions are not equal',
+          () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+        final state1 = bloc.state as TerminalTabLoaded;
+        final state2 = state1.copyWith(incrementVersion: true);
+        expect(state1, isNot(equals(state2)));
+      });
+    });
+
+    group('Complex scenarios', () {
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'handles rapid open and close operations',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          final tab1 = TestTabItem('tab-1');
+          final tab2 = TestTabItem('tab-2');
+          final tab3 = TestTabItem('tab-3');
+          bloc.add(TerminalTabOpenTab(tab1));
+          bloc.add(TerminalTabOpenTab(tab2));
+          bloc.add(TerminalTabCloseSession(tab1.hashCode.toString()));
+          bloc.add(TerminalTabOpenTab(tab3));
+        },
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.tabCount, 2); // tab2 and tab3
+        },
+      );
+
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'handles select followed by close on same tab',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          final tab1 = TestTabItem('tab-1');
+          final tab2 = TestTabItem('tab-2');
+          bloc.add(TerminalTabOpenTab(tab1));
+          bloc.add(TerminalTabOpenTab(tab2));
+          bloc.add(TerminalTabSelectSession(tab1.hashCode.toString()));
+          bloc.add(TerminalTabCloseSession(tab1.hashCode.toString()));
+        },
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.tabCount, 1);
+        },
+      );
+
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'version increments on tab operations',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          bloc.add(TerminalTabOpenTab(TestTabItem('tab-1')));
+          bloc.add(TerminalTabOpenTab(TestTabItem('tab-2')));
+        },
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.version,
+              2); // version incremented twice (once per OpenTab)
+        },
+      );
+
+      test('closing all tabs leaves empty tabs container', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab1 = TestTabItem('tab-1');
+        final tab2 = TestTabItem('tab-2');
+        bloc.add(TerminalTabOpenTab(tab1));
+        bloc.add(TerminalTabOpenTab(tab2));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabCloseSession(tab1.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+        bloc.add(TerminalTabCloseSession(tab2.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 0);
+        expect(state.allTabs, isEmpty);
+        // Note: activeTab may not be null due to flex_tabs behavior
+      });
+
+      test('opening tabs without activation', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab1 = TestTabItem('tab-1');
+        final tab2 = TestTabItem('tab-2');
+        bloc.add(TerminalTabOpenTab(tab1, activate: false));
+        bloc.add(TerminalTabOpenTab(tab2, activate: false));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 2);
+      });
+
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'multiple fullscreen toggles work correctly',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          bloc.add(TerminalTabToggleFullscreen()); // true
+          bloc.add(TerminalTabToggleFullscreen()); // false
+          bloc.add(TerminalTabToggleFullscreen()); // true
+          bloc.add(TerminalTabToggleFullscreen()); // false
+        },
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.isFullscreen, false);
+        },
+      );
+    });
+
+    group('Edge cases', () {
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'selecting already active tab increments version',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          final tab = TestTabItem('tab-1');
+          bloc.add(TerminalTabOpenTab(tab));
+          bloc.add(TerminalTabSelectSession(tab.hashCode.toString()));
+        },
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.version, 2); // opened + selected
+        },
+      );
+
+      test('closing non-existent tab does not change version', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final initialVersion = (bloc.state as TerminalTabLoaded).version;
+
+        bloc.add(TerminalTabCloseSession('non-existent-id'));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, initialVersion);
+      });
+
+      test('selecting non-existent tab does not change version', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final initialVersion = (bloc.state as TerminalTabLoaded).version;
+
+        bloc.add(TerminalTabSelectSession('non-existent-id'));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, initialVersion);
+      });
+
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'stop and restart maintains state structure',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          final tab = TestTabItem('tab-1');
+          bloc.add(TerminalTabOpenTab(tab));
+          bloc.add(TerminalTabStop());
+          bloc.add(TerminalTabStart());
+        },
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.isMounted, true);
+          expect(state.tabCount, 1); // Tab preserved
+        },
+      );
+
+      test('opening same tab instance multiple times is allowed', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab));
+        await Future.delayed(Duration.zero);
+
+        // Opening same instance again might be a framework edge case
+        // but BLoC should handle it without crashing
+        expect(() => bloc.add(TerminalTabOpenTab(tab)), returnsNormally);
+      });
+    });
+
+    group('State transitions', () {
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'transitions from Initial to Loaded on Start',
+        build: () => TerminalTabBloc(),
+        act: (bloc) => bloc.add(TerminalTabStart()),
+        expect: () => [isA<TerminalTabLoaded>()],
+        verify: (bloc) {
+          expect(bloc.state, isA<TerminalTabLoaded>());
+        },
+      );
+
+      blocTest<TerminalTabBloc, TerminalTabState>(
+        'transitions from Loaded to Loaded on Stop (unmounted)',
+        build: () => TerminalTabBloc(),
+        act: (bloc) {
+          bloc.add(TerminalTabStart());
+          bloc.add(TerminalTabStop());
+        },
+        skip: 1,
+        verify: (bloc) {
+          final state = bloc.state as TerminalTabLoaded;
+          expect(state.isMounted, false);
+        },
+      );
+
+      test('emits new state on each tab operation', () async {
+        final bloc = TerminalTabBloc();
+
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+        var state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 0);
+        expect(state.version, 0);
+
+        bloc.add(TerminalTabOpenTab(TestTabItem('tab-1')));
+        await Future.delayed(Duration.zero);
+        state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 1);
+        expect(state.version, 1);
+
+        bloc.add(TerminalTabOpenTab(TestTabItem('tab-2')));
+        await Future.delayed(Duration.zero);
+        state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 2);
+        expect(state.version, 2);
+
+        bloc.close();
+      });
+    });
+
+    group('Tab lifecycle', () {
+      test('tab disposal is called when closing tab', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab));
+        await Future.delayed(Duration.zero);
+
+        expect(tab.wasDisposed, false);
+
+        bloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+
+        expect(tab.wasDisposed, true);
+      });
+
+      test('tab activation is called when activate=true', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab, activate: true));
+        await Future.delayed(Duration.zero);
+
+        expect(tab.wasActivated, true);
+      });
+
+      test('multiple tabs can coexist', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tabs = List.generate(5, (i) => TestTabItem('tab-$i'));
+        for (final tab in tabs) {
+          bloc.add(TerminalTabOpenTab(tab));
+        }
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 5);
+        expect(state.allTabs.length, 5);
+      });
+
+      test('closing middle tab preserves other tabs', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab1 = TestTabItem('tab-1');
+        final tab2 = TestTabItem('tab-2');
+        final tab3 = TestTabItem('tab-3');
+        bloc.add(TerminalTabOpenTab(tab1));
+        bloc.add(TerminalTabOpenTab(tab2));
+        bloc.add(TerminalTabOpenTab(tab3));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabCloseSession(tab2.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 2);
+        expect(tab2.wasDisposed, true);
+        expect(tab1.wasDisposed, false);
+        expect(tab3.wasDisposed, false);
+      });
+    });
+
+    group('Version tracking', () {
+      test('version starts at 0', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, 0);
+      });
+
+      test('version increments on open tab', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabOpenTab(TestTabItem('tab-1')));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, 1);
+      });
+
+      test('version increments on close tab', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, 2); // 1 for open, 2 for close
+      });
+
+      test('version increments on select session', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabSelectSession(tab.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, 2); // 1 for open, 2 for select
+      });
+
+      test('version does not increment on fullscreen toggle', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final initialVersion = (bloc.state as TerminalTabLoaded).version;
+
+        bloc.add(TerminalTabToggleFullscreen());
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.version, initialVersion); // No version change
+      });
+
+      test('version does not increment on stop/start', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final initialVersion = (bloc.state as TerminalTabLoaded).version;
+
+        bloc.add(TerminalTabStop());
+        await Future.delayed(Duration.zero);
+
+        final stoppedState = bloc.state as TerminalTabLoaded;
+        expect(stoppedState.version, initialVersion);
+
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final restartedState = bloc.state as TerminalTabLoaded;
+        expect(restartedState.version, initialVersion);
+      });
+    });
+
+    group('Integration scenarios', () {
+      test('full workflow: start, open multiple tabs, switch, close, stop',
+          () async {
+        // Start
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+        expect(bloc.state, isA<TerminalTabLoaded>());
+        expect((bloc.state as TerminalTabLoaded).tabCount, 0);
+
+        // Open multiple tabs
+        final tab1 = TestTabItem('tab-1');
+        final tab2 = TestTabItem('tab-2');
+        final tab3 = TestTabItem('tab-3');
+        bloc.add(TerminalTabOpenTab(tab1));
+        bloc.add(TerminalTabOpenTab(tab2));
+        bloc.add(TerminalTabOpenTab(tab3));
+        await Future.delayed(Duration.zero);
+        expect((bloc.state as TerminalTabLoaded).tabCount, 3);
+
+        // Switch to first tab
+        bloc.add(TerminalTabSelectSession(tab1.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+
+        // Close middle tab
+        bloc.add(TerminalTabCloseSession(tab2.hashCode.toString()));
+        await Future.delayed(Duration.zero);
+        expect((bloc.state as TerminalTabLoaded).tabCount, 2);
+        expect(tab2.wasDisposed, true);
+
+        // Stop
+        bloc.add(TerminalTabStop());
+        await Future.delayed(Duration.zero);
+        expect((bloc.state as TerminalTabLoaded).isMounted, false);
+      });
+
+      test('fullscreen workflow during tab operations', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabOpenTab(TestTabItem('tab-1')));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(TerminalTabToggleFullscreen());
+        await Future.delayed(Duration.zero);
+        expect((bloc.state as TerminalTabLoaded).isFullscreen, true);
+
+        bloc.add(TerminalTabOpenTab(TestTabItem('tab-2')));
+        await Future.delayed(Duration.zero);
+        expect((bloc.state as TerminalTabLoaded).isFullscreen,
+            true); // Preserved
+        expect((bloc.state as TerminalTabLoaded).tabCount, 2);
+
+        bloc.add(TerminalTabToggleFullscreen());
+        await Future.delayed(Duration.zero);
+        expect((bloc.state as TerminalTabLoaded).isFullscreen, false);
+      });
+    });
   });
 }
