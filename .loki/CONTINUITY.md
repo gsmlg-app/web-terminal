@@ -848,3 +848,24 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: b10015e - test(lib): add tests for main app infrastructure files
 - Total new tests this iteration: 26
 - Total project tests: 3087+ (via melos run test)
+
+#### Iteration 25: Internal Settings Configuration Tests ✓ COMPLETED
+- Added tests for 3 previously untested settings files (46 tests across 3 files):
+  - setting_config_test.dart (20 tests):
+    - SettingsScreenNames: all 10 screen name constants defined and verified
+    - Uniqueness: all 10 screen names unique
+    - rootSettingListConfig: RootSettingListConfig type, all 9 properties match SettingsScreenNames
+  - setting_route_test.dart (18 tests):
+    - settingRoute: GoRoute type, correct name/path from SettingsScreen
+    - 9 nested routes verified: names, paths, pageBuilders
+    - Route uniqueness: names and paths all unique
+    - Relative paths: nested routes don't start with slash
+  - paint_logo_test.dart (8 tests):
+    - LogoPainter: CustomPainter extension, instantiation
+    - shouldRepaint: returns true (always repaints)
+    - paint method: various sizes including zero and very small
+    - CustomPaint widget integration
+- Fixed dart:ui import for PictureRecorder class
+- **Commit**: c20f0cc - test(settings): add tests for setting config, route, and paint_logo
+- Total new tests this iteration: 46
+- Total project tests: 3133+ (via melos run test)
