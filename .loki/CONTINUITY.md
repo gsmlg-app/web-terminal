@@ -601,3 +601,42 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 569d293 - test(secure-storage): add comprehensive tests for SecureStorageVaultRepository
 - Total new tests this iteration: 42
 - Total project tests: 703+ (accumulated across all packages)
+
+#### Iteration 17: SSH Message Protocol Test Coverage Expansion ✓ COMPLETED
+- Added comprehensive tests for SSH message types (128 tests across 4 new files)
+  - msg_kex_test.dart (17 tests):
+    - SSH_Message_KexInit: messageId, constructor fields, default values (5 tests)
+    - Encode/decode round trip, first byte verification, cookie randomness (4 tests)
+    - Empty/single algorithm list handling, toString verification (4 tests)
+    - firstKexPacketFollows true/false encoding (2 tests)
+    - SSH_Message_NewKeys: messageId, encode, toString, instance equality (4 tests)
+    - Typical KEX usage scenarios: client/server exchange, newkeys signal (2 tests)
+  - msg_kex_dh_test.dart (24 tests):
+    - SSH_Message_KexDH_Init: messageId, constructor, encode/decode, toString (6 tests)
+    - SSH_Message_KexDH_Reply: messageId, fields, encode/decode, signature (7 tests)
+    - SSH_Message_KexDH_GexRequest: messageId, min/n/max values, encode/decode (3 tests)
+    - SSH_Message_KexDH_GexGroup: messageId, p/g BigInt encoding (3 tests)
+    - SSH_Message_KexDH_GexInit: messageId, e BigInt encoding (2 tests)
+    - SSH_Message_KexDH_GexReply: messageId, encode/decode with BigInt values (3 tests)
+  - msg_kex_ecdh_test.dart (31 tests):
+    - SSH_Message_KexECDH_Init: messageId, constructor, encode/decode (5 tests)
+    - SSH_Message_KexECDH_Init key sizes: curve25519, P-256, P-384, edge cases (7 tests)
+    - SSH_Message_KexECDH_Reply: messageId, constructor fields (5 tests)
+    - SSH_Message_KexECDH_Reply encode/decode: round trip, verification (7 tests)
+    - ECDH init/reply scenarios: key exchange flows (7 tests)
+  - msg_userauth_test.dart (56 tests):
+    - SSH_Message_Userauth_Request: messageId, password method, publickey method (8 tests)
+    - Keyboard-interactive and none methods (4 tests)
+    - Encode/decode with signature, toString format (3 tests)
+    - SSH_Message_Userauth_Failure: methods list, partial success flag (6 tests)
+    - SSH_Message_Userauth_Success: messageId, encode, toString (4 tests)
+    - SSH_Message_Userauth_Banner: message, language, multiline (5 tests)
+    - SSH_Message_Userauth_InfoRequest: name, instruction, prompts (8 tests)
+    - SSH_Message_Userauth_InfoResponse: responses list, empty responses (5 tests)
+    - SSH_Message_Userauth_Passwd_ChangeReq: prompt, language (4 tests)
+    - Typical userauth scenarios: password, publickey, keyboard-interactive (5 tests)
+    - Password change flow (2 tests)
+- Discovered encode/decode asymmetries in implementation (documented as test expectations)
+- **Commit**: pending
+- Total new tests this iteration: 128
+- Total project tests: 831+ (accumulated across all packages)
