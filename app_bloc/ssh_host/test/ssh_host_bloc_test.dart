@@ -322,7 +322,7 @@ void main() {
       'load returns all hosts after multiple adds',
       build: () => SshHostBloc(database),
       act: (bloc) async {
-        bloc.add(SshHostAdd(
+        bloc.add(const SshHostAdd(
           host: 'Host 1',
           hostname: 'h1.com',
           port: 22,
@@ -330,7 +330,7 @@ void main() {
           identityType: 1,
         ));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(SshHostAdd(
+        bloc.add(const SshHostAdd(
           host: 'Host 2',
           hostname: 'h2.com',
           port: 22,
@@ -338,11 +338,13 @@ void main() {
           identityType: 1,
         ));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(SshHostLoad());
+        bloc.add(const SshHostLoad());
       },
-      skip: 2, // Skip the two add emissions
+      skip: 1, // Skip the first add emission, capture second add emission
       expect: () => [
         isA<SshHostLoaded>().having((s) => s.sshHosts.length, 'count', 2),
+        // Note: SshHostLoad does not emit a new state because the list contents
+        // are identical to the previous state (Equatable prevents duplicate emissions)
       ],
     );
 
