@@ -116,9 +116,9 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                       if (identityType == SshIdentityType.password) {
                         return TextFieldBlocBuilder(
                           textFieldBloc: sshHostFormBloc.password,
-                          suffixButton: SuffixButton.clearText,
+                          suffixButton: SuffixButton.obscureText,
                           autofillHints: const [AutofillHints.password],
-                          obscureText: false,
+                          obscureText: true,
                           autocorrect: false,
                           enableSuggestions: false,
                           decoration: InputDecoration(
