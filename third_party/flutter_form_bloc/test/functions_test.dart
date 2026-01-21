@@ -56,11 +56,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: Column(
-              children: [
-                TextField(focusNode: focusNode),
-              ],
-            ),
+            body: Column(children: [TextField(focusNode: focusNode)]),
           ),
         ),
       );

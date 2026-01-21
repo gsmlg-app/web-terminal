@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Update CONTINUITY.md with progress"
+      "action": "Fix code formatting across packages"
     }
   }
 ]

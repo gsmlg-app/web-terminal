@@ -71,9 +71,7 @@ void main() {
           settingsListBackground: Colors.red,
           titleTextColor: Colors.blue,
         );
-        final copied = original.copyWith(
-          settingsListBackground: Colors.green,
-        );
+        final copied = original.copyWith(settingsListBackground: Colors.green);
 
         expect(copied.settingsListBackground, equals(Colors.green));
         expect(copied.titleTextColor, equals(Colors.blue));
@@ -111,9 +109,7 @@ void main() {
 
     group('merge', () {
       test('returns self when theme is null', () {
-        const original = SettingsThemeData(
-          settingsListBackground: Colors.red,
-        );
+        const original = SettingsThemeData(settingsListBackground: Colors.red);
         final merged = original.merge(theme: null);
 
         expect(merged.settingsListBackground, equals(Colors.red));
@@ -124,9 +120,7 @@ void main() {
           settingsListBackground: Colors.red,
           titleTextColor: Colors.blue,
         );
-        const other = SettingsThemeData(
-          settingsListBackground: Colors.green,
-        );
+        const other = SettingsThemeData(settingsListBackground: Colors.green);
         final merged = original.merge(theme: other);
 
         expect(merged.settingsListBackground, equals(Colors.green));
@@ -201,10 +195,7 @@ void main() {
 
       test('auto-detects platform when null', () {
         final colorScheme = ColorScheme.fromSeed(seedColor: Colors.blue);
-        final themeData = SettingsThemeData.withColorScheme(
-          colorScheme,
-          null,
-        );
+        final themeData = SettingsThemeData.withColorScheme(colorScheme, null);
 
         expect(themeData, isA<SettingsThemeData>());
       });
@@ -213,9 +204,7 @@ void main() {
 
   group('SettingsTheme', () {
     testWidgets('provides theme data to descendants', (tester) async {
-      const themeData = SettingsThemeData(
-        settingsListBackground: Colors.red,
-      );
+      const themeData = SettingsThemeData(settingsListBackground: Colors.red);
 
       late SettingsTheme? foundTheme;
 
@@ -235,10 +224,7 @@ void main() {
       );
 
       expect(foundTheme, isNotNull);
-      expect(
-        foundTheme!.themeData.settingsListBackground,
-        equals(Colors.red),
-      );
+      expect(foundTheme!.themeData.settingsListBackground, equals(Colors.red));
     });
 
     testWidgets('of throws assertion when no theme found', (tester) async {

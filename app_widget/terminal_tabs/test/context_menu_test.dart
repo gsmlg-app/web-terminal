@@ -55,12 +55,16 @@ void main() {
 
     test('tabs with children is accepted', () {
       final tabs = Tabs();
-      tabs.add(TabItem()
-        ..title.value = const Text('Tab 1')
-        ..content.value = const Text('Content 1'));
-      tabs.add(TabItem()
-        ..title.value = const Text('Tab 2')
-        ..content.value = const Text('Content 2'));
+      tabs.add(
+        TabItem()
+          ..title.value = const Text('Tab 1')
+          ..content.value = const Text('Content 1'),
+      );
+      tabs.add(
+        TabItem()
+          ..title.value = const Text('Tab 2')
+          ..content.value = const Text('Content 2'),
+      );
 
       final menu = DropdownContextMenu(tabs);
       expect(menu.tabs.children.length, equals(2));

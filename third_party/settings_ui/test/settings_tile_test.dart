@@ -59,10 +59,7 @@ void main() {
 
     test('stores value widget', () {
       const valueWidget = Text('Value');
-      final tile = SettingsTile(
-        title: const Text('Title'),
-        value: valueWidget,
-      );
+      final tile = SettingsTile(title: const Text('Title'), value: valueWidget);
       expect(tile.value, equals(valueWidget));
     });
 
@@ -269,7 +266,9 @@ void main() {
       );
     });
 
-    testWidgets('returns transparent check when checked is false', (tester) async {
+    testWidgets('returns transparent check when checked is false', (
+      tester,
+    ) async {
       final tile = SettingsTile.checkTile(
         title: const Text('Title'),
         checked: false,
@@ -431,7 +430,10 @@ void main() {
 
     test('stores key in navigation constructor', () {
       final key = UniqueKey();
-      final tile = SettingsTile.navigation(title: const Text('Title'), key: key);
+      final tile = SettingsTile.navigation(
+        title: const Text('Title'),
+        key: key,
+      );
       expect(tile.key, equals(key));
     });
 

@@ -53,10 +53,7 @@ void main() {
     });
 
     test('stores platform', () {
-      const list = SettingsList(
-        sections: [],
-        platform: DevicePlatform.android,
-      );
+      const list = SettingsList(sections: [], platform: DevicePlatform.android);
       expect(list.platform, equals(DevicePlatform.android));
     });
 
@@ -80,9 +77,7 @@ void main() {
     testWidgets('builds with empty sections', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SettingsList(sections: []),
-          ),
+          home: Scaffold(body: SettingsList(sections: [])),
         ),
       );
 
@@ -97,9 +92,7 @@ void main() {
               sections: [
                 SettingsSection(
                   title: const Text('Section 1'),
-                  tiles: [
-                    SettingsTile(title: const Text('Tile 1')),
-                  ],
+                  tiles: [SettingsTile(title: const Text('Tile 1'))],
                 ),
               ],
             ),
@@ -138,9 +131,7 @@ void main() {
     testWidgets('uses ListView internally', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SettingsList(sections: []),
-          ),
+          home: Scaffold(body: SettingsList(sections: [])),
         ),
       );
 
@@ -150,9 +141,7 @@ void main() {
     testWidgets('uses LayoutBuilder', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SettingsList(sections: []),
-          ),
+          home: Scaffold(body: SettingsList(sections: [])),
         ),
       );
 
@@ -165,10 +154,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: SettingsList(
-              sections: [],
-              contentPadding: customPadding,
-            ),
+            body: SettingsList(sections: [], contentPadding: customPadding),
           ),
         ),
       );
@@ -180,12 +166,7 @@ void main() {
     testWidgets('applies shrinkWrap to ListView', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: SettingsList(
-              sections: [],
-              shrinkWrap: true,
-            ),
-          ),
+          home: Scaffold(body: SettingsList(sections: [], shrinkWrap: true)),
         ),
       );
 
@@ -199,10 +180,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: SettingsList(
-              sections: [],
-              physics: physics,
-            ),
+            body: SettingsList(sections: [], physics: physics),
           ),
         ),
       );

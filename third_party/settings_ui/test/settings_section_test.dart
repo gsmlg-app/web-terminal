@@ -23,10 +23,7 @@ void main() {
 
     test('stores title widget', () {
       const titleWidget = Text('Section Title');
-      const section = SettingsSection(
-        tiles: [],
-        title: titleWidget,
-      );
+      const section = SettingsSection(tiles: [], title: titleWidget);
       expect(section.title, equals(titleWidget));
     });
 
@@ -37,10 +34,7 @@ void main() {
 
     test('stores margin', () {
       const margin = EdgeInsetsDirectional.all(16);
-      const section = SettingsSection(
-        tiles: [],
-        margin: margin,
-      );
+      const section = SettingsSection(tiles: [], margin: margin);
       expect(section.margin, equals(margin));
     });
 
@@ -64,9 +58,7 @@ void main() {
               platform: DevicePlatform.android,
               child: SettingsSection(
                 title: const Text('Test Section'),
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),
@@ -86,9 +78,7 @@ void main() {
               platform: DevicePlatform.iOS,
               child: SettingsSection(
                 title: const Text('Test Section'),
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),
@@ -108,9 +98,7 @@ void main() {
               platform: DevicePlatform.web,
               child: SettingsSection(
                 title: const Text('Test Section'),
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),
@@ -130,9 +118,7 @@ void main() {
               platform: DevicePlatform.linux,
               child: SettingsSection(
                 title: const Text('Test Section'),
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),
@@ -152,9 +138,7 @@ void main() {
               platform: DevicePlatform.macOS,
               child: SettingsSection(
                 title: const Text('Test Section'),
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),
@@ -174,9 +158,7 @@ void main() {
               platform: DevicePlatform.windows,
               child: SettingsSection(
                 title: const Text('Test Section'),
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),
@@ -219,9 +201,7 @@ void main() {
               themeData: const SettingsThemeData(),
               platform: DevicePlatform.android,
               child: SettingsSection(
-                tiles: [
-                  SettingsTile(title: const Text('Tile')),
-                ],
+                tiles: [SettingsTile(title: const Text('Tile'))],
               ),
             ),
           ),

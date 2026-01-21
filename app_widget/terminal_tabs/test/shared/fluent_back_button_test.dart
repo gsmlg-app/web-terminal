@@ -6,11 +6,7 @@ void main() {
   group('FluentBackButton', () {
     testWidgets('renders as a tappable button', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentBackButton(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentBackButton())),
       );
 
       expect(find.byType(FluentBackButton), findsOneWidget);
@@ -18,11 +14,7 @@ void main() {
 
     testWidgets('has back arrow icon', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentBackButton(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentBackButton())),
       );
 
       // Find Icon descendants within FluentBackButton
@@ -35,11 +27,7 @@ void main() {
 
     testWidgets('icon has size 14.0', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentBackButton(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentBackButton())),
       );
 
       final iconFinder = find.descendant(
@@ -55,9 +43,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
-            body: FluentBackButton(
-              onPressed: () => wasPressed = true,
-            ),
+            body: FluentBackButton(onPressed: () => wasPressed = true),
           ),
         ),
       );

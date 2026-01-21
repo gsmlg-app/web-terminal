@@ -9,11 +9,7 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: Column(
-              children: [
-                Text('Above'),
-                FluentFormDivider(),
-                Text('Below'),
-              ],
+              children: [Text('Above'), FluentFormDivider(), Text('Below')],
             ),
           ),
         ),
@@ -25,11 +21,7 @@ void main() {
 
     testWidgets('contains a Divider', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentFormDivider(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentFormDivider())),
       );
 
       // Find Divider within FluentFormDivider
@@ -52,11 +44,7 @@ void main() {
 
     testWidgets('uses Column to layout spacing and divider', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentFormDivider(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentFormDivider())),
       );
 
       final columnFinder = find.descendant(
@@ -71,9 +59,7 @@ void main() {
     testWidgets('renders header text', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: FluentFormHeader('Test Header'),
-          ),
+          home: Scaffold(body: FluentFormHeader('Test Header')),
         ),
       );
 
@@ -82,11 +68,7 @@ void main() {
 
     testWidgets('has 8 pixel spacing below header', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentFormHeader('Header'),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentFormHeader('Header'))),
       );
 
       final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
@@ -100,11 +82,7 @@ void main() {
 
     testWidgets('uses Column to layout text and spacing', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentFormHeader('Header'),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentFormHeader('Header'))),
       );
 
       expect(find.byType(Column), findsOneWidget);
@@ -139,9 +117,7 @@ void main() {
     testWidgets('supports special characters', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: FluentFormHeader('特殊字符 & Symbols!'),
-          ),
+          home: Scaffold(body: FluentFormHeader('特殊字符 & Symbols!')),
         ),
       );
 
@@ -152,11 +128,7 @@ void main() {
   group('FluentFormSeparator', () {
     testWidgets('renders SizedBox with height 8', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: FluentFormSeparator(),
-          ),
-        ),
+        const MaterialApp(home: Scaffold(body: FluentFormSeparator())),
       );
 
       final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
@@ -197,9 +169,7 @@ void main() {
       );
 
       // Find separator SizedBoxes (height 8, no width)
-      final separators = tester.widgetList<SizedBox>(
-        find.byType(SizedBox),
-      );
+      final separators = tester.widgetList<SizedBox>(find.byType(SizedBox));
       expect(separators.where((s) => s.height == 8.0).length, equals(2));
     });
   });

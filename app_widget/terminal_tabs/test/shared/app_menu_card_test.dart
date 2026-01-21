@@ -8,12 +8,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: AppMenuCard(
-              children: [
-                Text('Item 1'),
-                Text('Item 2'),
-              ],
-            ),
+            body: AppMenuCard(children: [Text('Item 1'), Text('Item 2')]),
           ),
         ),
       );
@@ -26,11 +21,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: Center(
-              child: AppMenuCard(
-                children: [Text('Short')],
-              ),
-            ),
+            body: Center(child: AppMenuCard(children: [Text('Short')])),
           ),
         ),
       );
@@ -40,7 +31,9 @@ void main() {
         of: find.byType(AppMenuCard),
         matching: find.byType(ConstrainedBox),
       );
-      final constrainedBox = tester.widget<ConstrainedBox>(constrainedBoxFinder);
+      final constrainedBox = tester.widget<ConstrainedBox>(
+        constrainedBoxFinder,
+      );
       expect(constrainedBox.constraints.minWidth, equals(250.0));
     });
 
@@ -66,10 +59,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: AppMenuCard(
-              bgColor: bgColor,
-              children: [Text('Content')],
-            ),
+            body: AppMenuCard(bgColor: bgColor, children: [Text('Content')]),
           ),
         ),
       );
@@ -102,10 +92,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: AppMenuCard(
-              padding: padding,
-              children: [Text('Content')],
-            ),
+            body: AppMenuCard(padding: padding, children: [Text('Content')]),
           ),
         ),
       );
@@ -141,11 +128,7 @@ void main() {
     testWidgets('uses Column with MainAxisSize.min', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: AppMenuCard(
-              children: [Text('Content')],
-            ),
-          ),
+          home: Scaffold(body: AppMenuCard(children: [Text('Content')])),
         ),
       );
 
@@ -156,11 +139,7 @@ void main() {
     testWidgets('uses CrossAxisAlignment.start for children', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: AppMenuCard(
-              children: [Text('Content')],
-            ),
-          ),
+          home: Scaffold(body: AppMenuCard(children: [Text('Content')])),
         ),
       );
 
@@ -168,15 +147,12 @@ void main() {
       expect(column.crossAxisAlignment, equals(CrossAxisAlignment.start));
     });
 
-    testWidgets('uses default vertical padding when not specified',
-        (tester) async {
+    testWidgets('uses default vertical padding when not specified', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: AppMenuCard(
-              children: [Text('Content')],
-            ),
-          ),
+          home: Scaffold(body: AppMenuCard(children: [Text('Content')])),
         ),
       );
 
@@ -187,15 +163,12 @@ void main() {
       );
     });
 
-    testWidgets('uses default border radius of 4 when not specified',
-        (tester) async {
+    testWidgets('uses default border radius of 4 when not specified', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: AppMenuCard(
-              children: [Text('Content')],
-            ),
-          ),
+          home: Scaffold(body: AppMenuCard(children: [Text('Content')])),
         ),
       );
 

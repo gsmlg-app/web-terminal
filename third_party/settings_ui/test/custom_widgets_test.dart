@@ -67,11 +67,7 @@ void main() {
     testWidgets('renders child widget', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: CustomSettingsTile(
-              child: Text('Custom Child'),
-            ),
-          ),
+          home: Scaffold(body: CustomSettingsTile(child: Text('Custom Child'))),
         ),
       );
 
@@ -85,12 +81,7 @@ void main() {
             body: CustomSettingsTile(
               child: Container(
                 color: Colors.blue,
-                child: const Column(
-                  children: [
-                    Text('Row 1'),
-                    Text('Row 2'),
-                  ],
-                ),
+                child: const Column(children: [Text('Row 1'), Text('Row 2')]),
               ),
             ),
           ),
@@ -154,9 +145,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: CustomSettingsSection(
-              child: Text('Section Content'),
-            ),
+            body: CustomSettingsSection(child: Text('Section Content')),
           ),
         ),
       );
@@ -207,8 +196,9 @@ void main() {
   });
 
   group('Integration', () {
-    testWidgets('CustomSettingsTile works in SettingsSection context',
-        (tester) async {
+    testWidgets('CustomSettingsTile works in SettingsSection context', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
@@ -226,8 +216,9 @@ void main() {
       expect(find.text('Custom Tile 2'), findsOneWidget);
     });
 
-    testWidgets('CustomSettingsSection works alongside other sections',
-        (tester) async {
+    testWidgets('CustomSettingsSection works alongside other sections', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(

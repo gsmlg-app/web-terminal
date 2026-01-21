@@ -9,18 +9,12 @@ void main() {
 
     test('leading value exists', () {
       expect(FieldBlocBuilderControlAffinity.leading, isNotNull);
-      expect(
-        FieldBlocBuilderControlAffinity.leading.name,
-        equals('leading'),
-      );
+      expect(FieldBlocBuilderControlAffinity.leading.name, equals('leading'));
     });
 
     test('trailing value exists', () {
       expect(FieldBlocBuilderControlAffinity.trailing, isNotNull);
-      expect(
-        FieldBlocBuilderControlAffinity.trailing.name,
-        equals('trailing'),
-      );
+      expect(FieldBlocBuilderControlAffinity.trailing.name, equals('trailing'));
     });
 
     test('leading index is 0', () {

@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 // Mock implementation for testing
-class MockClientInfoPlatform extends ClientInfoPlatform with MockPlatformInterfaceMixin {
+class MockClientInfoPlatform extends ClientInfoPlatform
+    with MockPlatformInterfaceMixin {
   Map<String, dynamic>? mockData;
   bool refreshCalled = false;
 

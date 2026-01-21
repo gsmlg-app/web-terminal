@@ -30,10 +30,7 @@ void main() {
     });
 
     test('can set custom alignment', () {
-      const item = FieldItem(
-        alignment: Alignment.center,
-        child: Text('Test'),
-      );
+      const item = FieldItem(alignment: Alignment.center, child: Text('Test'));
       expect(item.alignment, equals(Alignment.center));
     });
 
@@ -63,9 +60,7 @@ void main() {
     testWidgets('renders child widget', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: FieldItem(child: Text('Rendered Child')),
-          ),
+          home: Scaffold(body: FieldItem(child: Text('Rendered Child'))),
         ),
       );
 
@@ -75,9 +70,7 @@ void main() {
     testWidgets('uses Container with minimum height', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: FieldItem(child: Text('Test')),
-          ),
+          home: Scaffold(body: FieldItem(child: Text('Test'))),
         ),
       );
 
@@ -98,9 +91,7 @@ void main() {
     testWidgets('container uses centerStart alignment', (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
-          home: Scaffold(
-            body: FieldItem(child: Text('Test')),
-          ),
+          home: Scaffold(body: FieldItem(child: Text('Test'))),
         ),
       );
 
@@ -122,10 +113,7 @@ void main() {
                 FieldItem(child: Icon(Icons.star)),
                 FieldItem(
                   child: Row(
-                    children: const [
-                      Icon(Icons.person),
-                      Text('Name'),
-                    ],
+                    children: const [Icon(Icons.person), Text('Name')],
                   ),
                 ),
               ],

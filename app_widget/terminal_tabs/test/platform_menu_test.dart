@@ -94,9 +94,7 @@ void main() {
     });
 
     test('accepts Container widget as child', () {
-      final menu = GlobalPlatformMenu(
-        child: Container(color: Colors.blue),
-      );
+      final menu = GlobalPlatformMenu(child: Container(color: Colors.blue));
       expect(menu.child, isA<Container>());
     });
 

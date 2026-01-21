@@ -4,10 +4,10 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Commit CONTINUITY update",
+    "current_task": "Bash: Check staged changes",
     "status": "active",
     "spawned_at": "2026-01-21T03:47:17.839294Z",
     "tasks_completed": [],
-    "tool_count": 203
+    "tool_count": 213
   }
 ]

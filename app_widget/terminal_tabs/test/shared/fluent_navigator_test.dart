@@ -9,10 +9,7 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: FluentNavigatorCommandBar(
-              children: [
-                Text('Action 1'),
-                Text('Action 2'),
-              ],
+              children: [Text('Action 1'), Text('Action 2')],
             ),
           ),
         ),
@@ -26,9 +23,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: FluentNavigatorCommandBar(
-              children: [Text('Child')],
-            ),
+            body: FluentNavigatorCommandBar(children: [Text('Child')]),
           ),
         ),
       );
@@ -40,9 +35,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: FluentNavigatorCommandBar(
-              children: [Text('Child')],
-            ),
+            body: FluentNavigatorCommandBar(children: [Text('Child')]),
           ),
         ),
       );
@@ -55,9 +48,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: FluentNavigatorCommandBar(
-              children: [Text('Child')],
-            ),
+            body: FluentNavigatorCommandBar(children: [Text('Child')]),
           ),
         ),
       );
@@ -70,9 +61,7 @@ void main() {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
-            body: FluentNavigatorCommandBar(
-              children: [Text('Child')],
-            ),
+            body: FluentNavigatorCommandBar(children: [Text('Child')]),
           ),
         ),
       );
@@ -95,7 +84,10 @@ void main() {
 
     test('can have a key', () {
       final key = UniqueKey();
-      final commandBar = FluentNavigatorCommandBar(key: key, children: const []);
+      final commandBar = FluentNavigatorCommandBar(
+        key: key,
+        children: const [],
+      );
       expect(commandBar.key, equals(key));
     });
 
@@ -110,14 +102,8 @@ void main() {
           home: Scaffold(
             body: FluentNavigatorCommandBar(
               children: [
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text('Save'),
-                ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text('Cancel'),
-                ),
+                ElevatedButton(onPressed: () {}, child: const Text('Save')),
+                TextButton(onPressed: () {}, child: const Text('Cancel')),
               ],
             ),
           ),
@@ -167,10 +153,7 @@ void main() {
         const MaterialApp(
           home: Scaffold(
             body: FluentNavigatorCommandBar(
-              children: [
-                Icon(Icons.save),
-                Icon(Icons.close),
-              ],
+              children: [Icon(Icons.save), Icon(Icons.close)],
             ),
           ),
         ),
@@ -186,11 +169,7 @@ void main() {
           home: Scaffold(
             appBar: PreferredSize(
               preferredSize: Size.fromHeight(56),
-              child: FluentNavigatorCommandBar(
-                children: [
-                  Text('Actions'),
-                ],
-              ),
+              child: FluentNavigatorCommandBar(children: [Text('Actions')]),
             ),
             body: Text('Content'),
           ),

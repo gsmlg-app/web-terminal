@@ -125,9 +125,7 @@ void main() {
 
     group('getGroupFieldBlocContentPadding', () {
       test('adds top/bottom padding when visible', () {
-        const decoration = InputDecoration(
-          contentPadding: EdgeInsets.all(8),
-        );
+        const decoration = InputDecoration(contentPadding: EdgeInsets.all(8));
 
         final result = Style.getGroupFieldBlocContentPadding(
           isVisible: true,
@@ -145,9 +143,7 @@ void main() {
       });
 
       test('adds left padding when not visible', () {
-        const decoration = InputDecoration(
-          contentPadding: EdgeInsets.all(8),
-        );
+        const decoration = InputDecoration(contentPadding: EdgeInsets.all(8));
 
         final result = Style.getGroupFieldBlocContentPadding(
           isVisible: false,

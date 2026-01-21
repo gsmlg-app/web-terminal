@@ -73,21 +73,13 @@ void main() {
 
   group('PlaygroundView widget', () {
     testWidgets('renders Stack', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: PlaygroundView(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: PlaygroundView()));
 
       expect(find.byType(Stack), findsOneWidget);
     });
 
     testWidgets('renders SizedBox with 300x300', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: PlaygroundView(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: PlaygroundView()));
 
       final sizedBox = tester.widget<SizedBox>(find.byType(SizedBox));
       expect(sizedBox.width, equals(300));
@@ -95,11 +87,7 @@ void main() {
     });
 
     testWidgets('renders Hello text', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: PlaygroundView(),
-        ),
-      );
+      await tester.pumpWidget(const MaterialApp(home: PlaygroundView()));
 
       expect(find.text('Hello'), findsOneWidget);
     });

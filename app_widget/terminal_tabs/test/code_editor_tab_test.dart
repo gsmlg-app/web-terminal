@@ -17,11 +17,9 @@ class MockFile implements File {
   final String _basename;
   String _content;
 
-  MockFile({
-    String basename = 'test.js',
-    String content = _defaultJsContent,
-  })  : _basename = basename,
-        _content = content;
+  MockFile({String basename = 'test.js', String content = _defaultJsContent})
+    : _basename = basename,
+      _content = content;
 
   @override
   String get basename => _basename;
