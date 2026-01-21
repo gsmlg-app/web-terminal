@@ -219,7 +219,8 @@ void main() {
       final data = ClientInfoData.fromMap(map);
       final after = DateTime.now();
 
-      expect(data.timestamp.isAfter(before.subtract(const Duration(seconds: 1))),
+      expect(
+          data.timestamp.isAfter(before.subtract(const Duration(seconds: 1))),
           isTrue);
       expect(data.timestamp.isBefore(after.add(const Duration(seconds: 1))),
           isTrue);

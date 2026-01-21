@@ -4,10 +4,10 @@
     "tool_id": "orchestrator-main",
     "agent_type": "orchestrator",
     "model": "sonnet",
-    "current_task": "Bash: Check staged changes",
+    "current_task": "Bash: Stage files and check status",
     "status": "active",
-    "spawned_at": "2026-01-21T03:47:17.839294Z",
+    "spawned_at": "2026-01-21T06:36:28.316443Z",
     "tasks_completed": [],
-    "tool_count": 213
+    "tool_count": 34
   }
 ]

@@ -35,8 +35,8 @@ void main() {
 
     group('toString()', () {
       test('rsaSha1 returns correct format', () {
-        expect(
-            SSHHostkeyType.rsaSha1.toString(), equals('SSHHostkeyType(ssh-rsa)'));
+        expect(SSHHostkeyType.rsaSha1.toString(),
+            equals('SSHHostkeyType(ssh-rsa)'));
       });
 
       test('rsaSha256 returns correct format', () {

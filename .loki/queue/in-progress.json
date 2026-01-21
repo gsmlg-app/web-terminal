@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Fix code formatting across packages"
+      "action": "Commit analyzer fixes"
     }
   }
 ]

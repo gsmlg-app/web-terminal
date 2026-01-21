@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
-import 'package:flex_tabs/flex_tabs.dart';
 import 'package:web_terminal/screens/terminal/widgets/terminal_app_bar.dart';
 
 void main() {
   late TerminalTabBloc realBloc;
   late String? selectedSessionId;
   late bool localShellCalled;
-  late bool sshSessionCalled;
-  late bool sftpSessionCalled;
   late List<SessionInfo> testSessions;
   late String? closedSessionId;
 
@@ -18,8 +15,6 @@ void main() {
     realBloc = TerminalTabBloc();
     selectedSessionId = null;
     localShellCalled = false;
-    sshSessionCalled = false;
-    sftpSessionCalled = false;
     closedSessionId = null;
     testSessions = [
       SessionInfo(
@@ -62,8 +57,8 @@ void main() {
             sessions: sessions ?? testSessions,
             onSessionSelected: (id) => selectedSessionId = id,
             onNewLocalShell: () => localShellCalled = true,
-            onNewSshSession: () => sshSessionCalled = true,
-            onNewSftpSession: () => sftpSessionCalled = true,
+            onNewSshSession: () {},
+            onNewSftpSession: () {},
           ),
           body: const SizedBox(),
         ),

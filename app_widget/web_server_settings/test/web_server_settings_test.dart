@@ -81,7 +81,8 @@ void main() {
     });
 
     test('is StatelessWidget', () {
-      expect(const PendingSessionsBadge(child: SizedBox()), isA<StatelessWidget>());
+      expect(const PendingSessionsBadge(child: SizedBox()),
+          isA<StatelessWidget>());
     });
 
     test('requires child parameter', () {

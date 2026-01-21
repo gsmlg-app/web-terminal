@@ -51,13 +51,13 @@ void main() {
       });
 
       test('hmacSha256 returns correct format', () {
-        expect(
-            SSHMacType.hmacSha256.toString(), equals('SSHMacType(hmac-sha2-256)'));
+        expect(SSHMacType.hmacSha256.toString(),
+            equals('SSHMacType(hmac-sha2-256)'));
       });
 
       test('hmacSha512 returns correct format', () {
-        expect(
-            SSHMacType.hmacSha512.toString(), equals('SSHMacType(hmac-sha2-512)'));
+        expect(SSHMacType.hmacSha512.toString(),
+            equals('SSHMacType(hmac-sha2-512)'));
       });
     });
 

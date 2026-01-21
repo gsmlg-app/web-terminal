@@ -66,9 +66,11 @@ void main() {
 
     test('state stream emits initial state', () {
       final bloc = ConnectionBloc();
-      expect(bloc.stream, emitsInOrder([
-        // No additional states since no events are processed
-      ]));
+      expect(
+          bloc.stream,
+          emitsInOrder([
+            // No additional states since no events are processed
+          ]));
       bloc.close();
     });
 
