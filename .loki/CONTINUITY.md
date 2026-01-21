@@ -1060,3 +1060,37 @@ Building a native-like shell experience on Android and iOS with:
 - Total new tests this iteration: 148
 - Total test files: 205 (was 199)
 - Total project tests: 3564+ (via melos run test)
+
+#### Iteration 32: flutter_form_bloc Third-Party Package Tests ✓ COMPLETED
+- Added comprehensive tests for flutter_form_bloc third-party package (115 tests across 5 files):
+  - form_config_test.dart (4 tests):
+    - ScrollableFormTheme: has default values, const construction, custom values
+  - field_control_affinity_test.dart (6 tests):
+    - FieldBlocBuilderControlAffinity enum: 2 values (leading, trailing), indices 0/1, uniqueness
+  - to_string_test.dart (14 tests):
+    - ToString utility: class name, add() filters nulls, addNull() includes nulls, field formatting
+    - Multiple fields, check() conditional, toString() clears buffer, handles different types
+    - Custom class type names, empty ToString minimal output
+  - field_item_test.dart (17 tests):
+    - FieldItem: const construction, StatelessWidget, isEnabled default/custom
+    - Alignment default (centerStart), custom alignment, onTap callback, child/key storage
+    - Widget tests: renders child, Container with minHeight, alignment verification
+    - FieldItemBuilder typedef: function creation, produces correct FieldItem
+  - form_theme_test.dart (74 tests):
+    - FormTheme: defaults, sub-themes, defaultPadding, copyWith, toString, props (14 tests)
+    - CheckboxFieldTheme: defaults, canTapItemTile, controlAffinity, copyWith (9 tests)
+    - WrapChipFieldTheme: spacing/runSpacing defaults, copyWith, equality (9 tests)
+    - ChoiceChipFieldTheme: chipTheme, wrapTheme, copyWith (4 tests)
+    - FilterChipFieldTheme: chipTheme, wrapTheme defaults (3 tests)
+    - DateTimeFieldTheme: textAlign, showClearIcon, copyWith (6 tests)
+    - DropdownFieldTheme: textOverflow, maxLines, moreIcon, copyWith (6 tests)
+    - SliderFieldTheme: sliderTheme, props (3 tests)
+    - SwitchFieldTheme: switchTheme, controlAffinity, copyWith (4 tests)
+    - RadioFieldTheme: radioTheme, canTapItemTile, canDeselect, copyWith (7 tests)
+    - TextFieldTheme: textAlign, suggestionsTextStyle, copyWith (6 tests)
+- Fixed ToString test: static _indentingIndent variable persists between tests, adjusted expectation
+- flutter_form_bloc package went from 0 tests to 115 tests
+- **Commit**: e3f827a - test(flutter_form_bloc): add comprehensive tests for theme and utility classes (115 tests)
+- Total new tests this iteration: 115
+- Total test files: 210 (was 205)
+- Total project tests: 3679+ (via melos run test)
