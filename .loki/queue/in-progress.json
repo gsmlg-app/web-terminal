@@ -3,7 +3,7 @@
     "id": "todo-0",
     "type": "todo",
     "payload": {
-      "action": "Commit CONTINUITY.md update"
+      "action": "Run tests to verify all pass"
     }
   }
 ]

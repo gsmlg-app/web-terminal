@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "agent_id": "orchestrator-main",
+    "tool_id": "orchestrator-main",
+    "agent_type": "orchestrator",
+    "model": "sonnet",
+    "current_task": "Bash: Commit the fix",
+    "status": "active",
+    "spawned_at": "2026-01-21T06:56:41.000860Z",
+    "tasks_completed": [],
+    "tool_count": 62
+  },
+  {
+    "agent_id": "agent-toolu_01",
+    "tool_id": "toolu_01QQ68UYxA2akk88UTDx5zFp",
+    "agent_type": "Explore",
+    "model": "sonnet",
+    "current_task": "Find packages with low test coverage",
+    "status": "completed",
+    "spawned_at": "2026-01-21T07:06:15.993949Z",
+    "tasks_completed": [],
+    "completed_at": "2026-01-21T07:08:00.113574Z"
+  }
+]
