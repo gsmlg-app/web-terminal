@@ -23,7 +23,8 @@ void main() {
       // Verify constructor accepts required parameters
       expect(() {
         // Type check - if this compiles, the signature is correct
-        final pty = Pty.start as Pty Function(
+        // ignore: unused_local_variable
+        Pty Function(
           String executable, {
           List<String> arguments,
           String? workingDirectory,
@@ -31,7 +32,7 @@ void main() {
           int rows,
           int columns,
           bool ackRead,
-        });
+        }) pty = Pty.start;
         expect(pty, isNotNull);
       }, returnsNormally);
     });

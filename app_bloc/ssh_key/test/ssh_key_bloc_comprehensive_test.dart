@@ -1,21 +1,21 @@
-/// Comprehensive test suite for SshKeyBloc
-///
-/// This test file provides extensive coverage of edge cases, scenarios,
-/// and behaviors not covered in the basic ssh_key_bloc_test.dart file.
-///
-/// Test Categories:
-/// 1. Event Equatable Tests - Verify event equality behavior
-/// 2. State Equatable Tests - Verify state equality behavior
-/// 3. Database Persistence Tests - Verify data is correctly persisted to database
-/// 4. Complex Scenarios - Test rapid operations, concurrent adds, etc.
-/// 5. Edge Cases - Special characters, unicode, boundaries, null handling
-/// 6. Load Event Edge Cases - Multiple loads, empty database
-/// 7. State Immutability - Verify states are immutable and independent
-/// 8. Algorithm Enum Edge Cases - Verify all algorithm types
-/// 9. Encryption Edge Cases - Verify encryption/decryption edge cases
-/// 10. Error Handling - Verify error scenarios
-///
-/// Total: 54 additional comprehensive tests
+// Comprehensive test suite for SshKeyBloc
+//
+// This test file provides extensive coverage of edge cases, scenarios,
+// and behaviors not covered in the basic ssh_key_bloc_test.dart file.
+//
+// Test Categories:
+// 1. Event Equatable Tests - Verify event equality behavior
+// 2. State Equatable Tests - Verify state equality behavior
+// 3. Database Persistence Tests - Verify data is correctly persisted to database
+// 4. Complex Scenarios - Test rapid operations, concurrent adds, etc.
+// 5. Edge Cases - Special characters, unicode, boundaries, null handling
+// 6. Load Event Edge Cases - Multiple loads, empty database
+// 7. State Immutability - Verify states are immutable and independent
+// 8. Algorithm Enum Edge Cases - Verify all algorithm types
+// 9. Encryption Edge Cases - Verify encryption/decryption edge cases
+// 10. Error Handling - Verify error scenarios
+//
+// Total: 54 additional comprehensive tests
 
 import 'package:app_database/app_database.dart';
 import 'package:app_security/app_security.dart';
