@@ -757,4 +757,9 @@ Building a native-like shell experience on Android and iOS with:
 - Tests verify SettingsUI widget rendering
 - **Commit**: 9a4cc01 - test(terminal-settings): add comprehensive widget tests
 - Total new tests this sub-iteration: 14 (was 1 export test)
-- Total project tests: 1099+ (accumulated across all packages)
+
+#### Iteration 19 (continued): Code Formatting ✓ COMPLETED
+- Applied dart formatter across all packages (153 files)
+- Fixed formatting in app_bloc/, app_lib/, app_plugin/, app_widget/, third_party/
+- **Commit**: e387172 - style: apply dart formatter across all packages
+- Total project tests verified: 1802 (via melos run test)
