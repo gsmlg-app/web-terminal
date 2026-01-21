@@ -1333,3 +1333,38 @@ Building a native-like shell experience on Android and iOS with:
     - KeytabInputHandler tests: modifier code insertion, custom bindings, shift/alt/ctrl modifiers
     - TerminalKey enum tests: basic, arrow, function, numpad key existence
 - All 126 tests pass (86 parser + 40 handler)
+
+#### Iteration 41: SSH PEM and Destinations Test Expansion ✓ COMPLETED
+- Expanded SSHPem and Destinations test coverage:
+  - **ssh_pem_test.dart** (app_lib/ssh/test/src/):
+    - Expanded from 3 tests to 28 tests
+    - SSHPem.decode tests (17 tests):
+      - Basic decoding and type extraction
+      - Header parsing (single, multiple headers)
+      - Content decoding as Uint8List
+      - Error handling: missing BEGIN/END, invalid format
+      - Header/footer validation (ending dashes, type mismatch)
+      - Various PEM types: RSA PRIVATE KEY, PUBLIC KEY, CERTIFICATE
+      - Empty line skipping, header after body error
+    - SSHPem.encode tests (5 tests):
+      - Valid PEM format creation
+      - Roundtrip decode/encode
+      - Default and custom line length
+      - Empty content handling
+    - SSHPem constructor tests (3 tests):
+      - Type, headers, content storage
+    - SSHPem.toString tests (3 tests):
+      - Formatted string with type and length
+  - **destinations_test.dart** (test/lib/):
+    - Expanded from 7 tests to 27 tests
+    - Screen name constant tests (12 tests per constant):
+      - Definition, value, type, non-empty for each
+    - Uniqueness tests (4 tests):
+      - All names unique, pairwise comparisons
+    - Naming convention tests (2 tests):
+      - PascalCase validation, no spaces
+    - Method reference tests (6 tests):
+      - navs, indexOf, changeHandler existence and Function type
+    - Class tests (3 tests):
+      - Class existence, constants, methods
+- All 55 tests pass (28 ssh_pem + 27 destinations)
