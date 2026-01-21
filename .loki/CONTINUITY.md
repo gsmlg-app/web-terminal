@@ -812,3 +812,20 @@ Building a native-like shell experience on Android and iOS with:
 - **Commit**: 11c2c9c - test(screens): add comprehensive tests for terminal and web_terminal screens
 - Total new tests this iteration: 19
 - Total project tests: 2982 (via melos run test)
+
+#### Iteration 23: Settings Sub-Screen Tests ✓ COMPLETED
+- Added comprehensive tests for 8 additional settings screens (79 tests across 8 files):
+  - DeviceInfoScreen (8 tests in test/screens/settings/device_info_screen_test.dart)
+  - WifiInfoScreen (8 tests in test/screens/settings/wifi_info_screen_test.dart)
+  - SettingsSelectBrightness (10 tests in test/screens/settings/select_brightness_test.dart)
+  - SettingsSelectTheme (10 tests in test/screens/settings/select_theme_test.dart)
+  - TerminalEnvScreen (8 tests in test/screens/settings/terminal_env_screen_test.dart)
+  - SettingsHost (12 tests in test/screens/settings/host_management_test.dart)
+  - SettingsSSHKey (13 tests in test/screens/settings/ssh_key_management_test.dart)
+  - WebServerScreen (10 tests in test/screens/settings/web_server_screen_test.dart)
+- All tests verify static constants, construction, widget types, and routing conventions
+- Fixed import issue: SettingsScreenNames is defined in _setting_config.dart (local), not terminal_settings
+- Fixed test expectations: SettingsScreenNames values have spaces (e.g., 'Device Info' not 'DeviceInfo')
+- **Commit**: 77aefe4 - test(settings): add comprehensive tests for all settings sub-screens
+- Total new tests this iteration: 79
+- Total project tests: 3061+ (via melos run test)
