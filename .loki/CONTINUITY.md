@@ -1297,3 +1297,39 @@ Building a native-like shell experience on Android and iOS with:
       - toSegments() segment generation
       - toString() and equality/hashCode
 - All 84 tests pass
+
+#### Iteration 40: Escape Parser and Input Handler Test Expansion ✓ COMPLETED
+- Expanded xterm escape parser and input handler test coverage:
+  - **parser_test.dart** (app_widget/xterm/test/src/core/escape/):
+    - Expanded from 1 test to 86 tests
+    - Window manipulation tests: resize with various dimensions
+    - Cursor positioning tests: CUP, CHA, VPA with default and explicit values
+    - Cursor movement tests: CUU, CUD, CUF, CUB, CNL, CPL
+    - Erase operations tests: ED (0-3), EL (0-2), ECH
+    - Line operations tests: IL, DL, DCH, ICH
+    - Scroll operations tests: SU, SD
+    - Single byte controls tests: bell, backspace, tab, LF, CR
+    - Cursor save/restore tests: DECSC, DECRC
+    - Index operations tests: IND, NEL, RI
+    - Tab stop operations tests: HTS, TBC (0, 3)
+    - Device attributes tests: primary DA, secondary DA, DSR (5, 6)
+    - Margin operations tests: DECSTBM with and without params
+    - SGR text styling tests: bold, faint, italic, underline, blink, inverse, invisible, strikethrough
+    - SGR unset styling tests: SGR 21-29 for unsetting styles
+    - SGR foreground colors tests: 16-color, 256-color, RGB
+    - SGR background colors tests: 16-color, 256-color, RGB
+    - OSC tests: set title (OSC 0, 2), set icon name (OSC 1)
+    - DEC private modes tests: cursor keys, auto wrap, cursor visible, alt buffer, bracketed paste
+    - Character writing tests: single and multiple character output
+    - Repeat character tests: REP sequence
+  - **handler_test.dart** (app_widget/xterm/test/src/core/input/):
+    - Expanded from 2 tests to 40 tests
+    - Numpad keys tests: numpadEnter
+    - Basic keys tests: enter, backspace, tab, escape
+    - Arrow keys tests: up, down, left, right
+    - Navigation keys tests: home, end, page up/down, insert, delete
+    - Function keys tests: F1-F12
+    - Modifier combinations tests: ctrl+c, ctrl+d, ctrl+z, ctrl+a
+    - KeytabInputHandler tests: modifier code insertion, custom bindings, shift/alt/ctrl modifiers
+    - TerminalKey enum tests: basic, arrow, function, numpad key existence
+- All 126 tests pass (86 parser + 40 handler)
