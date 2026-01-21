@@ -91,9 +91,9 @@ void main() {
     group('all platforms', () {
       test('all TargetPlatform values can use extension', () {
         for (final platform in TargetPlatform.values) {
-          // Should not throw
-          final _ = platform.isApple;
-          final __ = platform.isDesktop;
+          // Should not throw - verify extension methods are callable
+          expect(() => platform.isApple, returnsNormally);
+          expect(() => platform.isDesktop, returnsNormally);
         }
       });
 
