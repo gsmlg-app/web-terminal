@@ -1,4 +1,5 @@
 import 'package:app_database/app_database.dart';
+import 'package:app_security/app_security.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
@@ -420,6 +421,194 @@ void main() {
       expect(SshKeyAlgorithm.values, contains(SshKeyAlgorithm.dsa));
       expect(SshKeyAlgorithm.values, contains(SshKeyAlgorithm.ecdsa));
       expect(SshKeyAlgorithm.values, contains(SshKeyAlgorithm.ed25519));
+    });
+  });
+
+  group('SshKeyEncryption extension', () {
+    // Test RSA key for encryption/decryption tests
+    const testRsaKey = '''-----BEGIN RSA PRIVATE KEY-----
+MIIEowIBAAKCAQEAov1z0QGXzUSklDfwrpI0x6gqv2+Cl7kMa9cKC2MTbNzzK2jX
+XSlwj8R4LyU3lyN2cgBuzw/sMDCg4bNdzjch0UlcTUXJS2UfraR3QMEZNIE8IaPR
+Bm81ntFw7YyVaymTPfdEFGi6xjVtHRoOdeBHxMYarXmkFzSX5EaaZODSvdF+FcPp
+0J1Q5QyosbIVy5HiYAhqdQ6o0y1tn2D25UdqelfFQtPsBpOBL+2ocxAKdWFBJxGo
+iHBtN0YcxfADarBBlN8bc9yj0MlsDcnEPsh7GPA6r9IZxcQsrbfR5Di6PSj50o3C
+ZKXu4l9Wa0Pgd5W0x72OSAcJBKt3HXxQWI0PPwIDAQABAoIBAH31bwaru3u3u5SL
+8qWGeeF+NaMB8yN7r3y7j5ijNYTg78+xUxY9Cy8fv1133pEfp86MRRYiEP5g5kPm
+UO0nsCvEDN/uuZRZjvSrcDmLwQXRhf3dUpEtanvVEfeSuHo7g/3UVDmNgiHhcfSW
+iWxRKkWIb1927Pe9/lA8u96P3G0x95XrCvsj1HNs20hvcbmYzKbcrLaMpVM4JDVw
+kgNGum1QtIgasNM3QiCJFv18B+vXaKGRr7ofFuQAOHI5C1kGkwpyGpXUftpnA+gg
+eLSJJ8kIrjekdiRK+dQCVcuMafD2OVOuac+UsRwfCe5qQ04E4G+GwTvGWqjY+Iib
+M7eAIqECgYEA16iTlJcetk+DV/HkEUamB1cMBI5dMBA5BPpHXDpdhCmIPXHfRCWK
+pmNaImE45jY2q+9+6NKPoPF8MISXYuzrFePe/INa9+B+IIRZH6o96IAmsxLM/z/4
+3Rp2RNf7zL0jiVxc2f+Hb41vpK2wsOtVPhMdt/UQR5ycluIcVqLkx1ECgYEAwXqy
+UT2a2dnnPH53JL9CP1mrtrZ9pxUf+N6oZOcXBLqbkfEJO78gwZFQq0N3XsJlp01y
+qnZAd1b+eSUO5x0ckb5ZUvyplEnpqLKG4kqvLSe9J6KWL8sprz5buDbxdc4vRQh4
+6HIRA2d5zkV7XBuUNgE16hMi9fVD3chYA0eJ6Y8CgYBFe1fJKQNJI8cif5nGgyec
+98u0cBXQFXn5g5WYPmnA2gy+F0Ei2KGaSCpTJ1XIvjDRJoGSC70g0oz7qMyJn+GC
+FP/UBZI6iMa6PUnlrNjzXs6ZJXaMypSo0AzI03maFloruGlmBzEgnMYanadu6PN2
+43vQuBE9sVS2PDV7KFJjcQKBgGbbrNrlzmIMpxMRBJQjnbuCF3i+UdS2tVWgQZPL
+CwC3mCchJlB+DpL5hxJVfquA23vy/4fB8AnB1O1glyik4GBW+rPUoO610KOfrXe2
+TqTJ4JSmqgNklZeVpjsr8ng3kge4NlcU9RiDNU1EwQ05mDSRtjDn1Yk+x8KrVKcB
+rD7fAoGBANC8E+Ke4UwROf2LMbRSwRo6H7kqY5w8fVFy12dltwP/Cljfa9Mcu+sc
+s9GNEAuOKFbXmdTEkqdHuSxpSKN2P8TlDtN7fujsj8GOLmAFbVX7hCsnKrLBbkMu
+sYU4huPrVyOUnVFWxC+SKwY2QtrNwrtp/5C1dhdsismX7EFZNGmd
+-----END RSA PRIVATE KEY-----''';
+
+    test('algorithmEnum returns correct enum for rsa', () {
+      final key = SshKey(
+        id: 1,
+        name: 'Test',
+        content: 'content',
+        password: null,
+        salt: 'salt',
+        algorithm: SshKeyAlgorithm.rsa.value,
+        createdAt: DateTime.now(),
+      );
+
+      expect(key.algorithmEnum, SshKeyAlgorithm.rsa);
+    });
+
+    test('algorithmEnum returns correct enum for ed25519', () {
+      final key = SshKey(
+        id: 1,
+        name: 'Test',
+        content: 'content',
+        password: null,
+        salt: 'salt',
+        algorithm: SshKeyAlgorithm.ed25519.value,
+        createdAt: DateTime.now(),
+      );
+
+      expect(key.algorithmEnum, SshKeyAlgorithm.ed25519);
+    });
+
+    test('algorithmEnum returns null for null algorithm', () {
+      final key = SshKey(
+        id: 1,
+        name: 'Test',
+        content: 'content',
+        password: null,
+        salt: 'salt',
+        algorithm: null,
+        createdAt: DateTime.now(),
+      );
+
+      expect(key.algorithmEnum, isNull);
+    });
+
+    test('algorithmEnum returns null for invalid algorithm', () {
+      final key = SshKey(
+        id: 1,
+        name: 'Test',
+        content: 'content',
+        password: null,
+        salt: 'salt',
+        algorithm: 999,
+        createdAt: DateTime.now(),
+      );
+
+      expect(key.algorithmEnum, isNull);
+    });
+
+    test('getPrivateKeyPem decrypts stored key', () {
+      const salt = 'test-encryption-salt';
+      final aesHelper = AesHelper('Web Terminal');
+      final encryptedContent = aesHelper.encrypt64WithSalt(testRsaKey, salt);
+
+      final key = SshKey(
+        id: 1,
+        name: 'Encrypted Key',
+        content: encryptedContent,
+        password: null,
+        salt: salt,
+        algorithm: SshKeyAlgorithm.rsa.value,
+        createdAt: DateTime.now(),
+      );
+
+      final decrypted = key.getPrivateKeyPem();
+      expect(decrypted, testRsaKey);
+    });
+
+    test('getPublicKeyPem returns SSH public key format', () {
+      const salt = 'test-pubkey-salt';
+      final aesHelper = AesHelper('Web Terminal');
+      final encryptedContent = aesHelper.encrypt64WithSalt(testRsaKey, salt);
+
+      final key = SshKey(
+        id: 1,
+        name: 'Key for pubkey',
+        content: encryptedContent,
+        password: null,
+        salt: salt,
+        algorithm: SshKeyAlgorithm.rsa.value,
+        createdAt: DateTime.now(),
+      );
+
+      final pubKey = key.getPublicKeyPem();
+      expect(pubKey, startsWith('ssh-rsa '));
+      expect(pubKey, contains('AAAAB3NzaC1yc2E'));
+    });
+
+    test('encryption roundtrip preserves key content', () {
+      const salt = 'roundtrip-salt';
+      final aesHelper = AesHelper('Web Terminal');
+      final encryptedContent = aesHelper.encrypt64WithSalt(testRsaKey, salt);
+
+      final key = SshKey(
+        id: 1,
+        name: 'Roundtrip Key',
+        content: encryptedContent,
+        password: null,
+        salt: salt,
+        algorithm: SshKeyAlgorithm.rsa.value,
+        createdAt: DateTime.now(),
+      );
+
+      final decrypted = key.getPrivateKeyPem();
+      expect(decrypted.trim(), testRsaKey.trim());
+      expect(decrypted, contains('BEGIN RSA PRIVATE KEY'));
+      expect(decrypted, contains('END RSA PRIVATE KEY'));
+    });
+
+    test('different salts produce different encrypted content', () {
+      final aesHelper = AesHelper('Web Terminal');
+      final encrypted1 = aesHelper.encrypt64WithSalt(testRsaKey, 'salt-1');
+      final encrypted2 = aesHelper.encrypt64WithSalt(testRsaKey, 'salt-2');
+
+      expect(encrypted1, isNot(equals(encrypted2)));
+    });
+
+    test('SshKey with null content handles gracefully', () {
+      final key = SshKey(
+        id: 1,
+        name: 'Null Content Key',
+        content: null,
+        password: null,
+        salt: 'salt',
+        algorithm: SshKeyAlgorithm.rsa.value,
+        createdAt: DateTime.now(),
+      );
+
+      // This should throw or return empty - testing the behavior
+      expect(() => key.getPrivateKeyPem(), throwsA(anything));
+    });
+
+    test('SshKey with null salt handles gracefully', () {
+      final aesHelper = AesHelper('Web Terminal');
+      final encryptedContent = aesHelper.encrypt64WithSalt(testRsaKey, 'original-salt');
+
+      final key = SshKey(
+        id: 1,
+        name: 'Null Salt Key',
+        content: encryptedContent,
+        password: null,
+        salt: null,
+        algorithm: SshKeyAlgorithm.rsa.value,
+        createdAt: DateTime.now(),
+      );
+
+      // Decryption with null salt should fail
+      expect(() => key.getPrivateKeyPem(), throwsA(anything));
     });
   });
 }
