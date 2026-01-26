@@ -27,19 +27,19 @@ from the a-shell project. Provides Unix command execution capabilities.
 
   # ios_system and related frameworks
   # These XCFrameworks should be downloaded and placed in the Frameworks directory
+  # Note: curl_ios requires libssh2 which is not available, so we exclude it
   s.vendored_frameworks = [
     'Frameworks/ios_system.xcframework',
     'Frameworks/shell.xcframework',
     'Frameworks/files.xcframework',
     'Frameworks/text.xcframework',
     'Frameworks/tar.xcframework',
-    'Frameworks/curl_ios.xcframework',
     'Frameworks/awk.xcframework'
   ]
 
   # Framework search paths
   s.xcconfig = {
     'FRAMEWORK_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/../.symlinks/plugins/ios_shell/ios/Frameworks"',
-    'OTHER_LDFLAGS' => '$(inherited) -framework ios_system -framework shell -framework files -framework text'
+    'OTHER_LDFLAGS' => '$(inherited) -framework ios_system -framework shell -framework files -framework text -framework tar -framework awk'
   }
 end
