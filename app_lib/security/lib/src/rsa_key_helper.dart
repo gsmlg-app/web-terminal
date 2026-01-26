@@ -57,7 +57,7 @@ class RsaKeyHelper {
   ///   algorithm       OBJECT IDENTIFIER,
   ///   parameters      ANY DEFINED BY algorithm OPTIONAL
   /// }
-  RSAPublicKey parsePublicKeyFromPem(pemString) {
+  RSAPublicKey parsePublicKeyFromPem(String pemString) {
     Uint8List publicKeyDER = decodePEM(pemString);
     var asn1Parser = ASN1Parser(publicKeyDER);
     var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
@@ -104,7 +104,7 @@ class RsaKeyHelper {
   ///
   /// Given a base64 encoded PEM [String] with correct headers and footers, return a
   /// [RSAPrivateKey]
-  RSAPrivateKey parsePrivateKeyFromPem(pemString) {
+  RSAPrivateKey parsePrivateKeyFromPem(String pemString) {
     Uint8List privateKeyDER = decodePEM(pemString);
     var asn1Parser = ASN1Parser(privateKeyDER);
     var topLevelSeq = asn1Parser.nextObject() as ASN1Sequence;
@@ -208,12 +208,12 @@ class RsaKeyHelper {
     final privateKey = parsePrivateKeyFromPem(privateKeyPem);
     final publicKey = publicKeyFromPrivateKey(privateKey);
     final parts = encodeRsaPublicKeyToSsh(publicKey);
-    return '$parts';
+    return parts;
   }
 
   String encodeRsaPublicKeyToSsh(RSAPublicKey publicKey) {
     // Helper function to encode a string with its length prefix
-    Uint8List _encodeString(List<int> value) {
+    Uint8List encodeString(List<int> value) {
       final length = value.length;
       final lengthBytes = Uint8List(4)
         ..buffer.asByteData().setUint32(0, length, Endian.big);
@@ -231,13 +231,13 @@ class RsaKeyHelper {
     final sshEncoded = <int>[];
 
     // Add the ssh-rsa header
-    sshEncoded.addAll(_encodeString(sshRsaHeader.codeUnits));
+    sshEncoded.addAll(encodeString(sshRsaHeader.codeUnits));
 
     // Add the exponent
-    sshEncoded.addAll(_encodeString(exponent));
+    sshEncoded.addAll(encodeString(exponent));
 
     // Add the modulus
-    sshEncoded.addAll(_encodeString(modulus));
+    sshEncoded.addAll(encodeString(modulus));
 
     // Base64 encode the result
     final base64Key = base64Encode(sshEncoded);

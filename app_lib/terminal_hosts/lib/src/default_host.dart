@@ -7,16 +7,36 @@ import 'package:terminal_hosts/src/local_spec.dart';
 
 /// Creates the default host specification for the current platform.
 ///
+/// [name] - Optional display name for the session tab.
+/// [environment] - Optional environment variables from shell profile.
+/// [initCommands] - Optional init commands (exports/aliases) to run on start.
+///
 /// Returns:
 /// - [AndroidHostSpec] on Android (sandboxed shell with bundled busybox)
 /// - [IosHostSpec] on iOS (ios_system framework from a-shell)
 /// - [LocalHostSpec] on all other platforms (macOS, Linux, Windows)
-HostSpec createDefaultHostSpec() {
+HostSpec createDefaultHostSpec({
+  String? name,
+  Map<String, String>? environment,
+  String? initCommands,
+}) {
   if (Platform.isAndroid) {
-    return AndroidHostSpec();
+    return AndroidHostSpec(
+      name: name ?? 'Android',
+      environment: environment ?? const {},
+      initCommands: initCommands,
+    );
   }
   if (Platform.isIOS) {
-    return IosHostSpec();
+    return IosHostSpec(
+      name: name ?? 'iOS',
+      environment: environment ?? const {},
+      initCommands: initCommands,
+    );
   }
-  return LocalHostSpec();
+  return LocalHostSpec(
+    name: name ?? 'Local',
+    environment: environment ?? const {},
+    initCommands: initCommands,
+  );
 }

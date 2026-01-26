@@ -12,6 +12,8 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabStop>(_onTerminalTabStop);
     on<TerminalTabOpenTab>(_onTerminalTabOpenTab);
     on<TerminalTabToggleFullscreen>(_onTerminalTabToggleFullscreen);
+    on<TerminalTabSelectSession>(_onTerminalTabSelectSession);
+    on<TerminalTabCloseSession>(_onTerminalTabCloseSession);
   }
 
   void _onTerminalTabStart(
@@ -63,5 +65,45 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
       final currentState = state as TerminalTabLoaded;
       emit(currentState.copyWith(isFullscreen: !currentState.isFullscreen));
     }
+  }
+
+  void _onTerminalTabSelectSession(
+    TerminalTabSelectSession event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is TerminalTabLoaded) {
+      final currentState = state as TerminalTabLoaded;
+      // Find the tab with matching ID and activate it
+      final tabItem = _findTabById(currentState.tabs, event.sessionId);
+      if (tabItem != null) {
+        tabItem.activate();
+        emit(currentState.copyWith(incrementVersion: true));
+      }
+    }
+  }
+
+  void _onTerminalTabCloseSession(
+    TerminalTabCloseSession event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is TerminalTabLoaded) {
+      final currentState = state as TerminalTabLoaded;
+      // Find and close the tab with matching ID
+      final tabItem = _findTabById(currentState.tabs, event.sessionId);
+      if (tabItem != null) {
+        tabItem.dispose();
+        emit(currentState.copyWith(incrementVersion: true));
+      }
+    }
+  }
+
+  /// Finds a TabItem by its hashCode string representation.
+  TabItem? _findTabById(Tabs tabs, String id) {
+    for (final child in tabs.children) {
+      if (child.hashCode.toString() == id) {
+        return child;
+      }
+    }
+    return null;
   }
 }

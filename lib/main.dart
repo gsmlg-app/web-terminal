@@ -12,7 +12,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_terminal/app.dart';
 import 'package:web_terminal/constant.dart';
 import 'package:app_database/app_database.dart';
-import 'package:connection_bloc/connection_bloc.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
@@ -20,6 +19,7 @@ import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
+import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -94,10 +94,7 @@ Future<void> main() async {
                 storage: context.read<FlutterSecureStorage>(),
                 namespace: 'terminal',
               ),
-            )..add(TerminalSettingsLoad()),
-          ),
-          BlocProvider<ConnectionBloc>(
-            create: (BuildContext context) => ConnectionBloc(),
+            )..add(const TerminalSettingsLoad()),
           ),
           BlocProvider<WebSessionBloc>(
             create: (BuildContext context) {
@@ -111,6 +108,9 @@ Future<void> main() async {
                 sharedPreferences: sharedPrefs,
               );
             },
+          ),
+          BlocProvider<ShellProfileBloc>(
+            create: (BuildContext context) => ShellProfileBloc(database),
           ),
         ],
         child: const App(),

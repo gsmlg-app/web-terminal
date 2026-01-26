@@ -26,12 +26,15 @@ dependencies:
   theme_bloc: any
   web_session_bloc: any
   terminal_settings_bloc: any
+  shell_profile_bloc: any
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   lint: ^2.0.1
+  shared_preferences: any
+  app_database: any
 
 flutter:
   uses-material-design: true

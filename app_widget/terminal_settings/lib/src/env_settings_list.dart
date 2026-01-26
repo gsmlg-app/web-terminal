@@ -35,7 +35,8 @@ class EnvSettingsList extends StatelessWidget {
                         icon: const Icon(Icons.delete_outline),
                         onPressed: () => _confirmDelete(context, key),
                       ),
-                      onPressed: (context) => _editEnvVar(context, key, envVars[key] ?? ''),
+                      onPressed: (context) =>
+                          _editEnvVar(context, key, envVars[key] ?? ''),
                     )),
                 SettingsTile(
                   leading: const Icon(Icons.add, color: Colors.green),
@@ -49,7 +50,8 @@ class EnvSettingsList extends StatelessWidget {
                 title: const Text('Actions'),
                 tiles: [
                   SettingsTile(
-                    leading: const Icon(Icons.delete_forever, color: Colors.red),
+                    leading:
+                        const Icon(Icons.delete_forever, color: Colors.red),
                     title: const Text('Clear All'),
                     onPressed: (context) => _confirmClearAll(context),
                   ),
@@ -70,8 +72,10 @@ class EnvSettingsList extends StatelessWidget {
     }
   }
 
-  Future<void> _editEnvVar(BuildContext context, String key, String value) async {
-    final result = await _showEnvVarDialog(context, key, value, isEditing: true);
+  Future<void> _editEnvVar(
+      BuildContext context, String key, String value) async {
+    final result =
+        await _showEnvVarDialog(context, key, value, isEditing: true);
     if (result != null && context.mounted) {
       // If key changed, remove old key first
       if (result.key != key) {
@@ -117,7 +121,8 @@ class EnvSettingsList extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Clear All Variables'),
-        content: const Text('Are you sure you want to delete all custom environment variables?'),
+        content: const Text(
+            'Are you sure you want to delete all custom environment variables?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

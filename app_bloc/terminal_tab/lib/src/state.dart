@@ -36,7 +36,17 @@ final class TerminalTabLoaded extends TerminalTabState {
   });
 
   @override
-  List<Object?> get props => [tabs, tabsDocument, isMounted, isFullscreen, version];
+  List<Object?> get props =>
+      [tabs, tabsDocument, isMounted, isFullscreen, version];
+
+  /// Returns the currently active TabItem, if any.
+  TabItem? get activeTab => tabs.activeTab;
+
+  /// Returns all TabItems in the tabs container.
+  List<TabItem> get allTabs => tabs.children.toList();
+
+  /// Returns the count of open tabs.
+  int get tabCount => allTabs.length;
 
   @override
   TerminalTabLoaded copyWith({

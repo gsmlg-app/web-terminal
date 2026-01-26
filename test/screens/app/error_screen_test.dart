@@ -18,7 +18,25 @@ class TestSplashScreen extends StatelessWidget {
 }
 
 void main() {
-  group('ErrorScreen Tests', () {
+  group('ErrorScreen static constants', () {
+    test('has correct static name', () {
+      expect(ErrorScreen.name, 'Error');
+    });
+
+    test('has correct static path', () {
+      expect(ErrorScreen.path, '/error');
+    });
+
+    test('path starts with slash (absolute path)', () {
+      expect(ErrorScreen.path.startsWith('/'), isTrue);
+    });
+
+    test('name and path are unique values', () {
+      expect(ErrorScreen.name, isNot(ErrorScreen.path));
+    });
+  });
+
+  group('ErrorScreen Widget Tests', () {
     late GoRouter router;
 
     setUp(() {
@@ -32,7 +50,7 @@ void main() {
           ),
           GoRoute(
             name: 'splash',
-            path: '/',
+            path: '/splash',
             builder: (context, state) => const TestSplashScreen(),
           ),
         ],
@@ -42,8 +60,6 @@ void main() {
     testWidgets('ErrorScreen renders correctly with error message', (
       WidgetTester tester,
     ) async {
-      const errorMessage = 'Test error message';
-
       await tester.pumpWidget(
         MaterialApp.router(
           routerConfig: router,

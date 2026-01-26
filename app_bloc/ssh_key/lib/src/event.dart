@@ -1,9 +1,15 @@
 part of 'bloc.dart';
 
-@immutable
-sealed class SshKeyEvent {}
+sealed class SshKeyEvent extends Equatable {
+  const SshKeyEvent();
 
-class SshKeyLoad extends SshKeyEvent {}
+  @override
+  List<Object?> get props => [];
+}
+
+class SshKeyLoad extends SshKeyEvent {
+  const SshKeyLoad();
+}
 
 class SshKeyAdd extends SshKeyEvent {
   final String? name;
@@ -12,17 +18,23 @@ class SshKeyAdd extends SshKeyEvent {
   final String? salt;
   final int? algorithm;
 
-  SshKeyAdd({
+  const SshKeyAdd({
     this.name,
     this.content,
     this.password,
     this.salt,
     this.algorithm,
   });
+
+  @override
+  List<Object?> get props => [name, content, password, salt, algorithm];
 }
 
 class SshKeyDelete extends SshKeyEvent {
   final SshKey sshKey;
 
-  SshKeyDelete(this.sshKey);
+  const SshKeyDelete(this.sshKey);
+
+  @override
+  List<Object?> get props => [sshKey];
 }

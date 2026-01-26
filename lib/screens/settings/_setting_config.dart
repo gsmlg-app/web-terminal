@@ -11,6 +11,7 @@ class SettingsScreenNames {
   static const selectBrightness = 'Select Brightness';
   static const selectTheme = 'Select Theme';
   static const webServer = 'web-server';
+  static const shellProfiles = 'Shell Profiles';
 }
 
 /// Shared configuration for RootSettingList navigation
@@ -23,4 +24,5 @@ const rootSettingListConfig = RootSettingListConfig(
   selectBrightnessScreenName: SettingsScreenNames.selectBrightness,
   selectThemeScreenName: SettingsScreenNames.selectTheme,
   webServerScreenName: SettingsScreenNames.webServer,
+  shellProfilesScreenName: SettingsScreenNames.shellProfiles,
 );

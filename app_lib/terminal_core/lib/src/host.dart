@@ -45,4 +45,8 @@ abstract class ExecutionSession {
   Stream<Uint8List> get output;
 
   Future<int> get exitCode;
+
+  /// Acknowledges that a data chunk from output has been processed.
+  /// This is used for flow control when backpressure is enabled.
+  void ackRead();
 }

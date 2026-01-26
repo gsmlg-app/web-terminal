@@ -10,6 +10,8 @@ This directory contains detailed documentation for the Flutter App Template proj
 | [BRICK_TESTING.md](BRICK_TESTING.md) | Guide for testing Mason bricks and validation |
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Error handling and logging system architecture |
 | [FORM_BLOC.md](FORM_BLOC.md) | Comprehensive guide for form management with BLoC pattern |
+| [TERMINAL.md](TERMINAL.md) | Terminal feature documentation - shell sessions, SSH, settings |
+| [IOS_SHELL_EMULATOR.md](IOS_SHELL_EMULATOR.md) | iOS shell emulator architecture, limitations, and roadmap |
 | [TESTING.md](TESTING.md) | Testing guide for running tests across the monorepo |
 | [USAGE.md](USAGE.md) | Error handling system usage and setup guide |
 
@@ -49,6 +51,23 @@ Guide for running tests across the Flutter monorepo using Melos:
 - CI/CD integration with GitHub Actions
 - Screen test coverage details
 - Writing widget and BLoC tests
+
+### TERMINAL.md
+Complete documentation for the terminal feature:
+- Shell screen architecture and components
+- Local shell on Android (busybox/Termux-style) and iOS (ios_system)
+- Remote SSH sessions with password and key-based authentication
+- Terminal settings (font, max shells, environment variables)
+- Performance and security considerations
+
+### IOS_SHELL_EMULATOR.md
+Detailed documentation for iOS shell emulator development:
+- Architecture overview and component diagram
+- How ios_system framework works without PTY support
+- Available commands and built-in shell commands
+- Known limitations (no job control, no interactive programs)
+- Development roadmap for future enhancements
+- Comparison with a-shell project
 
 ### USAGE.md
 Practical guide for setting up and using the error handling system:

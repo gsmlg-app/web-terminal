@@ -118,4 +118,9 @@ class _SSHExecutionSession implements ExecutionSession {
     await session.done;
     return session.exitCode ?? 0;
   }
+
+  @override
+  void ackRead() {
+    // SSH sessions don't use PTY backpressure, no-op
+  }
 }

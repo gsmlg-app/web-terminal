@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -7,6 +8,16 @@ import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/local_fs.dart';
 
 class LocalHost implements Host {
+  /// Additional environment variables from shell profile.
+  final Map<String, String> _profileEnvironment;
+
+  /// Optional init commands to run when shell starts.
+  final String? _initCommands;
+
+  LocalHost({Map<String, String> environment = const {}, String? initCommands})
+    : _profileEnvironment = environment,
+      _initCommands = initCommands;
+
   @override
   Future<ExecutionResult> execute(
     String executable, {
@@ -34,13 +45,29 @@ class LocalHost implements Host {
     Map<String, String>? environment,
   }) async {
     final shell = _platformShell;
+    final mergedEnv = {
+      ...Platform.environment,
+      ..._profileEnvironment,
+      ...environment ?? {},
+    };
     final pty = Pty.start(
       shell.command,
       arguments: shell.args,
-      environment: {...Platform.environment, ...environment ?? {}},
+      environment: mergedEnv,
       rows: height,
       columns: width,
+      ackRead: true, // Enable backpressure to prevent message queue flooding
     );
+
+    // Send init commands if provided (after a short delay for shell to start)
+    final initCmds = _initCommands;
+    if (initCmds != null && initCmds.isNotEmpty) {
+      // Wait briefly for shell prompt
+      Future.delayed(const Duration(milliseconds: 100), () {
+        pty.write(utf8.encode('$initCmds\n'));
+      });
+    }
+
     return LocalExecutionSession(pty);
   }
 
@@ -94,6 +121,11 @@ class LocalExecutionSession implements ExecutionSession {
   @override
   Future<void> write(Uint8List data) async {
     _pty.write(data);
+  }
+
+  @override
+  void ackRead() {
+    _pty.ackRead();
   }
 }
 

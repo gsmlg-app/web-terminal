@@ -917,16 +917,594 @@ class SshHostsCompanion extends UpdateCompanion<SshHost> {
   }
 }
 
+class $ShellProfilesTable extends ShellProfiles
+    with TableInfo<$ShellProfilesTable, ShellProfile> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ShellProfilesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _shellTypeMeta =
+      const VerificationMeta('shellType');
+  @override
+  late final GeneratedColumn<int> shellType = GeneratedColumn<int>(
+      'shell_type', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(1));
+  static const VerificationMeta _environmentVariablesMeta =
+      const VerificationMeta('environmentVariables');
+  @override
+  late final GeneratedColumn<String> environmentVariables =
+      GeneratedColumn<String>('environment_variables', aliasedName, false,
+          type: DriftSqlType.string,
+          requiredDuringInsert: false,
+          defaultValue: const Constant('{}'));
+  static const VerificationMeta _aliasesMeta =
+      const VerificationMeta('aliases');
+  @override
+  late final GeneratedColumn<String> aliases = GeneratedColumn<String>(
+      'aliases', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('{}'));
+  static const VerificationMeta _fontFamilyMeta =
+      const VerificationMeta('fontFamily');
+  @override
+  late final GeneratedColumn<String> fontFamily = GeneratedColumn<String>(
+      'font_family', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('monospace'));
+  static const VerificationMeta _fontSizeMeta =
+      const VerificationMeta('fontSize');
+  @override
+  late final GeneratedColumn<double> fontSize = GeneratedColumn<double>(
+      'font_size', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(14.0));
+  static const VerificationMeta _colorThemeMeta =
+      const VerificationMeta('colorTheme');
+  @override
+  late final GeneratedColumn<String> colorTheme = GeneratedColumn<String>(
+      'color_theme', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('default'));
+  static const VerificationMeta _isDefaultMeta =
+      const VerificationMeta('isDefault');
+  @override
+  late final GeneratedColumn<bool> isDefault = GeneratedColumn<bool>(
+      'is_default', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  static const VerificationMeta _updatedAtMeta =
+      const VerificationMeta('updatedAt');
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+      'updated_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        name,
+        shellType,
+        environmentVariables,
+        aliases,
+        fontFamily,
+        fontSize,
+        colorTheme,
+        isDefault,
+        createdAt,
+        updatedAt
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'shell_profiles';
+  @override
+  VerificationContext validateIntegrity(Insertable<ShellProfile> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('shell_type')) {
+      context.handle(_shellTypeMeta,
+          shellType.isAcceptableOrUnknown(data['shell_type']!, _shellTypeMeta));
+    }
+    if (data.containsKey('environment_variables')) {
+      context.handle(
+          _environmentVariablesMeta,
+          environmentVariables.isAcceptableOrUnknown(
+              data['environment_variables']!, _environmentVariablesMeta));
+    }
+    if (data.containsKey('aliases')) {
+      context.handle(_aliasesMeta,
+          aliases.isAcceptableOrUnknown(data['aliases']!, _aliasesMeta));
+    }
+    if (data.containsKey('font_family')) {
+      context.handle(
+          _fontFamilyMeta,
+          fontFamily.isAcceptableOrUnknown(
+              data['font_family']!, _fontFamilyMeta));
+    }
+    if (data.containsKey('font_size')) {
+      context.handle(_fontSizeMeta,
+          fontSize.isAcceptableOrUnknown(data['font_size']!, _fontSizeMeta));
+    }
+    if (data.containsKey('color_theme')) {
+      context.handle(
+          _colorThemeMeta,
+          colorTheme.isAcceptableOrUnknown(
+              data['color_theme']!, _colorThemeMeta));
+    }
+    if (data.containsKey('is_default')) {
+      context.handle(_isDefaultMeta,
+          isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(_updatedAtMeta,
+          updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ShellProfile map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ShellProfile(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      shellType: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}shell_type'])!,
+      environmentVariables: attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}environment_variables'])!,
+      aliases: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}aliases'])!,
+      fontFamily: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}font_family'])!,
+      fontSize: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}font_size'])!,
+      colorTheme: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color_theme'])!,
+      isDefault: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
+      updatedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated_at']),
+    );
+  }
+
+  @override
+  $ShellProfilesTable createAlias(String alias) {
+    return $ShellProfilesTable(attachedDatabase, alias);
+  }
+}
+
+class ShellProfile extends DataClass implements Insertable<ShellProfile> {
+  /// Primary key - auto increment
+  final int id;
+
+  /// Display name for the profile
+  final String name;
+
+  /// Shell type (1=sh, 2=bash, 3=zsh, 4=fish)
+  final int shellType;
+
+  /// Environment variables as JSON string (key-value pairs)
+  /// Example: {"TERM": "xterm-256color", "LANG": "en_US.UTF-8"}
+  final String environmentVariables;
+
+  /// Alias definitions as JSON string (name-command pairs)
+  /// Example: {"ll": "ls -la", "gs": "git status"}
+  final String aliases;
+
+  /// Font family for terminal display
+  final String fontFamily;
+
+  /// Font size for terminal display (in logical pixels)
+  final double fontSize;
+
+  /// Color theme name (references terminal theme)
+  final String colorTheme;
+
+  /// Whether this is the default profile for new sessions
+  final bool isDefault;
+
+  /// Creation timestamp
+  final DateTime? createdAt;
+
+  /// Last update timestamp
+  final DateTime? updatedAt;
+  const ShellProfile(
+      {required this.id,
+      required this.name,
+      required this.shellType,
+      required this.environmentVariables,
+      required this.aliases,
+      required this.fontFamily,
+      required this.fontSize,
+      required this.colorTheme,
+      required this.isDefault,
+      this.createdAt,
+      this.updatedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['name'] = Variable<String>(name);
+    map['shell_type'] = Variable<int>(shellType);
+    map['environment_variables'] = Variable<String>(environmentVariables);
+    map['aliases'] = Variable<String>(aliases);
+    map['font_family'] = Variable<String>(fontFamily);
+    map['font_size'] = Variable<double>(fontSize);
+    map['color_theme'] = Variable<String>(colorTheme);
+    map['is_default'] = Variable<bool>(isDefault);
+    if (!nullToAbsent || createdAt != null) {
+      map['created_at'] = Variable<DateTime>(createdAt);
+    }
+    if (!nullToAbsent || updatedAt != null) {
+      map['updated_at'] = Variable<DateTime>(updatedAt);
+    }
+    return map;
+  }
+
+  ShellProfilesCompanion toCompanion(bool nullToAbsent) {
+    return ShellProfilesCompanion(
+      id: Value(id),
+      name: Value(name),
+      shellType: Value(shellType),
+      environmentVariables: Value(environmentVariables),
+      aliases: Value(aliases),
+      fontFamily: Value(fontFamily),
+      fontSize: Value(fontSize),
+      colorTheme: Value(colorTheme),
+      isDefault: Value(isDefault),
+      createdAt: createdAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdAt),
+      updatedAt: updatedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(updatedAt),
+    );
+  }
+
+  factory ShellProfile.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ShellProfile(
+      id: serializer.fromJson<int>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      shellType: serializer.fromJson<int>(json['shellType']),
+      environmentVariables:
+          serializer.fromJson<String>(json['environmentVariables']),
+      aliases: serializer.fromJson<String>(json['aliases']),
+      fontFamily: serializer.fromJson<String>(json['fontFamily']),
+      fontSize: serializer.fromJson<double>(json['fontSize']),
+      colorTheme: serializer.fromJson<String>(json['colorTheme']),
+      isDefault: serializer.fromJson<bool>(json['isDefault']),
+      createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'name': serializer.toJson<String>(name),
+      'shellType': serializer.toJson<int>(shellType),
+      'environmentVariables': serializer.toJson<String>(environmentVariables),
+      'aliases': serializer.toJson<String>(aliases),
+      'fontFamily': serializer.toJson<String>(fontFamily),
+      'fontSize': serializer.toJson<double>(fontSize),
+      'colorTheme': serializer.toJson<String>(colorTheme),
+      'isDefault': serializer.toJson<bool>(isDefault),
+      'createdAt': serializer.toJson<DateTime?>(createdAt),
+      'updatedAt': serializer.toJson<DateTime?>(updatedAt),
+    };
+  }
+
+  ShellProfile copyWith(
+          {int? id,
+          String? name,
+          int? shellType,
+          String? environmentVariables,
+          String? aliases,
+          String? fontFamily,
+          double? fontSize,
+          String? colorTheme,
+          bool? isDefault,
+          Value<DateTime?> createdAt = const Value.absent(),
+          Value<DateTime?> updatedAt = const Value.absent()}) =>
+      ShellProfile(
+        id: id ?? this.id,
+        name: name ?? this.name,
+        shellType: shellType ?? this.shellType,
+        environmentVariables: environmentVariables ?? this.environmentVariables,
+        aliases: aliases ?? this.aliases,
+        fontFamily: fontFamily ?? this.fontFamily,
+        fontSize: fontSize ?? this.fontSize,
+        colorTheme: colorTheme ?? this.colorTheme,
+        isDefault: isDefault ?? this.isDefault,
+        createdAt: createdAt.present ? createdAt.value : this.createdAt,
+        updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
+      );
+  ShellProfile copyWithCompanion(ShellProfilesCompanion data) {
+    return ShellProfile(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      shellType: data.shellType.present ? data.shellType.value : this.shellType,
+      environmentVariables: data.environmentVariables.present
+          ? data.environmentVariables.value
+          : this.environmentVariables,
+      aliases: data.aliases.present ? data.aliases.value : this.aliases,
+      fontFamily:
+          data.fontFamily.present ? data.fontFamily.value : this.fontFamily,
+      fontSize: data.fontSize.present ? data.fontSize.value : this.fontSize,
+      colorTheme:
+          data.colorTheme.present ? data.colorTheme.value : this.colorTheme,
+      isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShellProfile(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('shellType: $shellType, ')
+          ..write('environmentVariables: $environmentVariables, ')
+          ..write('aliases: $aliases, ')
+          ..write('fontFamily: $fontFamily, ')
+          ..write('fontSize: $fontSize, ')
+          ..write('colorTheme: $colorTheme, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id,
+      name,
+      shellType,
+      environmentVariables,
+      aliases,
+      fontFamily,
+      fontSize,
+      colorTheme,
+      isDefault,
+      createdAt,
+      updatedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ShellProfile &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.shellType == this.shellType &&
+          other.environmentVariables == this.environmentVariables &&
+          other.aliases == this.aliases &&
+          other.fontFamily == this.fontFamily &&
+          other.fontSize == this.fontSize &&
+          other.colorTheme == this.colorTheme &&
+          other.isDefault == this.isDefault &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
+  final Value<int> id;
+  final Value<String> name;
+  final Value<int> shellType;
+  final Value<String> environmentVariables;
+  final Value<String> aliases;
+  final Value<String> fontFamily;
+  final Value<double> fontSize;
+  final Value<String> colorTheme;
+  final Value<bool> isDefault;
+  final Value<DateTime?> createdAt;
+  final Value<DateTime?> updatedAt;
+  const ShellProfilesCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.shellType = const Value.absent(),
+    this.environmentVariables = const Value.absent(),
+    this.aliases = const Value.absent(),
+    this.fontFamily = const Value.absent(),
+    this.fontSize = const Value.absent(),
+    this.colorTheme = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  ShellProfilesCompanion.insert({
+    this.id = const Value.absent(),
+    required String name,
+    this.shellType = const Value.absent(),
+    this.environmentVariables = const Value.absent(),
+    this.aliases = const Value.absent(),
+    this.fontFamily = const Value.absent(),
+    this.fontSize = const Value.absent(),
+    this.colorTheme = const Value.absent(),
+    this.isDefault = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : name = Value(name);
+  static Insertable<ShellProfile> custom({
+    Expression<int>? id,
+    Expression<String>? name,
+    Expression<int>? shellType,
+    Expression<String>? environmentVariables,
+    Expression<String>? aliases,
+    Expression<String>? fontFamily,
+    Expression<double>? fontSize,
+    Expression<String>? colorTheme,
+    Expression<bool>? isDefault,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (shellType != null) 'shell_type': shellType,
+      if (environmentVariables != null)
+        'environment_variables': environmentVariables,
+      if (aliases != null) 'aliases': aliases,
+      if (fontFamily != null) 'font_family': fontFamily,
+      if (fontSize != null) 'font_size': fontSize,
+      if (colorTheme != null) 'color_theme': colorTheme,
+      if (isDefault != null) 'is_default': isDefault,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  ShellProfilesCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? name,
+      Value<int>? shellType,
+      Value<String>? environmentVariables,
+      Value<String>? aliases,
+      Value<String>? fontFamily,
+      Value<double>? fontSize,
+      Value<String>? colorTheme,
+      Value<bool>? isDefault,
+      Value<DateTime?>? createdAt,
+      Value<DateTime?>? updatedAt}) {
+    return ShellProfilesCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      shellType: shellType ?? this.shellType,
+      environmentVariables: environmentVariables ?? this.environmentVariables,
+      aliases: aliases ?? this.aliases,
+      fontFamily: fontFamily ?? this.fontFamily,
+      fontSize: fontSize ?? this.fontSize,
+      colorTheme: colorTheme ?? this.colorTheme,
+      isDefault: isDefault ?? this.isDefault,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (shellType.present) {
+      map['shell_type'] = Variable<int>(shellType.value);
+    }
+    if (environmentVariables.present) {
+      map['environment_variables'] =
+          Variable<String>(environmentVariables.value);
+    }
+    if (aliases.present) {
+      map['aliases'] = Variable<String>(aliases.value);
+    }
+    if (fontFamily.present) {
+      map['font_family'] = Variable<String>(fontFamily.value);
+    }
+    if (fontSize.present) {
+      map['font_size'] = Variable<double>(fontSize.value);
+    }
+    if (colorTheme.present) {
+      map['color_theme'] = Variable<String>(colorTheme.value);
+    }
+    if (isDefault.present) {
+      map['is_default'] = Variable<bool>(isDefault.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShellProfilesCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('shellType: $shellType, ')
+          ..write('environmentVariables: $environmentVariables, ')
+          ..write('aliases: $aliases, ')
+          ..write('fontFamily: $fontFamily, ')
+          ..write('fontSize: $fontSize, ')
+          ..write('colorTheme: $colorTheme, ')
+          ..write('isDefault: $isDefault, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SshKeysTable sshKeys = $SshKeysTable(this);
   late final $SshHostsTable sshHosts = $SshHostsTable(this);
+  late final $ShellProfilesTable shellProfiles = $ShellProfilesTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [sshKeys, sshHosts];
+  List<DatabaseSchemaEntity> get allSchemaEntities =>
+      [sshKeys, sshHosts, shellProfiles];
 }
 
 typedef $$SshKeysTableCreateCompanionBuilder = SshKeysCompanion Function({
@@ -1544,6 +2122,265 @@ typedef $$SshHostsTableProcessedTableManager = ProcessedTableManager<
     (SshHost, $$SshHostsTableReferences),
     SshHost,
     PrefetchHooks Function({bool identityKeyId})>;
+typedef $$ShellProfilesTableCreateCompanionBuilder = ShellProfilesCompanion
+    Function({
+  Value<int> id,
+  required String name,
+  Value<int> shellType,
+  Value<String> environmentVariables,
+  Value<String> aliases,
+  Value<String> fontFamily,
+  Value<double> fontSize,
+  Value<String> colorTheme,
+  Value<bool> isDefault,
+  Value<DateTime?> createdAt,
+  Value<DateTime?> updatedAt,
+});
+typedef $$ShellProfilesTableUpdateCompanionBuilder = ShellProfilesCompanion
+    Function({
+  Value<int> id,
+  Value<String> name,
+  Value<int> shellType,
+  Value<String> environmentVariables,
+  Value<String> aliases,
+  Value<String> fontFamily,
+  Value<double> fontSize,
+  Value<String> colorTheme,
+  Value<bool> isDefault,
+  Value<DateTime?> createdAt,
+  Value<DateTime?> updatedAt,
+});
+
+class $$ShellProfilesTableFilterComposer
+    extends Composer<_$AppDatabase, $ShellProfilesTable> {
+  $$ShellProfilesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get shellType => $composableBuilder(
+      column: $table.shellType, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get environmentVariables => $composableBuilder(
+      column: $table.environmentVariables,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get aliases => $composableBuilder(
+      column: $table.aliases, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get fontFamily => $composableBuilder(
+      column: $table.fontFamily, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get fontSize => $composableBuilder(
+      column: $table.fontSize, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get colorTheme => $composableBuilder(
+      column: $table.colorTheme, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnFilters(column));
+}
+
+class $$ShellProfilesTableOrderingComposer
+    extends Composer<_$AppDatabase, $ShellProfilesTable> {
+  $$ShellProfilesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get shellType => $composableBuilder(
+      column: $table.shellType, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get environmentVariables => $composableBuilder(
+      column: $table.environmentVariables,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get aliases => $composableBuilder(
+      column: $table.aliases, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get fontFamily => $composableBuilder(
+      column: $table.fontFamily, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get fontSize => $composableBuilder(
+      column: $table.fontSize, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get colorTheme => $composableBuilder(
+      column: $table.colorTheme, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isDefault => $composableBuilder(
+      column: $table.isDefault, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+      column: $table.updatedAt, builder: (column) => ColumnOrderings(column));
+}
+
+class $$ShellProfilesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ShellProfilesTable> {
+  $$ShellProfilesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get shellType =>
+      $composableBuilder(column: $table.shellType, builder: (column) => column);
+
+  GeneratedColumn<String> get environmentVariables => $composableBuilder(
+      column: $table.environmentVariables, builder: (column) => column);
+
+  GeneratedColumn<String> get aliases =>
+      $composableBuilder(column: $table.aliases, builder: (column) => column);
+
+  GeneratedColumn<String> get fontFamily => $composableBuilder(
+      column: $table.fontFamily, builder: (column) => column);
+
+  GeneratedColumn<double> get fontSize =>
+      $composableBuilder(column: $table.fontSize, builder: (column) => column);
+
+  GeneratedColumn<String> get colorTheme => $composableBuilder(
+      column: $table.colorTheme, builder: (column) => column);
+
+  GeneratedColumn<bool> get isDefault =>
+      $composableBuilder(column: $table.isDefault, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$ShellProfilesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $ShellProfilesTable,
+    ShellProfile,
+    $$ShellProfilesTableFilterComposer,
+    $$ShellProfilesTableOrderingComposer,
+    $$ShellProfilesTableAnnotationComposer,
+    $$ShellProfilesTableCreateCompanionBuilder,
+    $$ShellProfilesTableUpdateCompanionBuilder,
+    (
+      ShellProfile,
+      BaseReferences<_$AppDatabase, $ShellProfilesTable, ShellProfile>
+    ),
+    ShellProfile,
+    PrefetchHooks Function()> {
+  $$ShellProfilesTableTableManager(_$AppDatabase db, $ShellProfilesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ShellProfilesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ShellProfilesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ShellProfilesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<int> shellType = const Value.absent(),
+            Value<String> environmentVariables = const Value.absent(),
+            Value<String> aliases = const Value.absent(),
+            Value<String> fontFamily = const Value.absent(),
+            Value<double> fontSize = const Value.absent(),
+            Value<String> colorTheme = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
+          }) =>
+              ShellProfilesCompanion(
+            id: id,
+            name: name,
+            shellType: shellType,
+            environmentVariables: environmentVariables,
+            aliases: aliases,
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            colorTheme: colorTheme,
+            isDefault: isDefault,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String name,
+            Value<int> shellType = const Value.absent(),
+            Value<String> environmentVariables = const Value.absent(),
+            Value<String> aliases = const Value.absent(),
+            Value<String> fontFamily = const Value.absent(),
+            Value<double> fontSize = const Value.absent(),
+            Value<String> colorTheme = const Value.absent(),
+            Value<bool> isDefault = const Value.absent(),
+            Value<DateTime?> createdAt = const Value.absent(),
+            Value<DateTime?> updatedAt = const Value.absent(),
+          }) =>
+              ShellProfilesCompanion.insert(
+            id: id,
+            name: name,
+            shellType: shellType,
+            environmentVariables: environmentVariables,
+            aliases: aliases,
+            fontFamily: fontFamily,
+            fontSize: fontSize,
+            colorTheme: colorTheme,
+            isDefault: isDefault,
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ));
+}
+
+typedef $$ShellProfilesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $ShellProfilesTable,
+    ShellProfile,
+    $$ShellProfilesTableFilterComposer,
+    $$ShellProfilesTableOrderingComposer,
+    $$ShellProfilesTableAnnotationComposer,
+    $$ShellProfilesTableCreateCompanionBuilder,
+    $$ShellProfilesTableUpdateCompanionBuilder,
+    (
+      ShellProfile,
+      BaseReferences<_$AppDatabase, $ShellProfilesTable, ShellProfile>
+    ),
+    ShellProfile,
+    PrefetchHooks Function()>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1552,4 +2389,6 @@ class $AppDatabaseManager {
       $$SshKeysTableTableManager(_db, _db.sshKeys);
   $$SshHostsTableTableManager get sshHosts =>
       $$SshHostsTableTableManager(_db, _db.sshHosts);
+  $$ShellProfilesTableTableManager get shellProfiles =>
+      $$ShellProfilesTableTableManager(_db, _db.shellProfiles);
 }

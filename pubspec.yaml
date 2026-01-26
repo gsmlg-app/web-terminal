@@ -21,6 +21,7 @@ workspace:
   - app_bloc/ssh_host
   - app_bloc/terminal_tab
   - app_bloc/terminal_settings
+  - app_bloc/shell_profile
   - app_bloc/web_session
   - app_lib/web_server
   - app_widget/adaptive
@@ -110,11 +111,11 @@ dependencies:
   app_theme: any
   app_locale: any
   theme_bloc: any
-  connection_bloc: any
   ssh_key_bloc: any
   ssh_host_bloc: any
   terminal_tab_bloc: any
   terminal_settings_bloc: any
+  shell_profile_bloc: any
   app_artwork: any
   app_client_info: any
   app_feedback: any
@@ -144,8 +145,12 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  integration_test:
+    sdk: flutter
   test: ^1.26.3
   analyzer: any
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.0
 
   flutter_lints: ^6.0.0
 

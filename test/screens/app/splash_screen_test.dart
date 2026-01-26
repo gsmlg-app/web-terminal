@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:web_terminal/screens/splash/splash_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -39,7 +37,47 @@ class TestSplashScreen extends StatelessWidget {
 }
 
 void main() {
-  group('SplashScreen Tests', () {
+  group('SplashScreen static constants', () {
+    test('has correct static name', () {
+      expect(SplashScreen.name, 'splash');
+    });
+
+    test('has correct static path', () {
+      expect(SplashScreen.path, '/splash');
+    });
+
+    test('path starts with slash (absolute path)', () {
+      expect(SplashScreen.path.startsWith('/'), isTrue);
+    });
+
+    test('name and path are related', () {
+      expect(SplashScreen.path, contains(SplashScreen.name));
+    });
+
+    test('is a StatefulWidget', () {
+      const screen = SplashScreen();
+      expect(screen, isA<StatefulWidget>());
+    });
+
+    test('can be const constructed', () {
+      const screen = SplashScreen();
+      expect(screen, isA<SplashScreen>());
+    });
+
+    test('can be const constructed with key', () {
+      const screen = SplashScreen(key: Key('splash'));
+      expect(screen.key, const Key('splash'));
+    });
+
+    test('createState returns State', () {
+      const screen = SplashScreen();
+      final state = screen.createState();
+      expect(state, isNotNull);
+      expect(state, isA<State<SplashScreen>>());
+    });
+  });
+
+  group('SplashScreen Widget Tests', () {
     testWidgets('SplashScreen renders correctly with logo container', (
       WidgetTester tester,
     ) async {
@@ -54,8 +92,10 @@ void main() {
     testWidgets('uses correct screen dimensions for logo container', (
       WidgetTester tester,
     ) async {
-      tester.binding.window.physicalSizeTestValue = const Size(800, 600);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
+      tester.view.physicalSize = const Size(800, 600);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(MaterialApp(home: const TestSplashScreen()));
 
@@ -69,8 +109,10 @@ void main() {
     testWidgets('handles landscape orientation correctly', (
       WidgetTester tester,
     ) async {
-      tester.binding.window.physicalSizeTestValue = const Size(1200, 800);
-      tester.binding.window.devicePixelRatioTestValue = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
 
       await tester.pumpWidget(MaterialApp(home: const TestSplashScreen()));
 

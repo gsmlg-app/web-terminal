@@ -4,12 +4,17 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
+import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
-  final terminal = Terminal(maxLines: 10000);
+  final terminal = Terminal(
+    maxLines: 10000,
+    batchWrites: true, // Enable write batching for better performance
+  );
 
   final terminalController = TerminalController();
 
@@ -51,27 +56,34 @@ class TerminalPlugin extends Plugin {
   void didConnected() async {
     title.value = 'Terminal';
 
-    session = await host.shell(
-      width: terminal.viewWidth,
-      height: terminal.viewHeight,
-    );
+    try {
+      session = await host.shell(
+        width: terminal.viewWidth,
+        height: terminal.viewHeight,
+      );
 
-    // Add welcome message
-    terminal.write('\r\nWelcome to Web Terminal!\r\n');
-    terminal
-        .write('Type "help" for available commands or start typing...\r\n\r\n');
+      // Add welcome message
+      terminal.write('\r\nWelcome to Web Terminal!\r\n');
+      terminal
+          .write('Type "help" for available commands or start typing...\r\n\r\n');
 
-    session!.output
-        .cast<List<int>>()
-        .transform(const Utf8Decoder())
-        .listen(terminal.write);
+      session!.output
+          .cast<List<int>>()
+          .transform(const Utf8Decoder())
+          .listen((data) {
+        terminal.write(data);
+        session?.ackRead(); // Acknowledge read for flow control
+      });
 
-    session!.exitCode.then((code) {
-      session = null;
-      if (mounted) {
-        manager.remove(this);
-      }
-    });
+      session!.exitCode.then((code) {
+        session = null;
+        if (mounted) {
+          manager.remove(this);
+        }
+      });
+    } catch (e) {
+      terminal.write('\r\n\x1b[31mError: Failed to start shell: $e\x1b[0m\r\n');
+    }
   }
 
   @override
@@ -113,21 +125,43 @@ class TerminalTabView extends StatefulWidget {
 
 class _TerminalTabViewState extends State<TerminalTabView> {
   @override
+  void dispose() {
+    widget.plugin.terminal.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      key: ValueKey(widget.plugin),
-      backgroundColor: Colors.transparent,
-      child: SafeArea(
-        child: ClipRect(
-          child: TerminalView(
-            widget.plugin.terminal,
-            controller: widget.plugin.terminalController,
-            onSecondaryTapDown: (_, __) => showMenu(),
-            backgroundOpacity: 0.8,
-            autofocus: true,
+    return BlocBuilder<TerminalSettingsBloc, TerminalSettingsState>(
+      builder: (context, state) {
+        // Get font settings from state or use defaults
+        final fontSize = state is TerminalSettingsLoaded
+            ? state.fontSize
+            : kTerminalDefaultFontSize;
+        final fontFamily = state is TerminalSettingsLoaded
+            ? state.fontFamily
+            : kTerminalDefaultFontFamily;
+
+        return CupertinoPageScaffold(
+          key: ValueKey(widget.plugin),
+          backgroundColor: Colors.transparent,
+          child: SafeArea(
+            child: ClipRect(
+              child: TerminalView(
+                widget.plugin.terminal,
+                controller: widget.plugin.terminalController,
+                onSecondaryTapDown: (_, __) => showMenu(),
+                backgroundOpacity: 0.8,
+                autofocus: true,
+                textStyle: TerminalStyle(
+                  fontSize: fontSize,
+                  fontFamily: fontFamily,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

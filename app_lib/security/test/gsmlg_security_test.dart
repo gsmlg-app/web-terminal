@@ -3,6 +3,95 @@ import 'package:pointycastle/asymmetric/api.dart';
 import 'package:test/test.dart';
 
 void main() {
+  group('StringHelper', () {
+    group('randomString', () {
+      test('generates string of specified length', () {
+        expect(StringHelper.randomString(10).length, 10);
+        expect(StringHelper.randomString(0).length, 0);
+        expect(StringHelper.randomString(100).length, 100);
+      });
+
+      test('generates alphanumeric characters only', () {
+        final result = StringHelper.randomString(1000);
+        final pattern = RegExp(r'^[a-zA-Z0-9]+$');
+        expect(pattern.hasMatch(result), isTrue);
+      });
+
+      test('generates different strings each time', () {
+        final results = <String>{};
+        for (var i = 0; i < 100; i++) {
+          results.add(StringHelper.randomString(20));
+        }
+        // Very high probability all are unique
+        expect(results.length, 100);
+      });
+
+      test('generates empty string for length 0', () {
+        expect(StringHelper.randomString(0), '');
+      });
+
+      test('contains both uppercase and lowercase over many iterations', () {
+        final result = StringHelper.randomString(1000);
+        final hasUpper = result.contains(RegExp(r'[A-Z]'));
+        final hasLower = result.contains(RegExp(r'[a-z]'));
+        final hasDigit = result.contains(RegExp(r'[0-9]'));
+
+        // With 1000 chars, extremely likely to have all types
+        expect(hasUpper, isTrue);
+        expect(hasLower, isTrue);
+        expect(hasDigit, isTrue);
+      });
+    });
+
+    group('randomAscii', () {
+      test('generates string of specified length', () {
+        expect(StringHelper.randomAscii(10).length, 10);
+        expect(StringHelper.randomAscii(0).length, 0);
+        expect(StringHelper.randomAscii(100).length, 100);
+      });
+
+      test('generates printable ASCII characters only', () {
+        final result = StringHelper.randomAscii(1000);
+        for (var i = 0; i < result.length; i++) {
+          final code = result.codeUnitAt(i);
+          // ASCII printable range: 33-126 (excludes space at 32)
+          expect(code, greaterThanOrEqualTo(33));
+          expect(code, lessThanOrEqualTo(126));
+        }
+      });
+
+      test('generates different strings each time', () {
+        final results = <String>{};
+        for (var i = 0; i < 100; i++) {
+          results.add(StringHelper.randomAscii(20));
+        }
+        expect(results.length, 100);
+      });
+
+      test('generates empty string for length 0', () {
+        expect(StringHelper.randomAscii(0), '');
+      });
+
+      test('includes special characters', () {
+        // With many chars, should include special characters
+        final result = StringHelper.randomAscii(1000);
+        final hasSpecial =
+            result.contains(RegExp(r'[!@#$%^&*()_+\-=\[\]{};:,.<>?/\\|`~]'));
+        expect(hasSpecial, isTrue);
+      });
+
+      test('character distribution covers the range', () {
+        // Generate many characters and check we get a good spread
+        final allChars = StringHelper.randomAscii(10000);
+        final uniqueChars = allChars.split('').toSet();
+
+        // Should have a reasonable number of unique characters
+        // ASCII 33-126 = 94 possible characters
+        expect(uniqueChars.length, greaterThan(50));
+      });
+    });
+  });
+
   group('RsaKeyHelper Test', () {
     final rsaHelper = RsaKeyHelper();
 
@@ -149,6 +238,108 @@ o0Nl/137RMM=
       final salt = '17Po6P7U6YcpzMkD';
       final decrypted = aesHelper.decrypt64WithSalt(encrypted, salt);
       expect(decrypted, rsaKey);
+    });
+
+    // Tests for random IV implementation
+    test('encrypting same text twice produces different ciphertext', () {
+      final aesHelper = AesHelper(appName);
+      final text = 'Test encryption with random IV';
+
+      final encrypted1 = aesHelper.encrypt64(text);
+      final encrypted2 = aesHelper.encrypt64(text);
+
+      // Same plaintext should produce different ciphertext due to random IV
+      expect(encrypted1, isNot(equals(encrypted2)));
+
+      // Both should decrypt to the same plaintext
+      expect(aesHelper.decrypt64(encrypted1), text);
+      expect(aesHelper.decrypt64(encrypted2), text);
+    });
+
+    test('encrypt64WithSalt produces different ciphertext for same input', () {
+      final aesHelper = AesHelper(appName);
+      final salt = 'test-salt-12345';
+      final text = 'Test encryption with random IV and salt';
+
+      final encrypted1 = aesHelper.encrypt64WithSalt(text, salt);
+      final encrypted2 = aesHelper.encrypt64WithSalt(text, salt);
+
+      // Same plaintext and salt should produce different ciphertext
+      expect(encrypted1, isNot(equals(encrypted2)));
+
+      // Both should decrypt to the same plaintext
+      expect(aesHelper.decrypt64WithSalt(encrypted1, salt), text);
+      expect(aesHelper.decrypt64WithSalt(encrypted2, salt), text);
+    });
+
+    test('new format ciphertext is longer due to prepended IV', () {
+      final aesHelper = AesHelper(appName);
+      final text = 'Short test message';
+      final salt = 'test-salt';
+
+      final encrypted = aesHelper.encrypt64WithSalt(text, salt);
+
+      // Base64 of IV (16 bytes) + ciphertext should be at least 16*4/3 ≈ 22 chars longer
+      // than the plaintext would suggest (actual ciphertext is padded to block size)
+      expect(encrypted.length, greaterThan(22));
+    });
+
+    test('decrypt64 handles empty input gracefully', () {
+      final aesHelper = AesHelper(appName);
+
+      // Empty input should throw an error (RangeError or Exception)
+      expect(
+        () => aesHelper.decrypt64(''),
+        throwsA(anything),
+      );
+    });
+
+    test('decrypt64WithSalt throws for wrong salt', () {
+      final aesHelper = AesHelper(appName);
+      final salt = 'correct-salt';
+      final wrongSalt = 'wrong-salt';
+      final text = 'Secret message';
+
+      final encrypted = aesHelper.encrypt64WithSalt(text, salt);
+
+      expect(
+        () => aesHelper.decrypt64WithSalt(encrypted, wrongSalt),
+        throwsA(isA<Exception>()),
+      );
+    });
+
+    test('encrypt and decrypt long text', () {
+      final aesHelper = AesHelper(appName);
+      final longText = rsaKey * 5; // Create a longer text
+
+      final encrypted = aesHelper.encrypt(longText);
+      final decrypted = aesHelper.decrypt(encrypted);
+
+      expect(decrypted, longText);
+    });
+
+    test('encrypt64WithSalt and decrypt64WithSalt with special characters', () {
+      final aesHelper = AesHelper(appName);
+      final salt = 'test-salt';
+      final specialText =
+          'Special chars: 你好世界 🎉 <script>alert("xss")</script>';
+
+      final encrypted = aesHelper.encrypt64WithSalt(specialText, salt);
+      final decrypted = aesHelper.decrypt64WithSalt(encrypted, salt);
+
+      expect(decrypted, specialText);
+    });
+
+    test('cross-instance decryption works', () {
+      final aesHelper1 = AesHelper(appName);
+      final aesHelper2 = AesHelper(appName);
+      final salt = 'shared-salt';
+      final text = 'Message encrypted by instance 1';
+
+      final encrypted = aesHelper1.encrypt64WithSalt(text, salt);
+      final decrypted = aesHelper2.decrypt64WithSalt(encrypted, salt);
+
+      expect(decrypted, text);
     });
   });
 }

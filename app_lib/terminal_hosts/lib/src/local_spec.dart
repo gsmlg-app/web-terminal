@@ -3,8 +3,22 @@ import 'package:terminal_hosts/src/local_conn.dart';
 
 class LocalHostSpec implements HostSpec {
   @override
-  final name = 'Local';
+  final String name;
+
+  /// Additional environment variables to set for the shell session.
+  final Map<String, String> environment;
+
+  /// Optional init commands to run when the shell starts.
+  /// These are typically export/alias commands from a shell profile.
+  final String? initCommands;
+
+  LocalHostSpec({
+    this.name = 'Local',
+    this.environment = const {},
+    this.initCommands,
+  });
 
   @override
-  HostConnector createConnector() => LocalConnector();
+  HostConnector createConnector() =>
+      LocalConnector(environment: environment, initCommands: initCommands);
 }

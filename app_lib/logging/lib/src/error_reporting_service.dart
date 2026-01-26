@@ -18,6 +18,22 @@ class ErrorReportingService {
   static const String _errorLogKey = 'error_logs';
   static const int _maxStoredErrors = 100;
 
+  /// App version for error reports. Set via [initialize] before use.
+  String _appVersion = 'unknown';
+
+  /// Initialize the error reporting service with app metadata.
+  ///
+  /// Call this during app startup to set the app version:
+  /// ```dart
+  /// ErrorReportingService().initialize(appVersion: '1.0.0');
+  /// ```
+  void initialize({required String appVersion}) {
+    _appVersion = appVersion;
+  }
+
+  /// Get the current platform name.
+  String get _platformName => defaultTargetPlatform.name.toLowerCase();
+
   Future<void> reportError({
     required dynamic error,
     StackTrace? stackTrace,
@@ -122,8 +138,8 @@ class ErrorReportingService {
       'context': context,
       'stack_trace': stackTrace?.toString() ?? StackTrace.current.toString(),
       'additional_data': additionalData ?? {},
-      'app_version': '1.0.0', // TODO: Get from package info
-      'platform': 'flutter', // TODO: Get actual platform
+      'app_version': _appVersion,
+      'platform': _platformName,
     };
   }
 

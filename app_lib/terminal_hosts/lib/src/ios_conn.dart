@@ -7,7 +7,13 @@ import 'package:terminal_hosts/src/ios_host.dart';
 /// Ensures the ios_system shell environment is initialized before creating
 /// the host.
 class IosConnector extends HostConnector<IosHost> {
-  IosConnector();
+  /// Additional environment variables from shell profile.
+  final Map<String, String> environment;
+
+  /// Optional init commands to run when shell starts.
+  final String? initCommands;
+
+  IosConnector({this.environment = const {}, this.initCommands});
 
   @override
   Future<IosHost> createHost() async {
@@ -17,6 +23,6 @@ class IosConnector extends HostConnector<IosHost> {
       await env.initialize();
     }
 
-    return IosHost(env);
+    return IosHost(env, environment: environment, initCommands: initCommands);
   }
 }

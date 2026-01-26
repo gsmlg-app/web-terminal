@@ -5,18 +5,18 @@ class StringHelper {
       'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
 
   static String randomString(int length) {
-    Random _rnd = Random();
+    final rnd = Random();
 
     return String.fromCharCodes(Iterable.generate(
-        length, (_) => _chars.codeUnitAt(_rnd.nextInt(_chars.length))));
+        length, (_) => _chars.codeUnitAt(rnd.nextInt(_chars.length))));
   }
 
   static String randomAscii(int length) {
-    final Random _rnd = Random();
+    final rnd = Random();
     final Iterable<int> l = Iterable.generate(127 - 33, (n) => n + 33);
     final String chars = String.fromCharCodes(l);
 
     return String.fromCharCodes(Iterable.generate(
-        length, (_) => chars.codeUnitAt(_rnd.nextInt(chars.length))));
+        length, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))));
   }
 }
