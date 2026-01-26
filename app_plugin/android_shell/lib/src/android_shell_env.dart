@@ -27,6 +27,8 @@ class AndroidShellEnv {
   bool _initialized = false;
   late String _filesDir;
   late String _arch;
+  late String _shellPath;
+  bool _usesSystemShell = false;
 
   /// Whether the environment has been initialized.
   bool get isInitialized => _initialized;
@@ -56,8 +58,11 @@ class AndroidShellEnv {
   String get tmpPath => p.join(_filesDir, 'tmp');
 
   /// The default shell executable path.
-  /// e.g., /data/data/app.gsmlg.webterminal/files/usr/bin/sh
-  String get shellPath => p.join(binPath, 'sh');
+  /// This may be /system/bin/sh if busybox isn't available.
+  String get shellPath => _shellPath;
+
+  /// Whether we're using the system shell instead of busybox.
+  bool get usesSystemShell => _usesSystemShell;
 
   /// The detected CPU architecture.
   String get arch => _arch;
@@ -78,6 +83,36 @@ class AndroidShellEnv {
 
     _filesDir = paths['filesDir'] ?? '';
     _arch = paths['arch'] ?? 'arm64-v8a';
+
+    // Get the shell path from the plugin, which may be /system/bin/sh if busybox isn't available
+    final reportedShellPath = paths['shellPath'] ?? '';
+
+    // Check if we're using busybox or system shell
+    // The plugin creates a wrapper script at binPath/sh that calls the actual shell
+    final wrapperShPath = p.join(binPath, 'sh');
+    if (await File(wrapperShPath).exists()) {
+      // Check the content of the wrapper to see if it's a busybox wrapper or system shell
+      try {
+        final content = await File(wrapperShPath).readAsString();
+        if (content.contains('/system/bin/sh')) {
+          // Wrapper calls system shell, use it directly
+          _usesSystemShell = true;
+          _shellPath = '/system/bin/sh';
+        } else {
+          // Using busybox
+          _usesSystemShell = false;
+          _shellPath = wrapperShPath;
+        }
+      } catch (e) {
+        // Can't read wrapper, fall back to system shell
+        _usesSystemShell = true;
+        _shellPath = '/system/bin/sh';
+      }
+    } else {
+      // No wrapper, use system shell directly
+      _usesSystemShell = true;
+      _shellPath = '/system/bin/sh';
+    }
 
     // Ensure home and tmp directories exist
     await Directory(homePath).create(recursive: true);
@@ -121,6 +156,15 @@ class AndroidShellEnv {
   /// 2. Sources our custom profile
   /// 3. Execs an interactive shell (replaces current process)
   (String, List<String>) getShellCommand() {
+    if (_usesSystemShell) {
+      // When using system shell, start it directly in interactive mode
+      // The system shell is more limited but at least it works
+      return (
+        shellPath,
+        ['-i'],
+      );
+    }
+
     // Chain: cd to HOME, source profile for aliases/settings, exec interactive shell
     // The exec ensures we don't have nested shell processes
     return (
