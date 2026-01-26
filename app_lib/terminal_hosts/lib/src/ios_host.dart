@@ -125,7 +125,10 @@ class IosExecutionSession implements ExecutionSession {
     Map<String, String> environment = const {},
     String? initCommands,
   }) : _environment = Map<String, String>.from(environment) {
-    _initialize(initCommands);
+    // Delay initialization to allow output listener to be attached first
+    Future.delayed(const Duration(milliseconds: 100), () {
+      _initialize(initCommands);
+    });
   }
 
   Future<void> _initialize(String? initCommands) async {
