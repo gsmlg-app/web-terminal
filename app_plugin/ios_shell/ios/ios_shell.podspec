@@ -13,9 +13,12 @@ from the a-shell project. Provides Unix command execution capabilities.
   s.license          = { :type => 'BSD-3-Clause', :file => '../LICENSE' }
   s.author           = { 'GSMLG' => 'me@gsmlg.org' }
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
+  s.source_files     = 'Classes/**/*.swift'
+  # Keep plist in framework bundle for reference
+  s.resource         = 'Classes/commandDictionary.plist'
 
   s.dependency 'Flutter'
+
   s.platform = :ios, '14.0'
 
   # Flutter.framework does not contain a i386 slice.

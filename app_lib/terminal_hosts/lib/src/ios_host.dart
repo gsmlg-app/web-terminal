@@ -132,6 +132,10 @@ class IosExecutionSession implements ExecutionSession {
   }
 
   Future<void> _initialize(String? initCommands) async {
+    // Note: External commands (ls, pwd, etc.) currently don't work because
+    // ios_system needs to be rebuilt with a bundled command dictionary.
+    // Only built-in commands (cd, alias, export) are functional.
+
     // Run init commands silently if provided
     final cmds = initCommands;
     if (cmds != null && cmds.isNotEmpty) {
@@ -296,6 +300,11 @@ class IosExecutionSession implements ExecutionSession {
         if (!stderr.endsWith('\r\n')) {
           _output('\r\n');
         }
+      }
+
+      // If no output but non-zero exit code, show error
+      if (result.stdout.isEmpty && result.stderr.isEmpty && result.exitCode != 0) {
+        _output('Command failed with exit code ${result.exitCode}\r\n');
       }
     } catch (e) {
       _output('Error: $e\r\n');

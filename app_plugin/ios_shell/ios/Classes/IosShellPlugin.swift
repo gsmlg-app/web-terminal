@@ -1,11 +1,111 @@
 import Flutter
 import UIKit
 import ios_system
+import files
+import shell
+import text
+import tar
+import awk
+
+// Direct function references to command main functions from external frameworks
+@_silgen_name("ls_main") func ls_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("pwd_main") func pwd_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("cat_main") func cat_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("echo_main") func echo_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("mkdir_main") func mkdir_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("touch_main") func touch_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("rm_main") func rm_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("rmdir_main") func rmdir_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("cp_main") func cp_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("mv_main") func mv_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("ln_main") func ln_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("chmod_main") func chmod_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("head_main") func head_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("tail_main") func tail_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("grep_main") func grep_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("wc_main") func wc_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("sort_main") func sort_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("uniq_main") func uniq_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("tr_main") func tr_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("diff_main") func diff_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("sed_main") func sed_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("date_main") func date_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("env_main") func env_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("printenv_main") func printenv_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("uname_main") func uname_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("basename_main") func basename_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("dirname_main") func dirname_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("realpath_main") func realpath_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("find_main") func find_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("xargs_main") func xargs_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("tar_main") func tar_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("awk_main") func awk_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("df_main") func df_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("du_main") func du_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("gzip_main") func gzip_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("less_main") func less_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("stat_main") func stat_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("id_main") func id_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("sleep_main") func sleep_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("tee_main") func tee_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+
+// Command dispatch function type
+typealias CommandMain = (Int32, UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
 
 public class IosShellPlugin: NSObject, FlutterPlugin {
     private var isInitialized = false
     private var documentsPath: String = ""
     private var tmpPath: String = ""
+
+    // Map of command names to their main functions
+    private static let commandMap: [String: CommandMain] = [
+        // files framework
+        "ls": ls_main,
+        "cat": cat_main,
+        "cp": cp_main,
+        "mv": mv_main,
+        "rm": rm_main,
+        "mkdir": mkdir_main,
+        "rmdir": rmdir_main,
+        "touch": touch_main,
+        "chmod": chmod_main,
+        "ln": ln_main,
+        "df": df_main,
+        "du": du_main,
+        "gzip": gzip_main,
+        "gunzip": gzip_main,
+        "less": less_main,
+        "stat": stat_main,
+        // shell framework
+        "pwd": pwd_main,
+        "echo": echo_main,
+        "env": env_main,
+        "printenv": printenv_main,
+        "date": date_main,
+        "uname": uname_main,
+        "id": id_main,
+        "basename": basename_main,
+        "dirname": dirname_main,
+        "realpath": realpath_main,
+        "find": find_main,
+        "xargs": xargs_main,
+        "sleep": sleep_main,
+        "tee": tee_main,
+        // text framework
+        "head": head_main,
+        "tail": tail_main,
+        "grep": grep_main,
+        "wc": wc_main,
+        "sort": sort_main,
+        "uniq": uniq_main,
+        "tr": tr_main,
+        "diff": diff_main,
+        "sed": sed_main,
+        // tar framework
+        "tar": tar_main,
+        // awk framework
+        "awk": awk_main,
+    ]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(
@@ -53,7 +153,6 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
     }
 
     private func initialize(result: @escaping FlutterResult) {
-        // Get paths
         let fileManager = FileManager.default
 
         if let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first {
@@ -62,8 +161,28 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
 
         tmpPath = NSTemporaryDirectory()
 
-        // Initialize ios_system
+        // Load framework symbols into global namespace so ios_system can find them
+        let frameworkNames = ["files", "shell", "text", "tar", "awk"]
+        for name in frameworkNames {
+            if let frameworkBundle = Bundle(identifier: "Nicolas-Holzschuch.\(name)") ??
+                                     Bundle(path: Bundle.main.privateFrameworksPath! + "/\(name).framework") {
+                let path = frameworkBundle.executablePath!
+                let handle = dlopen(path, RTLD_NOW | RTLD_GLOBAL)
+                if handle == nil {
+                    NSLog("[IosShell] Failed to load \(name): \(String(cString: dlerror()))")
+                } else {
+                    NSLog("[IosShell] Loaded \(name) framework globally")
+                }
+            }
+        }
+
+        // Enable sideLoading so ios_system reads commandDictionary.plist from main bundle
+        sideLoading = true
+
+        // Initialize ios_system - reads commandDictionary.plist from main bundle
         initializeEnvironment()
+
+        NSLog("[IosShell] ios_system initialized with command dictionary")
 
         // Set the mini root to sandbox the shell
         ios_setMiniRoot(documentsPath)
@@ -85,6 +204,8 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
 
         isInitialized = true
 
+        NSLog("[IosShell] Initialized with \(IosShellPlugin.commandMap.count) commands available")
+
         result([
             "documentsPath": documentsPath,
             "homePath": documentsPath,
@@ -100,62 +221,53 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        // Create pipes for stdout and stderr
-        let stdoutPipe = Pipe()
-        let stderrPipe = Pipe()
+        // Parse command
+        let trimmed = command.trimmingCharacters(in: .whitespaces)
+        guard !trimmed.isEmpty else {
+            result(["exitCode": 0, "stdout": "", "stderr": ""])
+            return
+        }
 
-        // Save original file descriptors
-        let originalStdout = dup(STDOUT_FILENO)
-        let originalStderr = dup(STDERR_FILENO)
+        // Create temporary files for stdout and stderr capture
+        let stdoutPath = tmpPath + "/ios_shell_stdout_\(ProcessInfo.processInfo.globallyUniqueString)"
+        let stderrPath = tmpPath + "/ios_shell_stderr_\(ProcessInfo.processInfo.globallyUniqueString)"
 
-        // Redirect stdout and stderr to our pipes
-        dup2(stdoutPipe.fileHandleForWriting.fileDescriptor, STDOUT_FILENO)
-        dup2(stderrPipe.fileHandleForWriting.fileDescriptor, STDERR_FILENO)
+        // Create the files
+        FileManager.default.createFile(atPath: stdoutPath, contents: nil)
+        FileManager.default.createFile(atPath: stderrPath, contents: nil)
 
-        // Execute the command
-        let exitCode = ios_system(command)
+        // Redirect command output using shell redirection
+        // This works because ios_system handles redirections internally
+        let redirectedCommand = "\(trimmed) > \"\(stdoutPath)\" 2> \"\(stderrPath)\""
 
-        // Flush and close write ends
-        fflush(stdout)
-        fflush(stderr)
-        stdoutPipe.fileHandleForWriting.closeFile()
-        stderrPipe.fileHandleForWriting.closeFile()
+        // Execute via ios_system with redirection
+        let exitCode = ios_system(redirectedCommand)
 
-        // Restore original file descriptors
-        dup2(originalStdout, STDOUT_FILENO)
-        dup2(originalStderr, STDERR_FILENO)
-        close(originalStdout)
-        close(originalStderr)
+        // Read output from temp files
+        let stdoutStr = (try? String(contentsOfFile: stdoutPath, encoding: .utf8)) ?? ""
+        let stderrStr = (try? String(contentsOfFile: stderrPath, encoding: .utf8)) ?? ""
 
-        // Read output
-        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
-        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-
-        let stdout = String(data: stdoutData, encoding: .utf8) ?? ""
-        let stderr = String(data: stderrData, encoding: .utf8) ?? ""
+        // Clean up temp files
+        try? FileManager.default.removeItem(atPath: stdoutPath)
+        try? FileManager.default.removeItem(atPath: stderrPath)
 
         result([
             "exitCode": exitCode,
-            "stdout": stdout,
-            "stderr": stderr
+            "stdout": stdoutStr,
+            "stderr": stderrStr
         ])
     }
 
     private func listCommands(result: @escaping FlutterResult) {
-        // Get list of available commands from ios_system
-        if let commandsString = commandsAsString() {
-            let commands = commandsString
-                .components(separatedBy: ", ")
-                .map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-            result(commands)
-        } else {
-            result([String]())
-        }
+        // Return commands from our command map plus ios_system built-ins
+        var commands = Array(IosShellPlugin.commandMap.keys)
+        commands.append(contentsOf: ["cd", "alias", "unalias", "true", "type", "export", "setenv", "unsetenv"])
+        result(commands.sorted())
     }
 
     private func isCommandAvailable(command: String, result: @escaping FlutterResult) {
-        let available = ios_executable(command) != nil
+        let available = IosShellPlugin.commandMap[command] != nil ||
+                       ["cd", "alias", "unalias", "true", "type", "export", "setenv", "unsetenv"].contains(command)
         result(available)
     }
 
