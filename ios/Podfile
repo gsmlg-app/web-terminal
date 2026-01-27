@@ -40,4 +40,29 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
   end
+
+  # Add script phase to Runner target to copy ios_system command dictionary to app bundle
+  main_project = installer.aggregate_targets.find { |t| t.user_project.path.to_s.include?('Runner') }&.user_project
+  if main_project
+    runner_target = main_project.targets.find { |t| t.name == 'Runner' }
+    if runner_target
+      # Check if script phase already exists
+      phase_name = 'Copy ios_system Command Dictionary'
+      existing_phase = runner_target.build_phases.find { |p| p.respond_to?(:name) && p.name == phase_name }
+
+      unless existing_phase
+        phase = runner_target.new_shell_script_build_phase(phase_name)
+        phase.shell_script = <<-SCRIPT
+# Copy commandDictionary.plist to app bundle root for ios_system
+PLIST_SRC="${PODS_ROOT}/../.symlinks/plugins/ios_shell/ios/Classes/commandDictionary.plist"
+if [ -f "$PLIST_SRC" ]; then
+  cp "$PLIST_SRC" "${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/"
+  echo "Copied commandDictionary.plist to app bundle"
+fi
+SCRIPT
+        main_project.save
+        puts "Added 'Copy ios_system Command Dictionary' script phase to Runner target"
+      end
+    end
+  end
 end
