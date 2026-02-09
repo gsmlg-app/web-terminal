@@ -28,10 +28,39 @@ class SSHMacType with SSHAlgorithm {
     macFactory: _hmacSha512Factory,
   );
 
+  static const hmacSha1Etm = SSHMacType._(
+    name: 'hmac-sha1-etm@openssh.com',
+    keySize: 20,
+    macFactory: _hmacSha1Factory,
+    isETM: true,
+  );
+
+  static const hmacSha256Etm = SSHMacType._(
+    name: 'hmac-sha2-256-etm@openssh.com',
+    keySize: 32,
+    macFactory: _hmacSha256Factory,
+    isETM: true,
+  );
+
+  static const hmacSha512Etm = SSHMacType._(
+    name: 'hmac-sha2-512-etm@openssh.com',
+    keySize: 64,
+    macFactory: _hmacSha512Factory,
+    isETM: true,
+  );
+
+  static const hmacMd5Etm = SSHMacType._(
+    name: 'hmac-md5-etm@openssh.com',
+    keySize: 16,
+    macFactory: _hmacMd5Factory,
+    isETM: true,
+  );
+
   const SSHMacType._({
     required this.name,
     required this.keySize,
     required this.macFactory,
+    this.isETM = false,
   });
 
   /// The name of the algorithm. For example, `"aes256-ctr`"`.
@@ -41,6 +70,10 @@ class SSHMacType with SSHAlgorithm {
   /// The length of the key in bytes. This is the same as the length of the
   /// output of the MAC algorithm.
   final int keySize;
+
+  /// Whether this is an Encrypt-Then-MAC variant.
+  /// ETM computes MAC over the ciphertext instead of plaintext.
+  final bool isETM;
 
   final Mac Function() macFactory;
 

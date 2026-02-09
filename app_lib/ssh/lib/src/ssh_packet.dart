@@ -36,6 +36,18 @@ abstract class SSHPacket {
     return paddingLength < 4 ? paddingLength + align : paddingLength;
   }
 
+  /// Computes padding length for ETM (Encrypt-Then-MAC) mode.
+  /// In ETM mode, the 4-byte length field is not encrypted, so alignment
+  /// is based on `packetLength` (1 + payload + padding) being a multiple
+  /// of [align], rather than `4 + packetLength`.
+  static int paddingLengthETM(int payloadLength, {required int align}) {
+    // packetLength = 1 (padding_length byte) + payloadLength + padding
+    // packetLength must be a multiple of align
+    final paddingLength = align - ((payloadLength + 1) % align);
+    // ssh padding must be at least 4 bytes
+    return paddingLength < 4 ? paddingLength + align : paddingLength;
+  }
+
   /// Returns a rfc4253 packet built from [payload] and [align] including the
   /// length field, padding length field, and padding. Withouth the MAC.
   static Uint8List pack(Uint8List payload, {required int align}) {
