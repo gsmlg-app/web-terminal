@@ -13,9 +13,12 @@ from the a-shell project. Provides Unix command execution capabilities.
   s.license          = { :type => 'BSD-3-Clause', :file => '../LICENSE' }
   s.author           = { 'GSMLG' => 'me@gsmlg.org' }
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*'
+  s.source_files     = 'Classes/**/*.swift'
+  # Keep plist in framework bundle for reference
+  s.resource         = 'Classes/commandDictionary.plist'
 
   s.dependency 'Flutter'
+
   s.platform = :ios, '14.0'
 
   # Flutter.framework does not contain a i386 slice.
@@ -27,19 +30,19 @@ from the a-shell project. Provides Unix command execution capabilities.
 
   # ios_system and related frameworks
   # These XCFrameworks should be downloaded and placed in the Frameworks directory
+  # Note: curl_ios requires libssh2 which is not available, so we exclude it
   s.vendored_frameworks = [
     'Frameworks/ios_system.xcframework',
     'Frameworks/shell.xcframework',
     'Frameworks/files.xcframework',
     'Frameworks/text.xcframework',
     'Frameworks/tar.xcframework',
-    'Frameworks/curl_ios.xcframework',
     'Frameworks/awk.xcframework'
   ]
 
   # Framework search paths
   s.xcconfig = {
     'FRAMEWORK_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/../.symlinks/plugins/ios_shell/ios/Frameworks"',
-    'OTHER_LDFLAGS' => '$(inherited) -framework ios_system -framework shell -framework files -framework text'
+    'OTHER_LDFLAGS' => '$(inherited) -framework ios_system -framework shell -framework files -framework text -framework tar -framework awk'
   }
 end

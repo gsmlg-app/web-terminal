@@ -56,30 +56,34 @@ class TerminalPlugin extends Plugin {
   void didConnected() async {
     title.value = 'Terminal';
 
-    session = await host.shell(
-      width: terminal.viewWidth,
-      height: terminal.viewHeight,
-    );
+    try {
+      session = await host.shell(
+        width: terminal.viewWidth,
+        height: terminal.viewHeight,
+      );
 
-    // Add welcome message
-    terminal.write('\r\nWelcome to Web Terminal!\r\n');
-    terminal
-        .write('Type "help" for available commands or start typing...\r\n\r\n');
+      // Add welcome message
+      terminal.write('\r\nWelcome to Web Terminal!\r\n');
+      terminal
+          .write('Type "help" for available commands or start typing...\r\n\r\n');
 
-    session!.output
-        .cast<List<int>>()
-        .transform(const Utf8Decoder())
-        .listen((data) {
-      terminal.write(data);
-      session?.ackRead(); // Acknowledge read for flow control
-    });
+      session!.output
+          .cast<List<int>>()
+          .transform(const Utf8Decoder())
+          .listen((data) {
+        terminal.write(data);
+        session?.ackRead(); // Acknowledge read for flow control
+      });
 
-    session!.exitCode.then((code) {
-      session = null;
-      if (mounted) {
-        manager.remove(this);
-      }
-    });
+      session!.exitCode.then((code) {
+        session = null;
+        if (mounted) {
+          manager.remove(this);
+        }
+      });
+    } catch (e) {
+      terminal.write('\r\n\x1b[31mError: Failed to start shell: $e\x1b[0m\r\n');
+    }
   }
 
   @override

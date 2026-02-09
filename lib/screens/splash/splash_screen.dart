@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:web_terminal/screens/settings/settings_screen.dart';
+import 'package:web_terminal/screens/terminal/terminal_screen.dart';
 
 import 'paint_logo.dart';
 
@@ -19,7 +19,7 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     Future.delayed(const Duration(seconds: 3), () {
       if (mounted) {
-        context.goNamed(SettingsScreen.name);
+        context.goNamed(TerminalScreen.name);
       }
     });
   }

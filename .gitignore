@@ -56,3 +56,6 @@ mason-lock.json
 /.claude/*
 !/.claude/commands/
 !/.claude/skills/
+
+# ios_system framework build artifacts
+**/ios_system.xcframework/**/commandDictionary.plist

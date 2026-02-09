@@ -8,9 +8,10 @@ PODS:
     - Flutter
   - flutter_secure_storage (6.0.0):
     - Flutter
-  - path_provider_foundation (0.0.1):
+  - integration_test (0.0.1):
     - Flutter
-    - FlutterMacOS
+  - ios_shell (1.0.0):
+    - Flutter
   - shared_preferences_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -51,7 +52,8 @@ DEPENDENCIES:
   - flutter_keyboard_visibility (from `.symlinks/plugins/flutter_keyboard_visibility/ios`)
   - flutter_pty (from `.symlinks/plugins/flutter_pty/ios`)
   - flutter_secure_storage (from `.symlinks/plugins/flutter_secure_storage/ios`)
-  - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
+  - integration_test (from `.symlinks/plugins/integration_test/ios`)
+  - ios_shell (from `.symlinks/plugins/ios_shell/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqlite3_flutter_libs (from `.symlinks/plugins/sqlite3_flutter_libs/darwin`)
   - url_launcher_ios (from `.symlinks/plugins/url_launcher_ios/ios`)
@@ -72,8 +74,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/flutter_pty/ios"
   flutter_secure_storage:
     :path: ".symlinks/plugins/flutter_secure_storage/ios"
-  path_provider_foundation:
-    :path: ".symlinks/plugins/path_provider_foundation/darwin"
+  integration_test:
+    :path: ".symlinks/plugins/integration_test/ios"
+  ios_shell:
+    :path: ".symlinks/plugins/ios_shell/ios"
   shared_preferences_foundation:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sqlite3_flutter_libs:
@@ -89,13 +93,14 @@ SPEC CHECKSUMS:
   flutter_keyboard_visibility: 4625131e43015dbbe759d9b20daaf77e0e3f6619
   flutter_pty: 206742da6092b413cb683de17436c16d1f3c7997
   flutter_secure_storage: 1ed9476fba7e7a782b22888f956cce43e2c62f13
-  path_provider_foundation: bb55f6dbba17d0dccd6737fe6f7f34fbd0376880
+  integration_test: 4a889634ef21a45d28d50d622cf412dc6d9f586e
+  ios_shell: 8f5d11e6c667a9c21195c2e51ebbf0e48e75926e
   shared_preferences_foundation: 7036424c3d8ec98dfe75ff1667cb0cd531ec82bb
   sqlite3: 8d708bc63e9f4ce48f0ad9d6269e478c5ced1d9b
   sqlite3_flutter_libs: d13b8b3003f18f596e542bcb9482d105577eff41
   url_launcher_ios: 7a95fa5b60cc718a708b8f2966718e93db0cef1b
   webview_flutter_wkwebview: 8ebf4fded22593026f7dbff1fbff31ea98573c8d
 
-PODFILE CHECKSUM: 3c63482e143d1b91d2d2560aee9fb04ecc74ac7e
+PODFILE CHECKSUM: 043abaf0ff196525818b65039d6d40906ada9aa2
 
 COCOAPODS: 1.16.2

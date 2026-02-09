@@ -20,13 +20,13 @@ IOS_SYSTEM_VERSION="3.0.4"
 GITHUB_BASE="https://github.com/holzschu/ios_system/releases/download/v${IOS_SYSTEM_VERSION}"
 
 # Frameworks to download
+# Note: curl_ios excluded because it requires libssh2 which is not available
 FRAMEWORKS=(
     "ios_system"
     "shell"
     "files"
     "text"
     "tar"
-    "curl_ios"
     "awk"
 )
 

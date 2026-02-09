@@ -199,6 +199,7 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				B3291F006277F51CCFFF10B0 /* [CP] Embed Pods Frameworks */,
+				F3FF548B5EBC3425D12FF482 /* Copy ios_system Command Dictionary */,
 			);
 			buildRules = (
 			);
@@ -361,6 +362,24 @@
 			shellPath = /bin/sh;
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
+		};
+		F3FF548B5EBC3425D12FF482 /* Copy ios_system Command Dictionary */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy ios_system Command Dictionary";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "# Copy commandDictionary.plist to app bundle root for ios_system\nPLIST_SRC=\"${PODS_ROOT}/../.symlinks/plugins/ios_shell/ios/Classes/commandDictionary.plist\"\nif [ -f \"$PLIST_SRC\" ]; then\n  cp \"$PLIST_SRC\" \"${BUILT_PRODUCTS_DIR}/${PRODUCT_NAME}.app/\"\n  echo \"Copied commandDictionary.plist to app bundle\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
