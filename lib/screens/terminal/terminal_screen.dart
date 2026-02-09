@@ -152,7 +152,18 @@ class _TerminalScreenState extends State<TerminalScreen> {
       // Load SSH key if using key authentication
       SshKeyData? keyData;
       final identityType = SshIdentityType.fromValue(host.identityType);
-      if (identityType == SshIdentityType.key && host.identityKeyId != null) {
+      if (identityType == SshIdentityType.key) {
+        if (host.identityKeyId == null) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('No SSH key selected for this host. Please edit the host and select a key.'),
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+            );
+          }
+          return;
+        }
         try {
           keyData = await _loadSshKeyData(host.identityKeyId!);
         } catch (e) {
@@ -280,12 +291,6 @@ class _TerminalScreenState extends State<TerminalScreen> {
         ),
       ),
     );
-
-    if (defaultTargetPlatform == TargetPlatform.macOS) {
-      widget = GlobalPlatformMenu(
-        child: widget,
-      );
-    }
 
     if (defaultTargetPlatform == TargetPlatform.windows) {
       widget = VirtualWindowFrame(child: widget);
