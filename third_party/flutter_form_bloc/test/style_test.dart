@@ -193,7 +193,7 @@ void main() {
     group('getInputBorder', () {
       test('returns decoration border when set', () {
         const decoration = InputDecoration(border: OutlineInputBorder());
-        const theme = InputDecorationTheme();
+        const theme = InputDecorationThemeData();
 
         final result = Style.getInputBorder(
           decoration: decoration,
@@ -205,7 +205,7 @@ void main() {
 
       test('returns theme border when decoration border is null', () {
         const decoration = InputDecoration();
-        const theme = InputDecorationTheme(border: OutlineInputBorder());
+        const theme = InputDecorationThemeData(border: OutlineInputBorder());
 
         final result = Style.getInputBorder(
           decoration: decoration,
@@ -217,7 +217,7 @@ void main() {
 
       test('returns UnderlineInputBorder as default', () {
         const decoration = InputDecoration();
-        const theme = InputDecorationTheme();
+        const theme = InputDecorationThemeData();
 
         final result = Style.getInputBorder(
           decoration: decoration,
@@ -235,7 +235,7 @@ void main() {
           borderRadius: BorderRadius.all(Radius.circular(20)),
         );
         const decoration = InputDecoration(border: decorationBorder);
-        const theme = InputDecorationTheme(border: themeBorder);
+        const theme = InputDecorationThemeData(border: themeBorder);
 
         final result = Style.getInputBorder(
           decoration: decoration,
