@@ -11,6 +11,11 @@ import 'package:app_locale/app_locale.dart';
 /// If [sshKey] is provided, the form will be pre-filled with the key's data
 /// for editing. Otherwise, an empty form for adding a new key is shown.
 void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {
+  // Perform side effects before showing dialog to avoid repeated calls on rebuild
+  final sshKeyFormBloc = context.read<SshKeyFormBloc>();
+  sshKeyFormBloc.clear();
+  sshKeyFormBloc.setSshKey(sshKey);
+
   showFullScreenDialog(
     context: context,
     title: Text(
@@ -18,8 +23,6 @@ void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {
     ),
     builder: (context) {
       final sshKeyFormBloc = context.read<SshKeyFormBloc>();
-      sshKeyFormBloc.clear();
-      sshKeyFormBloc.setSshKey(sshKey);
 
       return FormBlocListener<SshKeyFormBloc, String, String>(
         onSubmitting: (context, state) {},

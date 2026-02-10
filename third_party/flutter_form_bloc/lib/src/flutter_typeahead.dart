@@ -620,7 +620,7 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
   @override
   void didChangeMetrics() {
     // Catch keyboard event and orientation change; resize suggestions list
-    this._suggestionsBox!.onChangeMetrics();
+    this._suggestionsBox?.onChangeMetrics();
   }
 
   @override
@@ -629,21 +629,21 @@ class _TypeAheadFieldState<T> extends State<TypeAheadField<T>>
     // if (this._suggestionsBox._isOpened) {
     //   this._suggestionsBox._overlayEntry?.remove();
     // }
-    this._suggestionsBox!.widgetMounted = false;
+    this._suggestionsBox?.widgetMounted = false;
     WidgetsBinding.instance.removeObserver(this);
 
     if (isWebMobile) {
       _keyboardSubscription.cancel();
     }
 
-    _effectiveFocusNode!.removeListener(_focusNodeListener);
+    _effectiveFocusNode?.removeListener(_focusNodeListener);
     _focusNode?.dispose();
     _resizeOnScrollTimer?.cancel();
 
     //TODO: create A Pull Request, dispose the controller create here
     _textEditingController?.dispose();
     //TODO: Create Pull Request, when dispose the widget and the suggestions in showed need to close
-    _suggestionsBox!.close();
+    _suggestionsBox?.close();
 
     _hideSuggestionsController.close();
     super.dispose();
@@ -1711,6 +1711,7 @@ class _SuggestionsBox {
   void open() {
     if (this._isOpened) return;
     assert(this._overlayEntry != null);
+    if (!context.mounted) return;
     Overlay.of(context).insert(this._overlayEntry!);
     this._isOpened = true;
   }
@@ -1744,7 +1745,7 @@ class _SuggestionsBox {
 
   /// Delays until the keyboard has toggled or the orientation has fully changed
   Future<bool> _waitChangeMetrics() async {
-    if (widgetMounted) {
+    if (widgetMounted && context.mounted) {
       // initial viewInsets which are before the keyboard is toggled
       EdgeInsets initial = MediaQuery.of(context).viewInsets;
       // initial MediaQuery for orientation change
@@ -1772,7 +1773,7 @@ class _SuggestionsBox {
   void resize() {
     // check to see if widget is still mounted
     // user may have closed the widget with the keyboard still open
-    if (widgetMounted) {
+    if (widgetMounted && context.mounted) {
       _adjustMaxHeightAndOrientation();
       _overlayEntry!.markNeedsBuild();
     }
@@ -1781,9 +1782,15 @@ class _SuggestionsBox {
   // See if there's enough room in the desired direction for the overlay to display
   // correctly. If not, try the opposite direction if things look more roomy there
   void _adjustMaxHeightAndOrientation() {
-    TypeAheadField widget = context.widget as TypeAheadField;
+    if (!context.mounted) return;
 
-    RenderBox box = context.findRenderObject() as RenderBox;
+    final widgetObj = context.widget;
+    if (widgetObj is! TypeAheadField) return;
+    TypeAheadField widget = widgetObj;
+
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox || !renderObject.hasSize) return;
+    RenderBox box = renderObject;
     textBoxWidth = box.size.width;
     textBoxHeight = box.size.height;
 
@@ -1796,7 +1803,8 @@ class _SuggestionsBox {
     // we need to find the root MediaQuery for the unsafe area height
     // we cannot use BuildContext.ancestorWidgetOfExactType because
     // widgets like SafeArea creates a new MediaQuery with the padding removed
-    MediaQuery rootMediaQuery = _findRootMediaQuery()!;
+    MediaQuery? rootMediaQuery = _findRootMediaQuery();
+    if (rootMediaQuery == null) return;
 
     // height of keyboard
     double keyboardHeight = rootMediaQuery.data.viewInsets.bottom;

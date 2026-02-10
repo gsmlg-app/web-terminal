@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_feedback/app_feedback.dart';
 import 'package:app_locale/app_locale.dart';
+import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:theme_bloc/theme_bloc.dart';
 import 'package:web_terminal/router.dart';
 
@@ -15,7 +17,7 @@ class App extends StatelessWidget {
     return BlocBuilder<ThemeBloc, ThemeState>(
       bloc: themeBloc,
       builder: (context, state) {
-        return MaterialApp.router(
+        Widget app = MaterialApp.router(
           scaffoldMessengerKey: scaffoldMessengerKey,
           debugShowCheckedModeBanner: false,
           routerConfig: router,
@@ -25,6 +27,12 @@ class App extends StatelessWidget {
           localizationsDelegates: AppLocale.localizationsDelegates,
           supportedLocales: AppLocale.supportedLocales,
         );
+
+        if (defaultTargetPlatform == TargetPlatform.macOS) {
+          app = GlobalPlatformMenu(child: app);
+        }
+
+        return app;
       },
     );
   }

@@ -10,16 +10,19 @@ import 'package:app_locale/app_locale.dart';
 /// If [sshHost] is provided, the form will be pre-filled with the host's data
 /// for editing. Otherwise, an empty form for adding a new host is shown.
 void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
+  // Perform side effects before showing dialog to avoid repeated calls on rebuild
+  context.read<SshKeyBloc>().add(SshKeyLoad());
+  final sshHostFormBloc = context.read<SshHostFormBloc>();
+  sshHostFormBloc.clear();
+  sshHostFormBloc.setSshHost(sshHost);
+
   showFullScreenDialog(
     context: context,
     title: Text(
       sshHost == null ? context.l10n.addSshHost : context.l10n.editSshHost,
     ),
     builder: (context) {
-      context.read<SshKeyBloc>().add(SshKeyLoad());
       final sshHostFormBloc = context.read<SshHostFormBloc>();
-      sshHostFormBloc.clear();
-      sshHostFormBloc.setSshHost(sshHost);
 
       return FormBlocListener<SshHostFormBloc, String, String>(
         onSubmitting: (context, state) {},

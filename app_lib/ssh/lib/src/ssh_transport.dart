@@ -167,8 +167,14 @@ class SSHTransport {
   /// A [Mac] used to authenticate data sent to the other side.
   Mac? _localMac;
 
+  /// The MAC type used for local (outgoing) packets.
+  SSHMacType? _localMacType;
+
   /// A [Mac] used to authenticate data sent from the other side.
   Mac? _remoteMac;
+
+  /// The MAC type used for remote (incoming) packets.
+  SSHMacType? _remoteMacType;
 
   final _localPacketSN = SSHPacketSN.fromZero();
 
@@ -182,11 +188,42 @@ class SSHTransport {
         ? SSHPacket.minAlign
         : max(SSHPacket.minAlign, _encryptCipher!.blockSize);
 
-    final packet = SSHPacket.pack(data, align: packetAlign);
-
     if (_encryptCipher == null) {
+      final packet = SSHPacket.pack(data, align: packetAlign);
       socket.sink.add(packet);
+    } else if (_localMacType!.isETM) {
+      // ETM: use ETM-specific padding where packetLength is block-aligned
+      final padding = SSHPacket.paddingLengthETM(data.length, align: packetAlign);
+      final header = ByteData(5);
+      header.setUint32(0, 1 + data.length + padding);
+      header.setUint8(4, padding);
+      final packetBuilder = BytesBuilder(copy: false);
+      packetBuilder.add(Uint8List.view(header.buffer));
+      packetBuilder.add(data);
+      packetBuilder.add(Uint8List(padding));
+      final packet = packetBuilder.takeBytes();
+
+      // Split: 4-byte length in plaintext, rest encrypted
+      final lengthBytes = Uint8List.sublistView(packet, 0, 4);
+      final body = Uint8List.sublistView(packet, 4);
+      final encryptedBody = _encryptCipher!.processAll(body);
+
+      // MAC over: sequence number + plaintext length + encrypted body
+      final mac = _localMac!;
+      mac.updateAll(_localPacketSN.value.toUint32());
+      mac.updateAll(lengthBytes);
+      mac.updateAll(encryptedBody);
+
+      final buffer = BytesBuilder(copy: false);
+      buffer.add(lengthBytes);
+      buffer.add(encryptedBody);
+      buffer.add(mac.finish());
+
+      socket.sink.add(buffer.takeBytes());
     } else {
+      // Standard: compute MAC over plaintext, then encrypt
+      final packet = SSHPacket.pack(data, align: packetAlign);
+
       final mac = _localMac!;
       mac.updateAll(_localPacketSN.value.toUint32());
       mac.updateAll(packet);
@@ -322,9 +359,13 @@ class SSHTransport {
   /// WITHOUT `packet length`, `padding length`, `padding` and `MAC`. Returns
   /// `null` if there is not enough data in the buffer to read the packet.
   Uint8List? _consumePacket() {
-    return _decryptCipher == null
-        ? _consumeClearTextPacket()
-        : _consumeEncryptedPacket();
+    if (_decryptCipher == null) {
+      return _consumeClearTextPacket();
+    } else if (_remoteMacType!.isETM) {
+      return _consumeEncryptedPacketETM();
+    } else {
+      return _consumeEncryptedPacket();
+    }
   }
 
   Uint8List? _consumeClearTextPacket() {
@@ -382,6 +423,72 @@ class SSHTransport {
 
     final mac = _buffer.consume(macLength);
     _verifyPacketMac(packet, mac);
+
+    return Uint8List.sublistView(packet, 5, packet.length - paddingLength);
+  }
+
+  /// Consumes an encrypted packet using Encrypt-Then-MAC mode.
+  /// In ETM mode, the packet length field is NOT encrypted, and MAC is
+  /// computed over the ciphertext (including the unencrypted length field).
+  Uint8List? _consumeEncryptedPacketETM() {
+    printDebug?.call('SSHTransport._consumeEncryptedPacketETM');
+
+    // In ETM mode, the first 4 bytes (packet length) are NOT encrypted
+    if (_buffer.length < 4) {
+      return null;
+    }
+
+    final packetLength = SSHPacket.readPacketLength(_buffer.data);
+    _verifyPacketLength(packetLength);
+
+    final macLength = _remoteMac!.macSize;
+    final totalNeeded = 4 + packetLength + macLength;
+    if (_buffer.length < totalNeeded) {
+      return null;
+    }
+
+    // Extract the ciphertext: unencrypted length (4 bytes) + encrypted body
+    final lengthBytes = _buffer.consume(4);
+    final encryptedBody = _buffer.consume(packetLength);
+    final mac = _buffer.consume(macLength);
+
+    // Verify MAC over: sequence number + length bytes + encrypted body
+    final macSize = _remoteMac!.macSize;
+    if (mac.length != macSize) {
+      throw ArgumentError.value(mac, 'mac', 'Invalid MAC size');
+    }
+    _remoteMac!.updateAll(_remotePacketSN.value.toUint32());
+    _remoteMac!.updateAll(lengthBytes);
+    _remoteMac!.updateAll(encryptedBody);
+    final expectedMac = _remoteMac!.finish();
+    if (!expectedMac.equals(mac)) {
+      throw SSHPacketError(
+        'MAC mismatch, expected: $expectedMac, actual: $mac',
+      );
+    }
+
+    // Decrypt the body (everything after the 4-byte length)
+    final decryptedBody = _decryptCipher!.processAll(encryptedBody);
+
+    // Reconstruct the full packet (length + decrypted body) for padding check
+    final packet = Uint8List(4 + decryptedBody.length);
+    packet.setAll(0, lengthBytes);
+    packet.setAll(4, decryptedBody);
+
+    final paddingLength = SSHPacket.readPaddingLength(packet);
+    final payloadLength = packetLength - paddingLength - 1;
+
+    // Verify padding using ETM alignment (packetLength must be block-aligned)
+    final expectedPacketAlign = max(SSHPacket.minAlign, _decryptCipher!.blockSize);
+    final minPaddingLength = SSHPacket.paddingLengthETM(
+      payloadLength,
+      align: expectedPacketAlign,
+    );
+    if (paddingLength < minPaddingLength) {
+      throw SSHPacketError(
+        'Invalid padding length: $paddingLength, expected: $minPaddingLength',
+      );
+    }
 
     return Uint8List.sublistView(packet, 5, packet.length - paddingLength);
   }
@@ -463,6 +570,7 @@ class SSHTransport {
     );
 
     _localMac = macType.createMac(macKey);
+    _localMacType = macType;
   }
 
   void _applyRemoteKeys() {
@@ -489,6 +597,7 @@ class SSHTransport {
       macType.keySize,
     );
     _remoteMac = macType.createMac(macKey);
+    _remoteMacType = macType;
   }
 
   Uint8List _deriveKey(SSHDeriveKeyType keyType, int keySize) {
