@@ -179,12 +179,15 @@ class _IOSSettingsTileState extends State<IOSSettingsTile> {
                 () => changePressState(isPressed: false),
               );
             },
-      onTapDown: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: true),
-      onTapUp: (_) =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
-      onTapCancel: () =>
-          widget.onPressed == null ? null : changePressState(isPressed: false),
+      onTapDown: widget.onPressed == null
+          ? null
+          : (_) => changePressState(isPressed: true),
+      onTapUp: widget.onPressed == null
+          ? null
+          : (_) => changePressState(isPressed: false),
+      onTapCancel: widget.onPressed == null
+          ? null
+          : () => changePressState(isPressed: false),
       child: Container(
         color: isPressed
             ? theme.themeData.tileHighlightColor

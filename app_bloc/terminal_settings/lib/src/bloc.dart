@@ -146,8 +146,12 @@ class TerminalSettingsBloc
     final currentState = state as TerminalSettingsLoaded;
     final value = event.maxOpenShells.clamp(1, 50); // Reasonable limits
 
-    await _vault.write(key: _maxOpenShellsKey, value: value.toString());
     emit(currentState.copyWith(maxOpenShells: value));
+    try {
+      await _vault.write(key: _maxOpenShellsKey, value: value.toString());
+    } catch (_) {
+      // Persistence failure; setting still applies for current session.
+    }
   }
 
   Future<void> _onUpdateFontSize(
@@ -159,8 +163,12 @@ class TerminalSettingsBloc
     final currentState = state as TerminalSettingsLoaded;
     final value = event.fontSize.clamp(8.0, 32.0); // Reasonable limits
 
-    await _vault.write(key: _fontSizeKey, value: value.toString());
     emit(currentState.copyWith(fontSize: value));
+    try {
+      await _vault.write(key: _fontSizeKey, value: value.toString());
+    } catch (_) {
+      // Persistence failure; setting still applies for current session.
+    }
   }
 
   Future<void> _onUpdateFontFamily(
@@ -171,7 +179,11 @@ class TerminalSettingsBloc
 
     final currentState = state as TerminalSettingsLoaded;
 
-    await _vault.write(key: _fontFamilyKey, value: event.fontFamily);
     emit(currentState.copyWith(fontFamily: event.fontFamily));
+    try {
+      await _vault.write(key: _fontFamilyKey, value: event.fontFamily);
+    } catch (_) {
+      // Persistence failure; setting still applies for current session.
+    }
   }
 }
