@@ -85,8 +85,12 @@ class _PluginTabViewState extends State<PluginTabView> {
         connector = widget.plugin.hostSpec.createConnector();
         connector?.addListener(_onConnectionChanged);
         connector?.connect().then((_) {
-          if (mounted && connector?.host != null) {
+          if (!mounted) return;
+          if (connector?.host != null) {
             widget.plugin.manager.didConnected(connector!.host!);
+          } else if (connector?.lastError != null) {
+            widget.plugin.manager
+                .didConnectionError(connector!.lastError!);
           }
         });
       });

@@ -16,7 +16,7 @@ class SSHPem {
   static const _pemEnd = '-----';
 
   factory SSHPem.decode(String pem) {
-    final lines = pem.trim().split("\n");
+    final lines = pem.trim().split("\n").map((l) => l.trimRight()).toList();
     final header = lines.first;
     final footer = lines.last;
 

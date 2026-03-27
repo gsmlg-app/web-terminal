@@ -11,9 +11,15 @@ import 'package:app_locale/app_locale.dart';
 /// for editing. Otherwise, an empty form for adding a new host is shown.
 void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
   // Perform side effects before showing dialog to avoid repeated calls on rebuild
-  context.read<SshKeyBloc>().add(SshKeyLoad());
+  final sshKeyBloc = context.read<SshKeyBloc>();
+  sshKeyBloc.add(SshKeyLoad());
   final sshHostFormBloc = context.read<SshHostFormBloc>();
   sshHostFormBloc.clear();
+  // Pre-populate SSH keys if already loaded
+  final sshKeyState = sshKeyBloc.state;
+  if (sshKeyState is SshKeyLoaded) {
+    sshHostFormBloc.setSshKeys(sshKeyState.sshKeys);
+  }
   sshHostFormBloc.setSshHost(sshHost);
 
   showFullScreenDialog(
@@ -24,7 +30,13 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
     builder: (context) {
       final sshHostFormBloc = context.read<SshHostFormBloc>();
 
-      return FormBlocListener<SshHostFormBloc, String, String>(
+      return BlocListener<SshKeyBloc, SshKeyState>(
+        listener: (context, state) {
+          if (state is SshKeyLoaded) {
+            context.read<SshHostFormBloc>().setSshKeys(state.sshKeys);
+          }
+        },
+        child: FormBlocListener<SshHostFormBloc, String, String>(
         onSubmitting: (context, state) {},
         onSubmissionFailed: (context, state) {},
         onSuccess: (context, state) {
@@ -188,6 +200,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
             ),
           ),
         ),
+      ),
       );
     },
   );

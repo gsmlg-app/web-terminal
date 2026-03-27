@@ -303,7 +303,7 @@ class OpenSSHRsaKeyPair with OpenSSHKeyPair {
   final name = 'ssh-rsa';
 
   @override
-  final type = SSHRsaSignatureType.sha256;
+  final String type;
 
   final BigInt n;
   final BigInt e;
@@ -322,8 +322,17 @@ class OpenSSHRsaKeyPair with OpenSSHKeyPair {
     this.iqmp,
     this.p,
     this.q,
-    this.comment,
-  );
+    this.comment, {
+    this.type = SSHRsaSignatureType.sha256,
+  });
+
+  /// Creates a copy of this key with a different signature type.
+  OpenSSHRsaKeyPair withSignatureType(String signatureType) {
+    return OpenSSHRsaKeyPair(
+      n, e, d, iqmp, p, q, comment,
+      type: signatureType,
+    );
+  }
 
   factory OpenSSHRsaKeyPair.readFrom(SSHMessageReader reader) {
     final n = reader.readMpint();
@@ -343,7 +352,7 @@ class OpenSSHRsaKeyPair with OpenSSHKeyPair {
 
   @override
   SSHRsaSignature sign(Uint8List data) {
-    final signer = RSASigner(SHA256Digest(), '0609608648016503040201');
+    final signer = _createRsaSigner(type);
 
     signer.init(
       true,
@@ -624,7 +633,7 @@ class RsaPrivateKey implements SSHKeyPair {
   final name = 'ssh-rsa';
 
   @override
-  final type = SSHRsaSignatureType.sha256;
+  final String type;
 
   final BigInt version;
   final BigInt n;
@@ -645,8 +654,17 @@ class RsaPrivateKey implements SSHKeyPair {
     this.q,
     this.exponent1,
     this.exponent2,
-    this.coefficient,
-  );
+    this.coefficient, {
+    this.type = SSHRsaSignatureType.sha256,
+  });
+
+  /// Creates a copy of this key with a different signature type.
+  RsaPrivateKey withSignatureType(String signatureType) {
+    return RsaPrivateKey(
+      version, n, e, d, p, q, exponent1, exponent2, coefficient,
+      type: signatureType,
+    );
+  }
 
   factory RsaPrivateKey.decode(Uint8List keyBlob) {
     final parser = ASN1Parser(keyBlob);
@@ -682,7 +700,7 @@ class RsaPrivateKey implements SSHKeyPair {
 
   @override
   SSHRsaSignature sign(Uint8List data) {
-    final signer = RSASigner(SHA256Digest(), '0609608648016503040201');
+    final signer = _createRsaSigner(type);
 
     signer.init(
       true,
@@ -712,5 +730,18 @@ class RsaPrivateKey implements SSHKeyPair {
   @override
   String toString() {
     return '$runtimeType(version: $version)';
+  }
+}
+
+/// Creates an RSA signer with the appropriate digest for the given signature type.
+RSASigner _createRsaSigner(String signatureType) {
+  switch (signatureType) {
+    case SSHRsaSignatureType.sha1:
+      return RSASigner(SHA1Digest(), '06052b0e03021a');
+    case SSHRsaSignatureType.sha512:
+      return RSASigner(SHA512Digest(), '0609608648016503040203');
+    case SSHRsaSignatureType.sha256:
+    default:
+      return RSASigner(SHA256Digest(), '0609608648016503040201');
   }
 }

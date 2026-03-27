@@ -12,6 +12,7 @@ export 'src/socket/ssh_socket.dart';
 
 export 'src/algorithm/ssh_cipher_type.dart';
 export 'src/algorithm/ssh_hostkey_type.dart';
+export 'src/hostkey/hostkey_rsa.dart' show SSHRsaSignatureType;
 export 'src/algorithm/ssh_kex_type.dart';
 export 'src/algorithm/ssh_mac_type.dart';
 

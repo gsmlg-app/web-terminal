@@ -18,6 +18,9 @@ class TerminalPlugin extends Plugin {
 
   final terminalController = TerminalController();
 
+  /// Error message from connection failure, displayed as selectable text.
+  final connectionError = ValueNotifier<String?>(null);
+
   var terminalTitle = '';
 
   ExecutionSession? session;
@@ -109,6 +112,12 @@ class TerminalPlugin extends Plugin {
   }
 
   @override
+  void onConnectionError(Object error) {
+    title.value = 'Connection Failed';
+    connectionError.value = '$error';
+  }
+
+  @override
   Widget build(BuildContext context) {
     return TerminalTabView(this);
   }
@@ -146,18 +155,34 @@ class _TerminalTabViewState extends State<TerminalTabView> {
           key: ValueKey(widget.plugin),
           backgroundColor: Colors.transparent,
           child: SafeArea(
-            child: ClipRect(
-              child: TerminalView(
-                widget.plugin.terminal,
-                controller: widget.plugin.terminalController,
-                onSecondaryTapDown: (_, __) => showMenu(),
-                backgroundOpacity: 0.8,
-                autofocus: true,
-                textStyle: TerminalStyle(
-                  fontSize: fontSize,
-                  fontFamily: fontFamily,
+            child: Stack(
+              children: [
+                ClipRect(
+                  child: TerminalView(
+                    widget.plugin.terminal,
+                    controller: widget.plugin.terminalController,
+                    onSecondaryTapDown: (_, __) => showMenu(),
+                    backgroundOpacity: 0.8,
+                    autofocus: true,
+                    textStyle: TerminalStyle(
+                      fontSize: fontSize,
+                      fontFamily: fontFamily,
+                    ),
+                  ),
                 ),
-              ),
+                ValueListenableBuilder<String?>(
+                  valueListenable: widget.plugin.connectionError,
+                  builder: (context, error, _) {
+                    if (error == null) return const SizedBox.shrink();
+                    return _ConnectionErrorOverlay(
+                      error: error,
+                      onRetry: () {
+                        widget.plugin.connectionError.value = null;
+                      },
+                    );
+                  },
+                ),
+              ],
             ),
           ),
         );

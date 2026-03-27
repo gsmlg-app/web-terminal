@@ -571,7 +571,11 @@ class SSHClient {
   void _handleUserauthFailure(Uint8List payload) {
     final message = SSH_Message_Userauth_Failure.decode(payload);
     printTrace?.call('<- $socket: $message');
-    printDebug?.call('SSHClient._handleUserauthFailure');
+    printDebug?.call(
+      'SSHClient._handleUserauthFailure: '
+      'methodsLeft=${message.methodsLeft}, '
+      'partialSuccess=${message.partialSuccess}',
+    );
     _tryNextAuthMethod();
   }
 
@@ -879,9 +883,11 @@ class SSHClient {
   }
 
   void _authWithNextPublicKey() {
-    printDebug?.call('SSHClient._authWithPublicKey');
-
     final keyPair = _keyPairsLeft.removeFirst();
+    printDebug?.call(
+      'SSHClient._authWithPublicKey: '
+      'name=${keyPair.name}, type=${keyPair.type}',
+    );
 
     final challenge = _transport.composeChallenge(
       username: username,

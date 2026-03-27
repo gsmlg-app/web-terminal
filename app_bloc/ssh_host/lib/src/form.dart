@@ -6,6 +6,7 @@ import 'bloc.dart';
 class SshHostFormBloc extends FormBloc<String, String> {
   final SshHostBloc sshHostBloc;
   List<SshKey> _sshKeys = [];
+  int? _editingHostId;
 
   final host = TextFieldBloc<String>(
     validators: [
@@ -80,6 +81,7 @@ class SshHostFormBloc extends FormBloc<String, String> {
   }
 
   void setSshHost(SshHost? sshHost) {
+    _editingHostId = sshHost?.id;
     host.updateValue(sshHost?.host ?? '');
     hostname.updateValue(sshHost?.hostname ?? '');
     port.updateValue((sshHost?.port ?? 22).toString());
@@ -97,22 +99,38 @@ class SshHostFormBloc extends FormBloc<String, String> {
   @override
   void onSubmitting() async {
     try {
-      sshHostBloc.add(SshHostAdd(
-        host: host.value,
-        hostname: hostname.value,
-        port: int.parse(port.value),
-        username: username.value,
-        identityType: identityType.value?.value,
-        password: identityType.value == SshIdentityType.password
-            ? password.value
-            : null,
-        identityKeyId: identityType.value == SshIdentityType.key
-            ? identityKeyId.value?.id
-            : null,
-      ));
-      emitSuccess(
-        successResponse: 'Host created',
-      );
+      if (_editingHostId != null) {
+        sshHostBloc.add(SshHostUpdate(
+          id: _editingHostId!,
+          host: host.value,
+          hostname: hostname.value,
+          port: int.parse(port.value),
+          username: username.value,
+          identityType: identityType.value?.value,
+          password: identityType.value == SshIdentityType.password
+              ? password.value
+              : null,
+          identityKeyId: identityType.value == SshIdentityType.key
+              ? identityKeyId.value?.id
+              : null,
+        ));
+        emitSuccess(successResponse: 'Host updated');
+      } else {
+        sshHostBloc.add(SshHostAdd(
+          host: host.value,
+          hostname: hostname.value,
+          port: int.parse(port.value),
+          username: username.value,
+          identityType: identityType.value?.value,
+          password: identityType.value == SshIdentityType.password
+              ? password.value
+              : null,
+          identityKeyId: identityType.value == SshIdentityType.key
+              ? identityKeyId.value?.id
+              : null,
+        ));
+        emitSuccess(successResponse: 'Host created');
+      }
     } catch (e) {
       emitFailure(
         failureResponse: e.toString(),
