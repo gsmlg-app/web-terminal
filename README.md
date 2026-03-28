@@ -1,256 +1,93 @@
-# Flutter App Template
+# Web Terminal
 
-A comprehensive Flutter application template with monorepo architecture, providing a robust foundation for building scalable Flutter applications with clean architecture principles.
+A Flutter-based terminal emulator with SSH/SFTP support, targeting Android, iOS, macOS, Linux, Windows, and Web. Features local shell sessions, remote SSH connections, and a web-based terminal server with session management.
 
 ## Features
 
-- 🏗️ **Monorepo Architecture** - Managed by Melos for modular development
-- 🎨 **Theme Management** - Multiple color schemes (fire, green, violet, wheat) with dynamic switching
-- 🌍 **Internationalization** - Full i18n support with ARB files
-- 🔄 **State Management** - BLoC pattern implementation
-- 📱 **Responsive Design** - Adaptive widgets for multiple platforms
-- 🔧 **Code Generation** - Mason templates for scaffolding
-- 🧪 **Testing** - Comprehensive test setup
-- 📦 **Dependency Injection** - Clean architecture with separation of concerns
+- **Local Terminal** - PTY-based shell sessions on desktop and Android (busybox), ios_system on iOS
+- **SSH Client** - Pure Dart SSH connections with secure key management
+- **Web Terminal Server** - Host terminal sessions accessible via browser with WebSocket and approval-based authentication
+- **Multi-Tab Interface** - Multiple terminal tabs with xterm.dart emulation
+- **Cross-Platform** - Android, iOS, macOS, Linux, Windows, and Web
+- **Theme System** - Multiple color schemes (fire, green, violet, wheat) with light/dark modes
+- **Internationalization** - Full i18n support with ARB files
 
-## Architecture Overview
+## Architecture
 
-This project follows clean architecture principles with a monorepo structure managed by Melos, providing separation of concerns across multiple specialized packages.
+Monorepo managed by Melos with 50+ workspace packages:
 
-### Monorepo Organization
-
-- **Main App**: `lib/` - Entry point and main application code
-- **API Layer**: `app_api/` - Generated API client code (OpenAPI/Swagger based)
-- **State Management**: `app_bloc/` - BLoC pattern implementations for business logic
-- **Shared Libraries**: `app_lib/` - Core utilities, themes, localization
-- **UI Components**: `app_widget/` - Reusable widgets and UI elements
-- **Code Generation**: `bricks/` - Mason templates for scaffolding
-- **Third-party**: `third_party/` - Modified/custom third-party packages
-
-### Key Packages
-
-- **app_theme**: Theme management with multiple color schemes
-- **app_locale**: Internationalization support with ARB files
-- **app_provider**: Dependency injection and app-level providers
-- **theme_bloc**: State management for theme switching
-- **app_adaptive_widgets**: Responsive/adaptive UI components
-- **app_artwork**: Asset management (icons, lottie animations)
-- **app_feedback**: User feedback mechanisms (snackbars, dialogs, toasts)
+- **app_bloc/** - BLoC state management (theme, SSH keys/hosts, terminal tabs, web sessions, shell profiles)
+- **app_lib/** - Core libraries (database, terminal core, SSH, web server, logging, secure storage)
+- **app_widget/** - UI components (xterm, terminal tabs, file manager, settings)
+- **app_plugin/** - Native plugins (PTY, android_shell, ios_shell, client_info)
+- **third_party/** - Modified packages (form_bloc, adaptive_scaffold, settings_ui, flex_tabs)
 
 ## Getting Started
 
 ### Prerequisites
 
-- Flutter SDK (latest stable version)
-- Dart SDK
+- [Nix](https://nixos.org/) with [devenv](https://devenv.sh/) (recommended) or Flutter SDK manually
 - Git
 
-### Installation
-
-1.  **Clone the repository:**
-
-    ```bash
-    git clone https://github.com/your-username/flutter-app-template.git
-    cd flutter-app-template
-    ```
-
-2.  **Install global dependencies:**
-
-    ```bash
-    dart pub global activate melos
-    dart pub global activate mason_cli
-    ```
-
-3.  **Bootstrap the project:**
-
-    This will install all the dependencies for the root project and all the packages in the workspace.
-
-    ```bash
-    melos bootstrap
-    ```
-
-4.  **Initialize Mason:**
-
-    ```bash
-    mason get
-    ```
-
-## Development Workflow
-
-### Setup & Code Generation
+### Setup with devenv
 
 ```bash
-# Install global dependencies
+git clone https://github.com/gsmlg-dev/web-terminal.git
+cd web-terminal
+direnv allow    # Auto-loads Nix environment with Flutter SDK
+melos bootstrap
+mason get
+```
+
+### Setup without devenv
+
+```bash
 dart pub global activate melos
 dart pub global activate mason_cli
-
-# Bootstrap the project
 melos bootstrap
-
-# Initialize mason
 mason get
 ```
-
-### Development Commands
-
-```bash
-# Run analysis and formatting
-melos run analyze
-melos run format
-
-# Run tests across all packages
-melos run test
-flutter test
-
-# Generate code (build_runner, l10n)
-melos run prepare
-melos run build-runner
-```
-
-### Individual Package Commands
-
-```bash
-# Run tests for specific package
-cd app_lib/theme && flutter test
-
-# Analyze specific package
-cd app_widget/adaptive && flutter analyze
-
-# Build specific package
-cd app_lib/theme && dart run build_runner build --delete-conflicting-outputs
-```
-
-## Key Files & Entry Points
-
-- **Main Entry**: `lib/main.dart` - App initialization with providers
-- **App Shell**: `lib/app.dart` - Root widget with theme management
-- **Routing**: `lib/router.dart` - GoRouter configuration with declarative routing
-- **Screens**: `lib/screens/` - Feature screens organized by domain
-
-## Configuration Files
-
-- **Melos**: `pubspec.yaml` (workspace configuration)
-- **Mason**: `mason.yaml` (code generation templates)
-- **Analysis**: `analysis_options.yaml` (linting rules)
-- **Localization**: `app_lib/locale/l10n.yaml` (i18n configuration)
-
-## Available Melos Scripts
-
-This project uses Melos to manage the monorepo. Here are some of the available scripts:
-
--   `melos run analyze`: Run `flutter analyze` for all packages
--   `melos run fix`: Run `dart fix` for all packages
--   `melos run format`: Run `dart format` for all packages
--   `melos run test`: Run Flutter tests for all packages
--   `melos run test:dart`: Run Dart tests for non-Flutter packages
--   `melos run test:flutter`: Run Flutter tests for Flutter packages
--   `melos run upgrade`: Upgrade dependencies in all packages
--   `melos run outdated`: Check for outdated dependencies in all packages
--   `melos run validate-dependencies`: Validate dependencies usage
--   `melos run prepare`: Generate code (bootstrap + gen-l10n + build-runner)
--   `melos run build-runner`: Run build_runner for all packages
--   `melos run gen-l10n`: Generate localization files
--   `melos run brick-test`: Run Mason brick tests (see [BRICK_TESTING.md](docs/BRICK_TESTING.md))
-
-## Code Generation with Mason
-
-This project uses Mason for code generation to maintain consistency and speed up development. For a complete guide to all available bricks and their usage, see [BRICKS.md](./docs/BRICKS.md).
-
-### Testing Mason Bricks
-
-For comprehensive documentation on testing Mason bricks, including test structure, running tests, and writing new tests, see [BRICK_TESTING.md](./docs/BRICK_TESTING.md).
-
-### Initialize Mason
-
-```bash
-dart pub global activate mason_cli
-mason get
-```
-
-### Generate API Client
-
-Create API client code from OpenAPI specification:
-
-```bash
-mason make api_client -o app_api/app_api --package_name=app_api
-# Then add OpenAPI spec to `app_api/app_api/openapi.yaml`
-```
-
-### Generate BLoC
-
-Create a simple BLoC package:
-
-```bash
-mason make simple_bloc -o app_bloc/feature_name --name=feature_name
-```
-
-### Generate Form BLoC
-
-Create a complete form BLoC with validation and submission logic:
-
-```bash
-mason make form_bloc --name Login --field_names "email,password"
-```
-
-## 📚 Additional Documentation
-
-- **[📚 Documentation Index](./docs/INDEX.md)** - Index of all project documentation
-- **[🧱 Mason Bricks Guide](./docs/BRICKS.md)** - Complete guide to all available Mason bricks for code generation
-- **[📝 Form BLoC Guide](./docs/FORM_BLOC.md)** - Comprehensive documentation for form validation and submission
-- **[📋 CLAUDE.md](./CLAUDE.md)** - Development guidance and project architecture for AI assistants
 
 ### Running the App
 
 ```bash
-# Development
-flutter run
-
-# Specific platform
-flutter run -d chrome
-flutter run -d android
-flutter run -d ios
+flutter run                # Default device
+flutter run -d linux       # Linux (requires devenv shell for GTK3/libsecret deps)
+flutter run -d macos       # macOS
+flutter run -d chrome      # Web
+flutter run -d android     # Android
+flutter run -d ios         # iOS
 ```
 
-### Running Tests
+## Development
+
+### Common Commands
 
 ```bash
-# Run all tests
-flutter test
-
-# Run tests for all packages
-melos exec flutter test
-
-# Run tests for specific package
-cd app_lib/theme && flutter test
+melos run prepare          # Full setup: bootstrap + gen-l10n + build-runner
+melos run analyze          # Lint all packages
+melos run format           # Format all packages
+melos run test             # Run all tests
 ```
 
-## Testing Structure
+### Code Generation
 
-Tests are co-located with their respective packages:
-- **Unit tests**: `test/` directory in each package
-- **Widget tests**: `test/` directory in main app
-- **Integration tests**: Use `flutter test` at root level
+Uses [Mason](https://github.com/felangel/mason) templates. See [BRICKS.md](./docs/BRICKS.md) for the complete guide.
 
-## Package Dependencies
+```bash
+mason make screen --name ScreenName --folder subfolder
+mason make simple_bloc -o app_bloc/feature --name=feature
+mason make native_plugin --name plugin_name --description "Description" --package_prefix app -o app_plugin
+```
 
-The workspace uses path-based dependencies for internal packages (marked as `any` in pubspec.yaml). All packages are managed through Melos workspace configuration, ensuring consistent versioning and dependency resolution across the monorepo.
+## Documentation
 
-## Contributing
-
-Contributions are welcome! Please feel free to submit a pull request. For major changes, please open an issue first to discuss what you would like to change.
-
-### Development Guidelines
-
-1. Follow the existing code style and architecture patterns
-2. Write tests for new features
-3. Update documentation as needed
-4. Run `melos run analyze` and `melos run format` before submitting PRs
-5. Ensure all tests pass with `melos run test`
+- [Mason Bricks Guide](./docs/BRICKS.md) - Code generation templates
+- [Form BLoC Guide](./docs/FORM_BLOC.md) - Form validation and submission
+- [Testing Guide](./docs/TESTING.md) - Test structure and strategy
+- [Documentation Index](./docs/INDEX.md) - Full documentation index
+- [CLAUDE.md](./CLAUDE.md) - AI assistant development guidance
 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Support
-
-If you encounter any issues or have questions, please file an issue on the GitHub repository.
