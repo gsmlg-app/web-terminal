@@ -76,6 +76,9 @@ class _PluginTabViewState extends State<PluginTabView> {
     SchedulerBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
+      // Guard: plugin may have been detached if tab was closed during build.
+      if (!widget.plugin.mounted) return;
+
       // Skip if already connected (e.g., during hot reload)
       if (widget.plugin.manager.isConnected) {
         return;
@@ -98,7 +101,7 @@ class _PluginTabViewState extends State<PluginTabView> {
   }
 
   void _onConnectionChanged() {
-    if (connector != null) {
+    if (connector != null && plugin.mounted) {
       plugin.manager.didConnectionStatusChanged(connector!.status);
     }
   }

@@ -7,6 +7,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
+import 'package:terminal_plugin/src/terminal_shortcut_handler.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:xterm/xterm.dart';
 
@@ -133,8 +134,30 @@ class TerminalTabView extends StatefulWidget {
 }
 
 class _TerminalTabViewState extends State<TerminalTabView> {
+  final _terminalFocusNode = FocusNode(debugLabel: 'TerminalViewFocus');
+  ValueNotifier<int>? _focusNotifier;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final newNotifier = TerminalShortcutHandler.of(context)?.focusNotifier;
+    if (newNotifier != _focusNotifier) {
+      _focusNotifier?.removeListener(_onFocusRequested);
+      _focusNotifier = newNotifier;
+      _focusNotifier?.addListener(_onFocusRequested);
+    }
+  }
+
+  void _onFocusRequested() {
+    if (mounted) {
+      _terminalFocusNode.requestFocus();
+    }
+  }
+
   @override
   void dispose() {
+    _focusNotifier?.removeListener(_onFocusRequested);
+    _terminalFocusNode.dispose();
     widget.plugin.terminal.dispose();
     super.dispose();
   }
@@ -161,6 +184,8 @@ class _TerminalTabViewState extends State<TerminalTabView> {
                   child: TerminalView(
                     widget.plugin.terminal,
                     controller: widget.plugin.terminalController,
+                    focusNode: _terminalFocusNode,
+                    onKeyEvent: TerminalShortcutHandler.of(context)?.onKeyEvent,
                     onSecondaryTapDown: (_, __) => showMenu(),
                     backgroundOpacity: 0.8,
                     autofocus: true,
