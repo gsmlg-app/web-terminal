@@ -1,9 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
@@ -25,6 +25,8 @@ class TerminalPlugin extends Plugin {
   var terminalTitle = '';
 
   ExecutionSession? session;
+
+  Timer? _resizeTitleTimer;
 
   void _updateTitle() {
     if (session != null) {
@@ -48,7 +50,10 @@ class TerminalPlugin extends Plugin {
 
     terminal.onResize = (w, h, pw, ph) {
       session?.resize(w, h);
-      SchedulerBinding.instance.addPostFrameCallback((_) {
+      // Debounce title update during resize to avoid excessive rebuilds
+      // that can overwhelm the EGL rendering pipeline on Linux.
+      _resizeTitleTimer?.cancel();
+      _resizeTitleTimer = Timer(const Duration(milliseconds: 100), () {
         _updateTitle();
       });
     };
@@ -92,6 +97,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didDisconnected() {
+    _resizeTitleTimer?.cancel();
     session = null;
     title.value = 'Disconnected';
   }
