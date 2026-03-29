@@ -52,6 +52,9 @@ static void my_application_activate(GApplication* application) {
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+  // Enforce a minimum window size at the GTK level to reduce the chance of
+  // EGL surface recreation races during rapid resize on Linux.
+  gtk_widget_set_size_request(GTK_WIDGET(window), 480, 320);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
