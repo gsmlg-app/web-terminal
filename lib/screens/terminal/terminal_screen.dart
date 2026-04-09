@@ -113,6 +113,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final manager = PluginManager(hostSpec);
     final tabItem = PluginTab(plugin, manager);
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+    _requestTerminalFocus();
 
     // Track session creation
     _analytics.trackSessionCreated(
@@ -240,14 +241,19 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final sessions = _buildSessionList(state);
     if (sessions.isEmpty) return;
     final currentId = state.activeTab?.hashCode.toString();
-    final selectedId = await showTabSwitcher(
+    final result = await showTabSwitcher(
       context,
       sessions: sessions,
       currentSessionId: currentId,
     );
-    if (selectedId != null && mounted) {
-      _terminalTabBloc.add(TerminalTabSelectSession(selectedId));
-      _requestTerminalFocus();
+    if (!mounted || result == null) return;
+    switch (result) {
+      case TabSwitcherSelect(:final sessionId):
+        _terminalTabBloc.add(TerminalTabSelectSession(sessionId));
+        _requestTerminalFocus();
+      case TabSwitcherClose(:final sessionId):
+        _terminalTabBloc.add(TerminalTabCloseSession(sessionId));
+        _requestTerminalFocus();
     }
   }
 
@@ -332,12 +338,15 @@ class _TerminalScreenState extends State<TerminalScreen> {
   List<SessionInfo> _buildSessionList(TerminalTabLoaded state) {
     return state.allTabs.map((tab) {
       String name = 'Terminal';
+      bool isRunning = false;
       if (tab is PluginTab) {
         name = tab.plugin.title.value ?? tab.manager.hostSpec.name;
+        isRunning = tab.manager.isConnected;
       }
       return SessionInfo(
         id: tab.hashCode.toString(),
         name: name,
+        isRunning: isRunning,
         onClose: () {
           _terminalTabBloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
         },
