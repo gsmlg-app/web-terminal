@@ -1,4 +1,4 @@
-import 'package:form_bloc/form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 
 /// {@template {{name.snakeCase()}}_form_bloc}
 /// {{name.pascalCase()}}FormBloc manages the state and events for the {{name.sentenceCase()}} form.

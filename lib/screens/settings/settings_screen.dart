@@ -32,7 +32,7 @@ class SettingsScreen extends StatelessWidget {
           ],
         ),
       ),
-      smallSecondaryBody: AdaptiveScaffold.emptyBuilder,
+      smallSecondaryBody: DmAdaptiveScaffold.emptyBuilder,
       largeBody: (context) => SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),

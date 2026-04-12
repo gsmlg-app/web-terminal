@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 
 /// Screen for managing environment variables.

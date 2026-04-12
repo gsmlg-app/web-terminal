@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app_feedback/app_feedback.dart';
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:app_security/app_security.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:app_locale/app_locale.dart';
@@ -24,7 +24,7 @@ void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {
     builder: (context) {
       final sshKeyFormBloc = context.read<SshKeyFormBloc>();
 
-      return FormBlocListener<SshKeyFormBloc, String, String>(
+      return DmFormBlocListener<SshKeyFormBloc, String, String>(
         onSubmitting: (context, state) {},
         onSubmissionFailed: (context, state) {},
         onSuccess: (context, state) {
@@ -44,7 +44,7 @@ void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  TextFieldBlocBuilder(
+                  DmTextFieldBlocBuilder(
                     textFieldBloc: sshKeyFormBloc.name,
                     suffixButton: SuffixButton.clearText,
                     autofillHints: const [AutofillHints.name],
@@ -74,7 +74,7 @@ void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {
                     child: Text(context.l10n.sshKeyGenerate),
                   ),
                   const SizedBox(height: 20),
-                  TextFieldBlocBuilder(
+                  DmTextFieldBlocBuilder(
                     textFieldBloc: sshKeyFormBloc.content,
                     suffixButton: SuffixButton.clearText,
                     autofillHints: const [AutofillHints.name],

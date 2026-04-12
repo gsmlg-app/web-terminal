@@ -21,7 +21,7 @@ Flutter-based terminal emulator with SSH/SFTP support, targeting mobile (Android
 ├── app_plugin/             # Native platform plugins
 ├── bricks/                 # Mason templates for code generation
 ├── test_bricks/            # Brick tests (one folder per brick)
-└── third_party/            # Modified third-party packages
+└── third_party/            # Modified third-party packages (flex_tabs, etc.)
 ```
 
 ## Terminal Architecture
@@ -64,7 +64,7 @@ Defined in root `pubspec.yaml` workspace section. Use `<package_name>: any` for 
 - `app_bloc/`: theme, connection, ssh_key, ssh_host, terminal_tab, terminal_settings, shell_profile, web_session
 - `app_widget/`: adaptive, artwork, feedback, web_view, xterm, terminal_settings, terminal_tabs, terminal_plugin, file_manager_plugin
 - `app_plugin/`: client_info (federated), android_shell, ios_shell, pty
-- `third_party/`: form_bloc, flutter_form_bloc, flutter_adaptive_scaffold, settings_ui, flex_tabs
+- `third_party/`: flex_tabs
 
 ## Custom Skills (Claude Code)
 

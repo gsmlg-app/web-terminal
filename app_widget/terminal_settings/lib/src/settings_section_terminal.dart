@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 
@@ -32,7 +31,7 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
     required this.envSettingsScreenName,
     required this.onEnvSettingsPressed,
     this.onShellProfilesPressed,
-  });
+  }) : super(tiles: const []);
 
   @override
   Widget build(BuildContext context) {
@@ -149,9 +148,13 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
 
 /// A settings tile that shows shell profiles count with ShellProfileBloc.
 class _ShellProfilesTile extends AbstractSettingsTile {
-  final void Function(BuildContext context) onPressed;
-
-  const _ShellProfilesTile({required this.onPressed});
+  const _ShellProfilesTile({
+    required void Function(BuildContext context) onPressed,
+  }) : super(
+          title: const Text('Shell Profiles'),
+          tileType: SettingsTileType.navigationTile,
+          onPressed: onPressed,
+        );
 
   @override
   Widget build(BuildContext context) {

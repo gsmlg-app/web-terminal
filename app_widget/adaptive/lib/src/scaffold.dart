@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 
-export 'package:flutter_adaptive_scaffold/flutter_adaptive_scaffold.dart';
+export 'package:duskmoon_ui/duskmoon_ui.dart';
 
 class AppAdaptiveScaffold extends StatelessWidget {
   static const appSmallBreakpoint = Breakpoints.small;
@@ -251,7 +251,7 @@ class AppAdaptiveScaffold extends StatelessWidget {
       return body?.call(context) ?? const SizedBox.shrink();
     }
 
-    return AdaptiveScaffold(
+    return DmAdaptiveScaffold(
       destinations: destinations,
       selectedIndex: selectedIndex,
       leadingUnextendedNavRail: leadingUnextendedNavRail,

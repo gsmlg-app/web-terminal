@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_feedback/app_feedback.dart';
-import 'package:settings_ui/settings_ui.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';

@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
   meta: any
   app_database: any
-  form_bloc: any
+  duskmoon_ui: any
   ssh_key_bloc: any
 
 dev_dependencies:

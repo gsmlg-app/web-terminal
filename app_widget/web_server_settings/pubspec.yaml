@@ -11,7 +11,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_bloc: any
-  settings_ui: any
+  duskmoon_ui: any
   web_session_bloc: any
   web_server: any
   xterm: any

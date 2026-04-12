@@ -540,7 +540,7 @@ void main() {
 
       expect(find.text('Fullscreen Body'), findsOneWidget);
       // Should not find AdaptiveScaffold when hideNavigation is true
-      expect(find.byType(AdaptiveScaffold), findsNothing);
+      expect(find.byType(DmAdaptiveScaffold), findsNothing);
     });
 
     testWidgets('renders SizedBox.shrink when hideNavigation true and no body',
@@ -569,7 +569,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(AdaptiveScaffold), findsOneWidget);
+      expect(find.byType(DmAdaptiveScaffold), findsOneWidget);
     });
 
     test('has correct static breakpoint constants', () {
@@ -662,7 +662,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.selectedIndex, 1);
     });
 
@@ -677,7 +677,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.destinations, testDestinations);
     });
 
@@ -695,7 +695,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
 
       // Simulate callback
       adaptiveScaffold.onSelectedIndexChange?.call(1);
@@ -715,7 +715,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.leadingUnextendedNavRail, isNotNull);
       expect(adaptiveScaffold.leadingExtendedNavRail, isNotNull);
     });
@@ -732,7 +732,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.trailingNavRail, isNotNull);
     });
 
@@ -748,7 +748,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.secondaryBody, isNotNull);
     });
 
@@ -764,7 +764,7 @@ void main() {
       );
 
       final adaptiveScaffold =
-          tester.widget<AdaptiveScaffold>(find.byType(AdaptiveScaffold));
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.bodyRatio, 0.3);
     });
   });

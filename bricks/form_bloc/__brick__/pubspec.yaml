@@ -11,9 +11,8 @@ dependencies:
   flutter:
     sdk: flutter
   
-  # Form BLoC for advanced form handling
-  form_bloc:
-    path: ../../third_party/form_bloc
+  # Form BLoC for advanced form handling (via duskmoon_ui)
+  duskmoon_ui: ^1.4.0
   
   # Flutter BLoC for state management
   flutter_bloc: ^8.1.6

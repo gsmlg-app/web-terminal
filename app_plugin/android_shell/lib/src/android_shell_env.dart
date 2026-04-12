@@ -85,6 +85,7 @@ class AndroidShellEnv {
     _arch = paths['arch'] ?? 'arm64-v8a';
 
     // Get the shell path from the plugin, which may be /system/bin/sh if busybox isn't available
+    // ignore: unused_local_variable
     final reportedShellPath = paths['shellPath'] ?? '';
 
     // Check if we're using busybox or system shell

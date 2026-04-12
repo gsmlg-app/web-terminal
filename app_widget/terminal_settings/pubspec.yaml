@@ -12,8 +12,7 @@ dependencies:
     sdk: flutter
 
   flutter_bloc: any
-  settings_ui: any
-  flutter_form_bloc: any
+  duskmoon_ui: any
   app_theme: any
   app_feedback: any
   ssh_host_bloc: any

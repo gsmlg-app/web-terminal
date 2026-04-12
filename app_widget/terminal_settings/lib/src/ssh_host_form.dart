@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app_feedback/app_feedback.dart';
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:app_locale/app_locale.dart';
@@ -24,7 +24,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
     builder: (context) {
       final sshHostFormBloc = context.read<SshHostFormBloc>();
 
-      return FormBlocListener<SshHostFormBloc, String, String>(
+      return DmFormBlocListener<SshHostFormBloc, String, String>(
         onSubmitting: (context, state) {},
         onSubmissionFailed: (context, state) {},
         onSuccess: (context, state) {
@@ -44,7 +44,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
             child: SingleChildScrollView(
               child: Column(
                 children: [
-                  TextFieldBlocBuilder(
+                  DmTextFieldBlocBuilder(
                     textFieldBloc: sshHostFormBloc.host,
                     suffixButton: SuffixButton.clearText,
                     obscureText: false,
@@ -55,7 +55,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextFieldBlocBuilder(
+                  DmTextFieldBlocBuilder(
                     textFieldBloc: sshHostFormBloc.hostname,
                     suffixButton: SuffixButton.clearText,
                     autofillHints: const [AutofillHints.name],
@@ -67,7 +67,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextFieldBlocBuilder(
+                  DmTextFieldBlocBuilder(
                     textFieldBloc: sshHostFormBloc.port,
                     suffixButton: SuffixButton.clearText,
                     autofillHints: const [AutofillHints.name],
@@ -79,7 +79,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  TextFieldBlocBuilder(
+                  DmTextFieldBlocBuilder(
                     textFieldBloc: sshHostFormBloc.username,
                     suffixButton: SuffixButton.clearText,
                     autofillHints: const [AutofillHints.name],
@@ -91,7 +91,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  DropdownFieldBlocBuilder(
+                  DmDropdownFieldBlocBuilder(
                     selectFieldBloc: sshHostFormBloc.identityType,
                     itemBuilder: (context, value) {
                       return switch (value) {
@@ -117,7 +117,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                     builder: (context, state) {
                       final identityType = state.value;
                       if (identityType == SshIdentityType.password) {
-                        return TextFieldBlocBuilder(
+                        return DmTextFieldBlocBuilder(
                           textFieldBloc: sshHostFormBloc.password,
                           suffixButton: SuffixButton.obscureText,
                           autofillHints: const [AutofillHints.password],
@@ -130,7 +130,7 @@ void showSshHostForm({required BuildContext context, SshHost? sshHost}) {
                         );
                       }
                       if (identityType == SshIdentityType.key) {
-                        return DropdownFieldBlocBuilder(
+                        return DmDropdownFieldBlocBuilder(
                           selectFieldBloc: sshHostFormBloc.identityKeyId,
                           itemBuilder: (context, value) {
                             return FieldItem(

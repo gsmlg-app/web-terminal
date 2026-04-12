@@ -5,7 +5,7 @@ description: Guide for creating form modules with FormBloc state management and 
 
 # Flutter Form Development Skill
 
-This skill guides the creation of form modules using `form_bloc` and `flutter_form_bloc` packages following this project's conventions.
+This skill guides the creation of form modules using `duskmoon_form` (via `duskmoon_ui`) package following this project's conventions.
 
 ## When to Use
 
@@ -89,7 +89,7 @@ workspace:
 
 ```dart
 // lib/src/bloc/{form_name}_form_bloc.dart
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 
 class {FormName}FormBloc extends FormBloc<String, String> {
   {FormName}FormBloc() : super(autoValidate: true) {
@@ -228,7 +228,7 @@ Future<String?> _checkUsernameAvailable(String username) async {
 ```dart
 // lib/src/widget/{form_name}_form_widget.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import '../bloc/{form_name}_form_bloc.dart';
 
 class {FormName}FormWidget extends StatelessWidget {
@@ -494,7 +494,7 @@ void main() {
 
 ```dart
 // app_form/login/lib/src/bloc/login_form_bloc.dart
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 
 class LoginFormBloc extends FormBloc<String, String> {
   LoginFormBloc() : super(autoValidate: true) {
@@ -540,7 +540,7 @@ class LoginFormBloc extends FormBloc<String, String> {
 ```dart
 // app_form/login/lib/src/widget/login_form_widget.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:duskmoon_ui/duskmoon_ui.dart';
 import '../bloc/login_form_bloc.dart';
 
 class LoginFormWidget extends StatelessWidget {
