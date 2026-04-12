@@ -13,7 +13,6 @@ dependencies:
 
   flutter_bloc: any
   duskmoon_ui: any
-  app_theme: any
   app_feedback: any
   ssh_host_bloc: any
   ssh_key_bloc: any
@@ -22,7 +21,6 @@ dependencies:
   google_fonts: any
   font_awesome_flutter: any
   app_locale: any
-  theme_bloc: any
   web_session_bloc: any
   terminal_settings_bloc: any
   shell_profile_bloc: any

@@ -1,2 +1,10 @@
-export 'package:app_theme/src/extension.dart';
-export 'package:app_theme/src/themes.dart';
+export 'package:duskmoon_ui/duskmoon_ui.dart'
+    show
+        DmColorExtension,
+        DmColorScheme,
+        DmColors,
+        DmTextTheme,
+        DmTheme,
+        DmThemeData,
+        DmThemeEntry,
+        ThemeModeExtension;

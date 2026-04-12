@@ -68,8 +68,9 @@ Future<void> main() async {
       ],
       child: MultiBlocProvider(
         providers: [
-          BlocProvider<ThemeBloc>(
-            create: (BuildContext context) => ThemeBloc(sharedPrefs),
+          BlocProvider<DmThemeBloc>(
+            create: (BuildContext context) =>
+                DmThemeBloc(prefs: sharedPrefs),
           ),
           BlocProvider<SshKeyBloc>(
             create: (BuildContext context) => SshKeyBloc(database),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:duskmoon_ui/duskmoon_ui.dart';
-import 'package:theme_bloc/theme_bloc.dart';
 import 'package:terminal_settings/src/bloc_settings_section_accent_color.dart';
 import 'package:terminal_settings/src/bloc_settings_section_appearance.dart';
 import 'package:terminal_settings/src/settings_section_terminal.dart';
@@ -63,9 +62,9 @@ class RootSettingList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeBloc = context.read<ThemeBloc>();
+    final themeBloc = context.read<DmThemeBloc>();
 
-    return BlocBuilder<ThemeBloc, ThemeState>(
+    return BlocBuilder<DmThemeBloc, DmThemeState>(
         bloc: themeBloc,
         builder: (context, state) {
           return SettingsList(

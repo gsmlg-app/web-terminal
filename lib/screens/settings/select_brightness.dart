@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:duskmoon_ui/duskmoon_ui.dart';
-import 'package:theme_bloc/theme_bloc.dart';
 import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:terminal_settings/terminal_settings.dart';
@@ -18,7 +16,7 @@ class SettingsSelectBrightness extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeBloc = context.read<ThemeBloc>();
+    final themeBloc = context.read<DmThemeBloc>();
 
     return AppAdaptiveScaffold(
       selectedIndex:
@@ -35,7 +33,7 @@ class SettingsSelectBrightness extends StatelessWidget {
             SliverAppBar(
               title: Text(context.l10n.titleSelectAppearance),
             ),
-            BlocBuilder<ThemeBloc, ThemeState>(
+            BlocBuilder<DmThemeBloc, DmThemeState>(
               bloc: themeBloc,
               builder: (context, state) {
                 return SliverFillRemaining(
@@ -72,7 +70,7 @@ class SettingsSelectBrightness extends StatelessWidget {
               title: Text(context.l10n.titleSelectAppearance),
               automaticallyImplyLeading: false,
             ),
-            BlocBuilder<ThemeBloc, ThemeState>(
+            BlocBuilder<DmThemeBloc, DmThemeState>(
               bloc: themeBloc,
               builder: (context, state) {
                 return SliverFillRemaining(

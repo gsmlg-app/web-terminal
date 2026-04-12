@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:duskmoon_ui/duskmoon_ui.dart';
-import 'package:theme_bloc/theme_bloc.dart';
 
 /// Settings section for theme appearance (light/dark/system mode).
 class BlocSettingsSectionAppearance {
@@ -8,13 +7,13 @@ class BlocSettingsSectionAppearance {
 
   /// Builds a navigation tile for the appearance setting.
   ///
-  /// Note: This reads from the ThemeBloc at build time. Ensure a parent
+  /// Note: This reads from the DmThemeBloc at build time. Ensure a parent
   /// BlocBuilder wraps this for reactive updates.
   static SettingsTile tile({
     required BuildContext context,
     required void Function(BuildContext) onPressed,
   }) {
-    final state = context.read<ThemeBloc>().state;
+    final state = context.read<DmThemeBloc>().state;
 
     return SettingsTile.navigation(
       title: const Text('Appearance'),
@@ -26,7 +25,7 @@ class BlocSettingsSectionAppearance {
 
   /// Builds a full settings section for selecting theme mode.
   static SettingsSection buildSection(BuildContext context) {
-    final themeBloc = context.read<ThemeBloc>();
+    final themeBloc = context.read<DmThemeBloc>();
 
     return SettingsSection(
       title: const Text('Appearance'),
@@ -35,7 +34,7 @@ class BlocSettingsSectionAppearance {
           SettingsTile(
             title: Text(mode.title),
             leading: mode.iconOutlined,
-            trailing: BlocBuilder<ThemeBloc, ThemeState>(
+            trailing: BlocBuilder<DmThemeBloc, DmThemeState>(
               bloc: themeBloc,
               builder: (context, state) {
                 return state.themeMode == mode
@@ -47,7 +46,7 @@ class BlocSettingsSectionAppearance {
               },
             ),
             onPressed: (context) {
-              themeBloc.add(ChangeThemeMode(mode));
+              themeBloc.add(DmSetThemeMode(mode));
             },
           ),
       ],

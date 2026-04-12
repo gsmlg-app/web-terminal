@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:duskmoon_ui/duskmoon_ui.dart';
-import 'package:app_theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:terminal_settings/terminal_settings.dart';
-import 'package:theme_bloc/theme_bloc.dart';
 
 void main() {
   group('terminal_settings exports', () {
@@ -101,12 +99,12 @@ void main() {
   });
 
   group('BlocSettingsSectionAccentColor', () {
-    late ThemeBloc themeBloc;
+    late DmThemeBloc themeBloc;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      themeBloc = ThemeBloc(prefs);
+      themeBloc = DmThemeBloc(prefs: prefs);
     });
 
     tearDown(() {
@@ -186,8 +184,8 @@ void main() {
       );
 
       // Verify all theme names are displayed
-      for (final theme in themeList) {
-        expect(find.text(theme.name), findsOneWidget);
+      for (final entry in DmThemeData.themes) {
+        expect(find.text(entry.name), findsOneWidget);
       }
     });
 
@@ -214,7 +212,7 @@ void main() {
       expect(find.byIcon(Icons.check), findsOneWidget);
     });
 
-    testWidgets('theme selection triggers ChangeTheme event', (tester) async {
+    testWidgets('theme selection triggers DmSetTheme event', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: BlocProvider.value(
@@ -233,25 +231,25 @@ void main() {
       );
 
       // Find a theme tile that is not the current one and tap it
-      final initialThemeName = themeBloc.state.theme.name;
-      final otherTheme =
-          themeList.firstWhere((t) => t.name != initialThemeName);
+      final initialThemeName = themeBloc.state.themeName;
+      final otherEntry =
+          DmThemeData.themes.firstWhere((t) => t.name != initialThemeName);
 
-      await tester.tap(find.text(otherTheme.name));
+      await tester.tap(find.text(otherEntry.name));
       await tester.pumpAndSettle();
 
       // Verify theme changed
-      expect(themeBloc.state.theme.name, otherTheme.name);
+      expect(themeBloc.state.themeName, otherEntry.name);
     });
   });
 
   group('BlocSettingsSectionAppearance', () {
-    late ThemeBloc themeBloc;
+    late DmThemeBloc themeBloc;
 
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
-      themeBloc = ThemeBloc(prefs);
+      themeBloc = DmThemeBloc(prefs: prefs);
     });
 
     tearDown(() {
@@ -309,7 +307,7 @@ void main() {
       expect(find.text('Dark'), findsOneWidget);
     });
 
-    testWidgets('theme mode selection triggers ChangeThemeMode event',
+    testWidgets('theme mode selection triggers DmSetThemeMode event',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
