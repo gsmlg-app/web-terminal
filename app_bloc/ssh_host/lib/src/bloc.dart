@@ -39,6 +39,28 @@ class SshHostBloc extends Bloc<SshHostEvent, SshHostState> {
         emit(SshHostError(e));
       }
     });
+    on<SshHostUpdate>((event, emit) async {
+      try {
+        await (database.update(database.sshHosts)
+              ..where((t) => t.id.equals(event.id)))
+            .write(
+          SshHostsCompanion(
+            host: Value(event.host),
+            hostname: Value(event.hostname),
+            port: Value(event.port),
+            username: Value(event.username),
+            password: Value(event.password),
+            salt: Value(event.salt),
+            identityType: Value(event.identityType),
+            identityKeyId: Value(event.identityKeyId),
+          ),
+        );
+        final data = await database.select(database.sshHosts).get();
+        emit(SshHostLoaded(data));
+      } catch (e) {
+        emit(SshHostError(e));
+      }
+    });
     on<SshHostDelete>((event, emit) async {
       try {
         final rowsAffected = await (database.delete(database.sshHosts)

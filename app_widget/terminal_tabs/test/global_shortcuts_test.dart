@@ -105,7 +105,7 @@ void main() {
     });
 
     group('shortcut count', () {
-      testWidgets('has exactly 2 shortcuts registered', (tester) async {
+      testWidgets('has expected shortcuts registered', (tester) async {
         await tester.pumpWidget(
           const MaterialApp(home: GlobalShortcuts(child: Text('Test'))),
         );

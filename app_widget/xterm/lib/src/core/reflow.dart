@@ -120,7 +120,10 @@ class _LineReflow {
       }
 
       // Leave the last cell to the next iteration if it's a wide char.
-      if (lineFilled && line.getWidth(from + cellsToCopy - 1) == 2) {
+      // Guard cellsToCopy > 0 to avoid negative index when the builder is
+      // already full (bufferRemainingCells == 0). The buffer will be flushed
+      // by the lineFilled branch below.
+      if (lineFilled && cellsToCopy > 0 && line.getWidth(from + cellsToCopy - 1) == 2) {
         cellsToCopy--;
       }
 

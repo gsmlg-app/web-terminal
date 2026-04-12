@@ -14,6 +14,9 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabToggleFullscreen>(_onTerminalTabToggleFullscreen);
     on<TerminalTabSelectSession>(_onTerminalTabSelectSession);
     on<TerminalTabCloseSession>(_onTerminalTabCloseSession);
+    on<TerminalTabNextTab>(_onTerminalTabNextTab);
+    on<TerminalTabPreviousTab>(_onTerminalTabPreviousTab);
+    on<TerminalTabGoToTab>(_onTerminalTabGoToTab);
   }
 
   void _onTerminalTabStart(
@@ -95,6 +98,52 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
         emit(currentState.copyWith(incrementVersion: true));
       }
     }
+  }
+
+  void _onTerminalTabNextTab(
+    TerminalTabNextTab event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is! TerminalTabLoaded) return;
+    final currentState = state as TerminalTabLoaded;
+    final children = currentState.tabs.children;
+    if (children.isEmpty) return;
+    final activeTab = currentState.tabs.activeTab;
+    if (activeTab == null) return;
+    final idx = children.indexOf(activeTab);
+    final nextIdx = (idx + 1) % children.length;
+    children[nextIdx].activate();
+    emit(currentState.copyWith(incrementVersion: true));
+  }
+
+  void _onTerminalTabPreviousTab(
+    TerminalTabPreviousTab event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is! TerminalTabLoaded) return;
+    final currentState = state as TerminalTabLoaded;
+    final children = currentState.tabs.children;
+    if (children.isEmpty) return;
+    final activeTab = currentState.tabs.activeTab;
+    if (activeTab == null) return;
+    final idx = children.indexOf(activeTab);
+    final prevIdx = (idx - 1 + children.length) % children.length;
+    children[prevIdx].activate();
+    emit(currentState.copyWith(incrementVersion: true));
+  }
+
+  void _onTerminalTabGoToTab(
+    TerminalTabGoToTab event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is! TerminalTabLoaded) return;
+    final currentState = state as TerminalTabLoaded;
+    final children = currentState.tabs.children;
+    if (children.isEmpty) return;
+    final targetIdx = event.index == 8 ? children.length - 1 : event.index;
+    if (targetIdx < 0 || targetIdx >= children.length) return;
+    children[targetIdx].activate();
+    emit(currentState.copyWith(incrementVersion: true));
   }
 
   /// Finds a TabItem by its hashCode string representation.

@@ -1,3 +1,4 @@
+import 'package:context_menus/context_menus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -26,6 +27,9 @@ class App extends StatelessWidget {
           darkTheme: state.theme.darkTheme,
           localizationsDelegates: AppLocale.localizationsDelegates,
           supportedLocales: AppLocale.supportedLocales,
+          builder: (context, child) {
+            return ContextMenuOverlay(child: child ?? const SizedBox.shrink());
+          },
         );
 
         if (defaultTargetPlatform == TargetPlatform.macOS) {

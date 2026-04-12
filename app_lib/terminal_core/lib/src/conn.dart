@@ -26,11 +26,17 @@ abstract class HostConnector<T extends Host> extends ChangeNotifier {
 
   T? _host;
 
+  /// The last connection error, if any.
+  Object? _lastError;
+
   /// Current connection status.
   HostConnectorStatus get status => _status;
 
   /// The connected host, or null if not connected.
   T? get host => _host;
+
+  /// The last connection error, or null if connected successfully.
+  Object? get lastError => _lastError;
 
   @protected
   Future<T> createHost();
@@ -50,6 +56,7 @@ abstract class HostConnector<T extends Host> extends ChangeNotifier {
       return;
     }
 
+    _lastError = null;
     setStatus(HostConnectorStatus.connecting);
 
     try {
@@ -58,6 +65,7 @@ abstract class HostConnector<T extends Host> extends ChangeNotifier {
 
       setStatus(HostConnectorStatus.connected);
     } catch (e) {
+      _lastError = e;
       setStatus(HostConnectorStatus.disconnected);
     }
   }

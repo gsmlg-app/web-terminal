@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
@@ -32,6 +33,7 @@ class TerminalScreen extends StatefulWidget {
 class _TerminalScreenState extends State<TerminalScreen> {
   late final TerminalTabBloc _terminalTabBloc;
   final _analytics = TerminalAnalytics();
+  final _terminalFocusNotifier = ValueNotifier<int>(0);
   StreamSubscription<TerminalTabState>? _stateSubscription;
   bool _initialTabOpened = false;
   bool? _previousFullscreenState;
@@ -76,6 +78,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   @override
   void dispose() {
     _stateSubscription?.cancel();
+    _terminalFocusNotifier.dispose();
     _terminalTabBloc.add(TerminalTabStop());
     super.dispose();
   }
@@ -110,6 +113,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final manager = PluginManager(hostSpec);
     final tabItem = PluginTab(plugin, manager);
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+    _requestTerminalFocus();
 
     // Track session creation
     _analytics.trackSessionCreated(
@@ -231,15 +235,118 @@ class _TerminalScreenState extends State<TerminalScreen> {
     _terminalTabBloc.add(TerminalTabSelectSession(sessionId));
   }
 
+  Future<void> _showTabSwitcher() async {
+    final state = _terminalTabBloc.state;
+    if (state is! TerminalTabLoaded) return;
+    final sessions = _buildSessionList(state);
+    if (sessions.isEmpty) return;
+    final currentId = state.activeTab?.hashCode.toString();
+    final result = await showTabSwitcher(
+      context,
+      sessions: sessions,
+      currentSessionId: currentId,
+    );
+    if (!mounted || result == null) return;
+    switch (result) {
+      case TabSwitcherSelect(:final sessionId):
+        _terminalTabBloc.add(TerminalTabSelectSession(sessionId));
+        _requestTerminalFocus();
+      case TabSwitcherClose(:final sessionId):
+        _terminalTabBloc.add(TerminalTabCloseSession(sessionId));
+        _requestTerminalFocus();
+    }
+  }
+
+  /// Signals the active TerminalView to request focus after a tab switch.
+  void _requestTerminalFocus() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _terminalFocusNotifier.value++;
+    });
+  }
+
+  /// Handles tab management shortcuts at the TerminalView level.
+  /// This runs before the terminal processes the key, so Ctrl+Shift+T etc.
+  /// are intercepted without being sent to the shell.
+  KeyEventResult _handleTerminalKeyEvent(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+
+    final key = event.logicalKey;
+    final ctrl = HardwareKeyboard.instance.isControlPressed;
+    final shift = HardwareKeyboard.instance.isShiftPressed;
+    final meta = HardwareKeyboard.instance.isMetaPressed;
+    final isApple = defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+    final mod = isApple ? meta : ctrl;
+
+    if (!mod) return KeyEventResult.ignored;
+
+    // New tab: Ctrl+Shift+T (Linux/Win) / Cmd+T (macOS)
+    if (key == LogicalKeyboardKey.keyT) {
+      if (isApple || shift) {
+        _openLocalShell();
+        return KeyEventResult.handled;
+      }
+    }
+
+    // Tab switcher: Ctrl+Shift+P (Linux/Win) / Cmd+Shift+P (macOS)
+    if (key == LogicalKeyboardKey.keyP && shift) {
+      _showTabSwitcher();
+      return KeyEventResult.handled;
+    }
+
+    // Next tab: Ctrl+Shift+] (Linux/Win) / Cmd+Shift+] (macOS)
+    // Shift+] produces } (braceRight)
+    if (key == LogicalKeyboardKey.braceRight && shift) {
+      _terminalTabBloc.add(TerminalTabNextTab());
+      _requestTerminalFocus();
+      return KeyEventResult.handled;
+    }
+
+    // Previous tab: Ctrl+Shift+[ (Linux/Win) / Cmd+Shift+[ (macOS)
+    // Shift+[ produces { (braceLeft)
+    if (key == LogicalKeyboardKey.braceLeft && shift) {
+      _terminalTabBloc.add(TerminalTabPreviousTab());
+      _requestTerminalFocus();
+      return KeyEventResult.handled;
+    }
+
+    // Go to tab 1-9: Ctrl+1-9 (Linux/Win) / Cmd+1-9 (macOS)
+    if (!shift) {
+      const digitKeys = [
+        LogicalKeyboardKey.digit1,
+        LogicalKeyboardKey.digit2,
+        LogicalKeyboardKey.digit3,
+        LogicalKeyboardKey.digit4,
+        LogicalKeyboardKey.digit5,
+        LogicalKeyboardKey.digit6,
+        LogicalKeyboardKey.digit7,
+        LogicalKeyboardKey.digit8,
+        LogicalKeyboardKey.digit9,
+      ];
+      final digitIndex = digitKeys.indexOf(key);
+      if (digitIndex >= 0) {
+        _terminalTabBloc.add(TerminalTabGoToTab(digitIndex));
+        _requestTerminalFocus();
+        return KeyEventResult.handled;
+      }
+    }
+
+    return KeyEventResult.ignored;
+  }
+
   List<SessionInfo> _buildSessionList(TerminalTabLoaded state) {
     return state.allTabs.map((tab) {
       String name = 'Terminal';
+      bool isRunning = false;
       if (tab is PluginTab) {
         name = tab.plugin.title.value ?? tab.manager.hostSpec.name;
+        isRunning = tab.manager.isConnected;
       }
       return SessionInfo(
         id: tab.hashCode.toString(),
         name: name,
+        isRunning: isRunning,
         onClose: () {
           _terminalTabBloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
         },
@@ -269,20 +376,42 @@ class _TerminalScreenState extends State<TerminalScreen> {
                 );
               }
 
+              final activePlugin = state.activeTab is PluginTab
+                  ? (state.activeTab as PluginTab).plugin
+                  : null;
+
               return Column(
                 children: [
-                  // AppBar for session management
-                  TerminalAppBar(
-                    currentSessionName: _getCurrentSessionName(state),
-                    sessions: _buildSessionList(state),
-                    onSessionSelected: _onSessionSelected,
-                    onNewLocalShell: _openLocalShell,
-                    onNewSshSession: _openSshSession,
-                    onNewSftpSession: _openSftpSession,
-                  ),
+                  // AppBar for session management — listen to active
+                  // plugin title so it updates on connection status change.
+                  if (activePlugin != null)
+                    ValueListenableBuilder<String?>(
+                      valueListenable: activePlugin.title,
+                      builder: (context, _, _) => TerminalAppBar(
+                        currentSessionName: _getCurrentSessionName(state),
+                        sessions: _buildSessionList(state),
+                        onSessionSelected: _onSessionSelected,
+                        onNewLocalShell: _openLocalShell,
+                        onNewSshSession: _openSshSession,
+                        onNewSftpSession: _openSftpSession,
+                      ),
+                    )
+                  else
+                    TerminalAppBar(
+                      currentSessionName: _getCurrentSessionName(state),
+                      sessions: _buildSessionList(state),
+                      onSessionSelected: _onSessionSelected,
+                      onNewLocalShell: _openLocalShell,
+                      onNewSshSession: _openSshSession,
+                      onNewSftpSession: _openSftpSession,
+                    ),
                   // Terminal content area
                   Expanded(
-                    child: _buildTerminalContent(state),
+                    child: TerminalShortcutHandler(
+                      onKeyEvent: _handleTerminalKeyEvent,
+                      focusNotifier: _terminalFocusNotifier,
+                      child: _buildTerminalContent(state),
+                    ),
                   ),
                 ],
               );
@@ -296,13 +425,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
       widget = VirtualWindowFrame(child: widget);
     }
 
-    // Wrap with Actions to handle fullscreen toggle
+    // Wrap with Actions to handle keyboard shortcuts
     widget = Actions(
       actions: {
         ToggleFullscreenIntent: CallbackAction<ToggleFullscreenIntent>(
           onInvoke: (_) {
             _terminalTabBloc.add(TerminalTabToggleFullscreen());
-            // Analytics tracking is done via _trackFullscreenChange listener
             return null;
           },
         ),

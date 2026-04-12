@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Flutter-based terminal emulator with SSH/SFTP support, targeting mobile (Android + iOS) and desktop (macOS, Linux, Windows). Uses modular monorepo architecture with BLoC state management.
+Web Terminal — a Flutter-based terminal emulator with SSH/SFTP support, targeting mobile (Android + iOS), desktop (macOS, Linux, Windows), and Web. Uses modular monorepo architecture with BLoC state management.
 
 - **Android**: Busybox + flutter_pty for real PTY shell sessions
 - **iOS**: ios_system framework for simulated shell (no PTY support on iOS)
 - **Desktop**: flutter_pty with native system shell
 - **SSH**: Pure Dart SSH client for remote connections
+- **Web**: TypeScript xterm.js client in `web/terminal-client/` connecting via WebSocket with approval-based session auth
 
 ## Architecture Structure
 
@@ -21,7 +22,8 @@ Flutter-based terminal emulator with SSH/SFTP support, targeting mobile (Android
 ├── app_plugin/             # Native platform plugins
 ├── bricks/                 # Mason templates for code generation
 ├── test_bricks/            # Brick tests (one folder per brick)
-└── third_party/            # Modified third-party packages (flex_tabs, etc.)
+├── third_party/            # Modified third-party packages (flex_tabs)
+└── web/terminal-client/    # TypeScript web terminal client (xterm.js)
 ```
 
 ## Terminal Architecture
@@ -45,6 +47,11 @@ Key packages:
 - `app_widget/xterm` - Vendored xterm.dart terminal emulator widget
 
 ## Platform Build Requirements
+
+### Linux
+- Requires devenv shell (or equivalent) for GTK3, libsecret, and other native deps
+- `devenv.nix` sets `PKG_CONFIG_PATH` pointing to dev outputs from `pkgs-unstable` (must match Flutter's nixpkgs to avoid ABI mismatches)
+- `linux/CMakeLists.txt` has `-Wno-deprecated-literal-operator` to work around clang 21 + flutter_secure_storage's json.hpp
 
 ### iOS
 - **XCFrameworks** in `app_plugin/ios_shell/ios/Frameworks/`: ios_system, shell, files, text, tar, awk
@@ -132,22 +139,22 @@ mason make native_federation_plugin --name plugin_name --description "Descriptio
 
 See [BRICKS.md](./docs/BRICKS.md) for complete brick documentation.
 
-### Template Scripts
-```bash
-# Rename template to your project name (run once after cloning)
-dart run bin/setup_project.dart my_project_name
-
-# Update bricks from upstream template (only works after renaming)
-dart run bin/update_bricks.dart
-dart run bin/update_bricks.dart --force  # Force update all bricks
-```
-
 ## Key Entry Points
 
 - `lib/main.dart` - App initialization: MainProvider, AppLogger, AppDatabase, SharedPreferences
 - `lib/app.dart` - Root widget with ThemeBloc and MaterialApp.router
 - `lib/router.dart` - GoRouter configuration with NoTransitionPage
-- `lib/screens/` - Feature screens (app/, home/, settings/)
+- `lib/screens/` - Feature screens: terminal, web-terminal, settings, splash, error
+
+## App Screens and Routes
+
+| Screen | Path | Purpose |
+|--------|------|---------|
+| SplashScreen | `/` | Initial loading |
+| TerminalScreen | `/terminal` | Main multi-tab terminal with local shell and SSH |
+| WebTerminalScreen | `/web-terminal` | Web terminal server management and session approval |
+| SettingsScreen | `/settings` | Theme, SSH keys/hosts, shell profiles, web server, device info |
+| ErrorScreen | `/error` | Error display |
 
 ## Architecture Patterns
 
@@ -181,12 +188,21 @@ Use `AppLogger` from `app_logging` package with configurable levels (debug, info
 flutter run                # Default device
 flutter run -d chrome      # Web
 flutter run -d macos       # macOS
-flutter run -d linux       # Linux
+flutter run -d linux       # Linux (requires devenv shell for native deps)
 ```
 
 ## Development Environment
 
-Uses Nix/Devenv for reproducible environment. Auto-loads via direnv (`.envrc`). Flutter SDK version managed through `devenv.nix`.
+Uses Nix/Devenv for reproducible environment. Auto-loads via direnv (`.envrc`). Flutter SDK version managed through `devenv.nix` (uses `pkgs-unstable.flutter`). Linux native build deps (GTK3, libsecret, pkg-config, cmake, ninja, clang) are also provided via devenv.
+
+**Important**: On Linux, run `devenv shell -- flutter run -d linux` if direnv hasn't fully loaded the PKG_CONFIG_PATH.
+
+## Bundle Identifiers
+
+- Android: `app.gsmlg.webterminal`
+- iOS: `app.gsmlg.webterminal`
+- macOS: `app.gsmlg.webterminal`
+- Linux: `dev.gsmlg.web_terminal`
 
 ## Code Style
 
@@ -198,6 +214,5 @@ Uses Nix/Devenv for reproducible environment. Auto-loads via direnv (`.envrc`). 
 
 ## CI Workflows
 
-- `ci.yml` - Format check, analyze, test, and build (skips for docs/config changes)
-- `brick-test.yml` - Tests Mason bricks (only runs when brick files change)
-- `release.yml` - Manual workflow for creating releases with platform builds
+- `ci.yml` - Format check, analyze, test, and Linux build (skips for docs/config changes)
+- `release.yml` - Manual workflow: runs tests, creates GitHub release, builds artifacts for Android (APK), iOS (IPA), Linux (tar.gz), macOS (ZIP)

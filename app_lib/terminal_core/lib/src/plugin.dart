@@ -66,9 +66,8 @@ abstract mixin class Plugin {
   /// Called when the state of the host that this plugin is mounted to changes.
   void onConnectionStatus(HostConnectorStatus status) {}
 
-  // void onConnectionMessage(String message) {}
-
-  // void onConnectionError(Object error, StackTrace stackTrace) {}
+  /// Called when the connection to the host fails with an error.
+  void onConnectionError(Object error) {}
 
   /// Builds the UI for this plugin. This may be called multiple times during
   /// the lifetime of the plugin, for example when the plugin is moved to a new
@@ -154,15 +153,9 @@ class PluginManager with ChangeNotifier {
     }
   }
 
-  // void didConnectionMessageChanged(String message) {
-  //   for (final plugin in _plugins) {
-  //     plugin.onConnectionMessage(message);
-  //   }
-  // }
-
-  // void didConnectionError(Object error, StackTrace stackTrace) {
-  //   for (final plugin in _plugins) {
-  //     plugin.onConnectionError(error, stackTrace);
-  //   }
-  // }
+  void didConnectionError(Object error) {
+    for (final plugin in _plugins) {
+      plugin.onConnectionError(error);
+    }
+  }
 }

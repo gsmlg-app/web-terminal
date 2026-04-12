@@ -96,20 +96,24 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
               leading: const Icon(Icons.format_size),
               title: const Text('Font Size'),
               description: Text('${fontSize.toInt()} px'),
-              trailing: SizedBox(
-                width: 200,
-                child: Slider(
-                  value: fontSize,
-                  min: 8,
-                  max: 32,
-                  divisions: 24,
-                  label: '${fontSize.toInt()} px',
-                  onChanged: (value) {
+              trailing: DropdownButton<int>(
+                value: fontSize.toInt(),
+                underline: const SizedBox(),
+                items: [
+                  for (int i = 8; i <= 32; i++)
+                    DropdownMenuItem<int>(
+                      value: i,
+                      child: Text('$i px'),
+                    ),
+                ],
+                onChanged: (value) {
+                  if (value != null) {
                     context.read<TerminalSettingsBloc>().add(
-                          TerminalSettingsUpdateFontSize(fontSize: value),
+                          TerminalSettingsUpdateFontSize(
+                              fontSize: value.toDouble()),
                         );
-                  },
-                ),
+                  }
+                },
               ),
             ),
             SettingsTile(

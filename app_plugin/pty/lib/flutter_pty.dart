@@ -13,8 +13,14 @@ final DynamicLibrary _dylib = () {
   if (Platform.isMacOS || Platform.isIOS) {
     return DynamicLibrary.open('$_libName.framework/$_libName');
   }
-  if (Platform.isAndroid || Platform.isLinux) {
+  if (Platform.isAndroid) {
     return DynamicLibrary.open('lib$_libName.so');
+  }
+  if (Platform.isLinux) {
+    // On Linux, resolve the library path relative to the executable since
+    // Dart's dlopen doesn't use the executable's RUNPATH.
+    final exePath = File(Platform.resolvedExecutable).parent.path;
+    return DynamicLibrary.open('$exePath/lib/lib$_libName.so');
   }
   if (Platform.isWindows) {
     return DynamicLibrary.open('$_libName.dll');

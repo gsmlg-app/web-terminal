@@ -30,3 +30,17 @@ class TerminalTabCloseSession extends TerminalTabEvent {
 
   TerminalTabCloseSession(this.sessionId);
 }
+
+/// Activates the next tab (wraps around).
+class TerminalTabNextTab extends TerminalTabEvent {}
+
+/// Activates the previous tab (wraps around).
+class TerminalTabPreviousTab extends TerminalTabEvent {}
+
+/// Activates the tab at a specific index (0-based).
+/// Index 8 always activates the last tab (Ctrl+9 convention).
+class TerminalTabGoToTab extends TerminalTabEvent {
+  final int index;
+
+  TerminalTabGoToTab(this.index);
+}

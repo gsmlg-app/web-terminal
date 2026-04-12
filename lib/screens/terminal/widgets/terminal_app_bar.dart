@@ -182,6 +182,7 @@ class SessionInfo {
     required this.id,
     required this.name,
     this.onClose,
+    this.isRunning = false,
   });
 
   /// Unique identifier for the session
@@ -192,4 +193,7 @@ class SessionInfo {
 
   /// Callback when user requests to close this session
   final VoidCallback? onClose;
+
+  /// Whether this session has an active running process
+  final bool isRunning;
 }

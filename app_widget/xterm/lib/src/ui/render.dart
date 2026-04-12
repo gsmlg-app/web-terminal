@@ -330,10 +330,15 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
       return;
     }
 
-    final viewportSize = TerminalSize(
-      size.width ~/ _painter.cellSize.width,
-      _viewportHeight ~/ _painter.cellSize.height,
-    );
+    final cols = size.width ~/ _painter.cellSize.width;
+    final rows = _viewportHeight ~/ _painter.cellSize.height;
+
+    // Skip resize when the viewport is too small to display anything.
+    if (cols < 1 || rows < 1) {
+      return;
+    }
+
+    final viewportSize = TerminalSize(cols, rows);
 
     if (_viewportSize != viewportSize) {
       _viewportSize = viewportSize;

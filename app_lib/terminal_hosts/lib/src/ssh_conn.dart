@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_ssh/app_ssh.dart';
+import 'package:flutter/foundation.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_host.dart';
@@ -137,7 +138,21 @@ class SSHConnector extends HostConnector<SSHHost> {
         throw const SshKeyParseException('SSH key content is empty');
       }
       try {
-        identities = SSHKeyPair.fromPem(keyData!.content, keyData!.passphrase);
+        final parsed = SSHKeyPair.fromPem(keyData!.content, keyData!.passphrase);
+        // Add SHA-1 fallback for RSA keys to support older SSH servers
+        // (e.g. OpenSSH < 7.8 which doesn't support rsa-sha2-256).
+        identities = <SSHKeyPair>[];
+        for (final key in parsed) {
+          identities.add(key);
+          if (key is RsaPrivateKey) {
+            identities.add(key.withSignatureType(SSHRsaSignatureType.sha1));
+          } else if (key is OpenSSHRsaKeyPair) {
+            identities.add(key.withSignatureType(SSHRsaSignatureType.sha1));
+          }
+        }
+        for (final id in identities) {
+          debugPrint('[SSH] Key identity: name=${id.name}, type=${id.type}');
+        }
       } catch (error) {
         socket.close();
         throw SshKeyParseException('Failed to parse SSH key', error);
@@ -148,8 +163,13 @@ class SSHConnector extends HostConnector<SSHHost> {
     final client = SSHClient(
       socket,
       username: username,
-      onPasswordRequest: useKeyAuth ? null : () => record.password,
+      // Always provide password callback as fallback, even with key auth.
+      // If key auth fails, the server may still accept password auth.
+      onPasswordRequest: record.password != null && record.password!.isNotEmpty
+          ? () => record.password
+          : null,
       identities: identities,
+      printDebug: debugPrint,
     );
 
     // Authenticate with timeout

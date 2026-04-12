@@ -37,17 +37,24 @@ static void my_application_activate(GApplication* application) {
     }
   }
 #endif
+  // Apply dark theme to GTK to match the terminal app aesthetic.
+  GtkSettings* settings = gtk_settings_get_default();
+  g_object_set(settings, "gtk-application-prefer-dark-theme", TRUE, nullptr);
+
   if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "flutter_app_template");
+    gtk_header_bar_set_title(header_bar, "Web Terminal");
     gtk_header_bar_set_show_close_button(header_bar, TRUE);
     gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
   } else {
-    gtk_window_set_title(window, "flutter_app_template");
+    gtk_window_set_title(window, "Web Terminal");
   }
 
   gtk_window_set_default_size(window, 1280, 720);
+  // Enforce a minimum window size at the GTK level to reduce the chance of
+  // EGL surface recreation races during rapid resize on Linux.
+  gtk_widget_set_size_request(GTK_WIDGET(window), 480, 320);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();

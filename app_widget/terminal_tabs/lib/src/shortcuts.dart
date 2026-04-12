@@ -58,3 +58,63 @@ SingleActivator get terminalSelectAll {
 SingleActivator get toggleFullscreen {
   return const SingleActivator(LogicalKeyboardKey.f11);
 }
+
+SingleActivator get tabNew {
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(LogicalKeyboardKey.keyT, meta: true)
+      : const SingleActivator(
+          LogicalKeyboardKey.keyT,
+          control: true,
+          shift: true,
+        );
+}
+
+SingleActivator get tabNext {
+  // Shift+] produces } (braceRight)
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.braceRight,
+          meta: true,
+          shift: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.braceRight,
+          control: true,
+          shift: true,
+        );
+}
+
+SingleActivator get tabPrevious {
+  // Shift+[ produces { (braceLeft)
+  return defaultTargetPlatform.isApple
+      ? const SingleActivator(
+          LogicalKeyboardKey.braceLeft,
+          meta: true,
+          shift: true,
+        )
+      : const SingleActivator(
+          LogicalKeyboardKey.braceLeft,
+          control: true,
+          shift: true,
+        );
+}
+
+const _digitKeys = [
+  LogicalKeyboardKey.digit1,
+  LogicalKeyboardKey.digit2,
+  LogicalKeyboardKey.digit3,
+  LogicalKeyboardKey.digit4,
+  LogicalKeyboardKey.digit5,
+  LogicalKeyboardKey.digit6,
+  LogicalKeyboardKey.digit7,
+  LogicalKeyboardKey.digit8,
+  LogicalKeyboardKey.digit9,
+];
+
+/// Returns shortcut for go-to-tab. [n] is 1-based (1-9).
+SingleActivator tabGoTo(int n) {
+  assert(n >= 1 && n <= 9);
+  return defaultTargetPlatform.isApple
+      ? SingleActivator(_digitKeys[n - 1], meta: true)
+      : SingleActivator(_digitKeys[n - 1], control: true);
+}
