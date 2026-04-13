@@ -24,6 +24,7 @@ dependencies:
   terminal_core: any
   terminal_hosts: any
   terminal_plugin: any
+  shell_profile_bloc: any
   ssh_host_bloc: any
   ssh_key_bloc: any
   terminal_tab_bloc: any

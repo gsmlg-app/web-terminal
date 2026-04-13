@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
-import 'package:app_feedback/app_feedback.dart';
 import 'package:duskmoon_ui/duskmoon_ui.dart';
+import 'package:go_router/go_router.dart';
 import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
+import 'package:web_terminal/screens/settings/shell_profile_edit_screen.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:terminal_settings/terminal_settings.dart';
 import 'package:web_terminal/destinations.dart';
@@ -140,14 +141,14 @@ class ShellProfileScreen extends StatelessWidget {
             title: const Text('Shell Profiles'),
             tiles: <SettingsTile>[
               for (final profile in profiles)
-                SettingsTile(
+                SettingsTile.navigation(
                   title: Text(profile.name),
                   leading: profile.isDefault
                       ? const Icon(Icons.star, color: Colors.amber)
                       : const Icon(Icons.person),
                   description: Text(_getProfileDescription(profile)),
                   onPressed: (c) {
-                    _showProfileActions(c, profile);
+                    _navigateToEditScreen(c, profile: profile);
                   },
                 ),
             ],
@@ -159,7 +160,7 @@ class ShellProfileScreen extends StatelessWidget {
                 title: const Text('Add Profile'),
                 leading: const Icon(Icons.add),
                 onPressed: (context) {
-                  _showProfileForm(context: context);
+                  _navigateToEditScreen(context);
                 },
               ),
             ],
@@ -169,78 +170,21 @@ class ShellProfileScreen extends StatelessWidget {
   String _getProfileDescription(ShellProfile profile) {
     final shellType = ShellType.fromValue(profile.shellType)?.name ?? 'sh';
     final parts = <String>[shellType];
+    parts.add('${profile.fontSize.round()}px ${profile.fontFamily}');
+    final cursor = CursorStyleType.fromValue(profile.cursorStyle);
+    parts.add(cursor.name);
     if (profile.isDefault) {
       parts.add('default');
     }
-    return parts.join(' • ');
+    return parts.join(' | ');
   }
 
-  void _showProfileActions(BuildContext context, ShellProfile profile) {
-    showBottomSheetActionList(
-      showBackdrop: false,
-      context: context,
-      actions: [
-        BottomSheetAction(
-          title: const Text('Edit'),
-          onTap: () {
-            _showProfileForm(context: context, profile: profile);
-          },
-        ),
-        if (!profile.isDefault)
-          BottomSheetAction(
-            title: const Text('Set as Default'),
-            onTap: () {
-              context.read<ShellProfileBloc>().add(SetDefaultProfile(profile));
-            },
-          ),
-        BottomSheetAction(
-          title: const Text('Delete'),
-          onTap: () {
-            _confirmDelete(context, profile);
-          },
-        ),
-        BottomSheetAction(
-          title: const Text('Cancel'),
-          onTap: () {},
-        ),
-      ],
+  void _navigateToEditScreen(BuildContext context, {ShellProfile? profile}) {
+    context.goNamed(
+      ShellProfileEditScreen.name,
+      queryParameters:
+          profile != null ? {'id': profile.id.toString()} : const {},
     );
-  }
-
-  void _confirmDelete(BuildContext context, ShellProfile profile) {
-    showAdaptiveDialog(
-      context: context,
-      builder: (_) {
-        return AlertDialog.adaptive(
-          title: const Text('Delete Profile'),
-          content: Text('Delete "${profile.name}"?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                context.read<ShellProfileBloc>().add(
-                      DeleteShellProfile(profile),
-                    );
-                Navigator.of(context).pop();
-              },
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _showProfileForm({
-    required BuildContext context,
-    ShellProfile? profile,
-  }) {
-    showShellProfileForm(context: context, profile: profile);
   }
 
   List<Widget> _getActions(BuildContext context) {
@@ -251,114 +195,11 @@ class ShellProfileScreen extends StatelessWidget {
             icon: Icons.add,
             title: 'Add',
             onPressed: () {
-              _showProfileForm(context: context);
+              _navigateToEditScreen(context);
             },
           ),
         ],
       ),
     ];
   }
-}
-
-/// Shows a form dialog for creating or editing a shell profile.
-void showShellProfileForm({
-  required BuildContext context,
-  ShellProfile? profile,
-}) {
-  final isEditing = profile != null;
-  final nameController = TextEditingController(text: profile?.name ?? '');
-  var selectedShellType =
-      ShellType.fromValue(profile?.shellType) ?? ShellType.sh;
-  var isDefault = profile?.isDefault ?? false;
-  // Capture the bloc before showing the dialog
-  final bloc = context.read<ShellProfileBloc>();
-
-  showDialog(
-    context: context,
-    builder: (dialogContext) {
-      return StatefulBuilder(
-        builder: (_, setState) {
-          return AlertDialog(
-            title: Text(isEditing ? 'Edit Profile' : 'New Profile'),
-            content: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Name',
-                      hintText: 'Enter profile name',
-                    ),
-                    autofocus: true,
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<ShellType>(
-                    initialValue: selectedShellType,
-                    decoration: const InputDecoration(
-                      labelText: 'Shell Type',
-                    ),
-                    items: ShellType.values.map((type) {
-                      return DropdownMenuItem(
-                        value: type,
-                        child: Text(type.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() {
-                          selectedShellType = value;
-                        });
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  SwitchListTile(
-                    title: const Text('Default Profile'),
-                    value: isDefault,
-                    onChanged: (value) {
-                      setState(() {
-                        isDefault = value;
-                      });
-                    },
-                  ),
-                ],
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text('Cancel'),
-              ),
-              FilledButton(
-                onPressed: () {
-                  final name = nameController.text.trim();
-                  if (name.isEmpty) {
-                    return;
-                  }
-
-                  if (isEditing) {
-                    bloc.add(UpdateShellProfile(
-                      id: profile.id,
-                      name: name,
-                      shellType: selectedShellType,
-                      isDefault: isDefault,
-                    ));
-                  } else {
-                    bloc.add(AddShellProfile(
-                      name: name,
-                      shellType: selectedShellType,
-                      isDefault: isDefault,
-                    ));
-                  }
-                  Navigator.of(dialogContext).pop();
-                },
-                child: Text(isEditing ? 'Save' : 'Add'),
-              ),
-            ],
-          );
-        },
-      );
-    },
-  );
 }

@@ -14,9 +14,16 @@ class LocalHost implements Host {
   /// Optional init commands to run when shell starts.
   final String? _initCommands;
 
-  LocalHost({Map<String, String> environment = const {}, String? initCommands})
-    : _profileEnvironment = environment,
-      _initCommands = initCommands;
+  /// Optional working directory to start the shell in.
+  final String? _workingDirectory;
+
+  LocalHost({
+    Map<String, String> environment = const {},
+    String? initCommands,
+    String? workingDirectory,
+  }) : _profileEnvironment = environment,
+       _initCommands = initCommands,
+       _workingDirectory = workingDirectory;
 
   @override
   Future<ExecutionResult> execute(
@@ -54,6 +61,7 @@ class LocalHost implements Host {
       shell.command,
       arguments: shell.args,
       environment: mergedEnv,
+      workingDirectory: _workingDirectory,
       rows: height,
       columns: width,
       ackRead: true, // Enable backpressure to prevent message queue flooding

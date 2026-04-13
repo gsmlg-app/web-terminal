@@ -3,6 +3,7 @@ import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
@@ -10,6 +11,7 @@ import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_plugin/terminal_plugin.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_tabs/src/plugin_tab.dart';
+import 'package:xterm/xterm.dart' show TerminalCursorType;
 
 class DropdownContextMenu extends StatefulWidget {
   const DropdownContextMenu(this.tabs, {super.key});
@@ -39,8 +41,28 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
 
   void _openLocalTerminal(BuildContext context) {
     handlePressed(context, () {
-      final plugin = TerminalPlugin();
-      final manager = PluginManager(createDefaultHostSpec());
+      // Use default profile settings if available
+      ShellProfile? profile;
+      final profileState = context.read<ShellProfileBloc>().state;
+      if (profileState is ShellProfileLoaded) {
+        profile = profileState.defaultProfile;
+      }
+
+      final plugin = TerminalPlugin(
+        profileFontSize: profile?.fontSize ?? 14.0,
+        profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
+        profileCursorType: TerminalCursorType.values[
+            (profile?.cursorStyle ?? 0)
+                .clamp(0, TerminalCursorType.values.length - 1)],
+        scrollbackLines: profile?.scrollbackLines ?? 10000,
+      );
+      final manager = PluginManager(createDefaultHostSpec(
+        environment: profile?.parsedEnvironmentVariables,
+        initCommands: profile?.generateInitCommands(),
+        workingDirectory: (profile?.workingDirectory?.isNotEmpty ?? false)
+            ? profile!.workingDirectory
+            : null,
+      ));
       final tabItem = PluginTab(plugin, manager);
       context.read<TerminalTabBloc>().add(TerminalTabOpenTab(tabItem));
     });

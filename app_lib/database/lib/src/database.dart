@@ -7,7 +7,7 @@ import 'tables/shell_profiles.dart';
 import 'tables/ssh_hosts.dart';
 import 'tables/ssh_keys.dart';
 
-export 'tables/shell_profiles.dart' show ShellType;
+export 'tables/shell_profiles.dart' show ShellType, CursorStyleType;
 export 'tables/ssh_hosts.dart' show SshIdentityType;
 export 'tables/ssh_keys.dart' show SshKeyAlgorithm;
 
@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -38,6 +38,13 @@ class AppDatabase extends _$AppDatabase {
         if (from < 2) {
           // Add shell_profiles table in version 2
           await m.createTable(shellProfiles);
+        }
+        if (from < 3) {
+          // Add new shell profile columns in version 3
+          await m.addColumn(shellProfiles, shellProfiles.workingDirectory);
+          await m.addColumn(shellProfiles, shellProfiles.startupCommand);
+          await m.addColumn(shellProfiles, shellProfiles.cursorStyle);
+          await m.addColumn(shellProfiles, shellProfiles.scrollbackLines);
         }
       },
     );

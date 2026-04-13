@@ -19,6 +19,7 @@ HostSpec createDefaultHostSpec({
   String? name,
   Map<String, String>? environment,
   String? initCommands,
+  String? workingDirectory,
 }) {
   if (Platform.isAndroid) {
     return AndroidHostSpec(
@@ -38,5 +39,6 @@ HostSpec createDefaultHostSpec({
     name: name ?? 'Local',
     environment: environment ?? const {},
     initCommands: initCommands,
+    workingDirectory: workingDirectory,
   );
 }

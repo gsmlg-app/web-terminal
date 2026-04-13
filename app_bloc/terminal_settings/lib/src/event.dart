@@ -48,22 +48,3 @@ class TerminalSettingsUpdateMaxOpenShells extends TerminalSettingsEvent {
   List<Object?> get props => [maxOpenShells];
 }
 
-/// Update the terminal font size.
-class TerminalSettingsUpdateFontSize extends TerminalSettingsEvent {
-  final double fontSize;
-
-  const TerminalSettingsUpdateFontSize({required this.fontSize});
-
-  @override
-  List<Object?> get props => [fontSize];
-}
-
-/// Update the terminal font family.
-class TerminalSettingsUpdateFontFamily extends TerminalSettingsEvent {
-  final String fontFamily;
-
-  const TerminalSettingsUpdateFontFamily({required this.fontFamily});
-
-  @override
-  List<Object?> get props => [fontFamily];
-}

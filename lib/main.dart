@@ -111,7 +111,9 @@ Future<void> main() async {
             },
           ),
           BlocProvider<ShellProfileBloc>(
-            create: (BuildContext context) => ShellProfileBloc(database),
+            create: (BuildContext context) => ShellProfileBloc(database)
+              ..add(const EnsureDefaultProfile())
+              ..add(const LoadShellProfiles()),
           ),
         ],
         child: const App(),

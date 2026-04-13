@@ -1,49 +1,11 @@
 import 'dart:async';
 import 'dart:typed_data';
 
-import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_plugin/terminal_plugin.dart';
-import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:xterm/xterm.dart';
-
-/// In-memory implementation of VaultRepository for testing.
-class InMemoryVaultRepository implements VaultRepository {
-  final Map<String, String> _storage = {};
-
-  @override
-  Future<void> write({required String key, required String value}) async {
-    _storage[key] = value;
-  }
-
-  @override
-  Future<String?> read({required String key}) async {
-    return _storage[key];
-  }
-
-  @override
-  Future<void> delete({required String key}) async {
-    _storage.remove(key);
-  }
-
-  @override
-  Future<bool> containsKey({required String key}) async {
-    return _storage.containsKey(key);
-  }
-
-  @override
-  Future<void> deleteAll() async {
-    _storage.clear();
-  }
-
-  @override
-  Future<Map<String, String>> readAll() async {
-    return Map.from(_storage);
-  }
-}
 
 /// Mock implementation of Host for testing.
 class MockHost implements Host {
@@ -186,8 +148,24 @@ void main() {
       expect(plugin.terminalController, isA<TerminalController>());
     });
 
-    test('terminal maxLines is 10000', () {
+    test('terminal maxLines defaults to 10000', () {
       expect(plugin.terminal.maxLines, 10000);
+    });
+
+    test('custom scrollback lines', () {
+      final customPlugin = TerminalPlugin(scrollbackLines: 5000);
+      expect(customPlugin.terminal.maxLines, 5000);
+    });
+
+    test('profile font settings', () {
+      final customPlugin = TerminalPlugin(
+        profileFontSize: 18.0,
+        profileFontFamily: 'JetBrains Mono',
+        profileCursorType: TerminalCursorType.underline,
+      );
+      expect(customPlugin.profileFontSize, 18.0);
+      expect(customPlugin.profileFontFamily, 'JetBrains Mono');
+      expect(customPlugin.profileCursorType, TerminalCursorType.underline);
     });
 
     test('initially not mounted', () {
@@ -307,44 +285,17 @@ void main() {
     });
 
     group('TerminalTabView', () {
-      late InMemoryVaultRepository vault;
-
-      setUp(() {
-        vault = InMemoryVaultRepository();
-      });
-
       testWidgets('creates a TerminalView widget', (tester) async {
         manager.add(plugin);
 
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: BlocProvider<TerminalSettingsBloc>(
-                create: (_) => TerminalSettingsBloc(vault: vault),
-                child: TerminalTabView(plugin),
-              ),
+              body: TerminalTabView(plugin),
             ),
           ),
         );
 
-        expect(find.byType(TerminalView), findsOneWidget);
-      });
-
-      testWidgets('applies default font size from settings', (tester) async {
-        manager.add(plugin);
-
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Scaffold(
-              body: BlocProvider<TerminalSettingsBloc>(
-                create: (_) => TerminalSettingsBloc(vault: vault),
-                child: TerminalTabView(plugin),
-              ),
-            ),
-          ),
-        );
-
-        // TerminalView should be rendered
         expect(find.byType(TerminalView), findsOneWidget);
       });
 
@@ -354,10 +305,7 @@ void main() {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
-              body: BlocProvider<TerminalSettingsBloc>(
-                create: (_) => TerminalSettingsBloc(vault: vault),
-                child: TerminalTabView(plugin),
-              ),
+              body: TerminalTabView(plugin),
             ),
           ),
         );

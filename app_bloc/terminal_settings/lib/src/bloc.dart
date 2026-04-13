@@ -20,12 +20,6 @@ class TerminalSettingsBloc
   /// Key for max open shells setting.
   static const _maxOpenShellsKey = 'terminal_max_open_shells';
 
-  /// Key for font size setting.
-  static const _fontSizeKey = 'terminal_font_size';
-
-  /// Key for font family setting.
-  static const _fontFamilyKey = 'terminal_font_family';
-
   final VaultRepository _vault;
 
   TerminalSettingsBloc({required VaultRepository vault})
@@ -36,8 +30,6 @@ class TerminalSettingsBloc
     on<TerminalSettingsRemoveEnvVar>(_onRemoveEnvVar);
     on<TerminalSettingsClearEnvVars>(_onClearEnvVars);
     on<TerminalSettingsUpdateMaxOpenShells>(_onUpdateMaxOpenShells);
-    on<TerminalSettingsUpdateFontSize>(_onUpdateFontSize);
-    on<TerminalSettingsUpdateFontFamily>(_onUpdateFontFamily);
   }
 
   Future<void> _onLoad(
@@ -63,19 +55,10 @@ class TerminalSettingsBloc
           int.tryParse(allSecrets[_maxOpenShellsKey] ?? '') ??
           kTerminalDefaultMaxOpenShells;
 
-      final fontSize =
-          double.tryParse(allSecrets[_fontSizeKey] ?? '') ??
-          kTerminalDefaultFontSize;
-
-      final fontFamily =
-          allSecrets[_fontFamilyKey] ?? kTerminalDefaultFontFamily;
-
       emit(
         TerminalSettingsLoaded(
           environmentVariables: envVars,
           maxOpenShells: maxOpenShells,
-          fontSize: fontSize,
-          fontFamily: fontFamily,
         ),
       );
     } catch (e) {
@@ -154,36 +137,4 @@ class TerminalSettingsBloc
     }
   }
 
-  Future<void> _onUpdateFontSize(
-    TerminalSettingsUpdateFontSize event,
-    Emitter<TerminalSettingsState> emit,
-  ) async {
-    if (state is! TerminalSettingsLoaded) return;
-
-    final currentState = state as TerminalSettingsLoaded;
-    final value = event.fontSize.clamp(8.0, 32.0); // Reasonable limits
-
-    emit(currentState.copyWith(fontSize: value));
-    try {
-      await _vault.write(key: _fontSizeKey, value: value.toString());
-    } catch (_) {
-      // Persistence failure; setting still applies for current session.
-    }
-  }
-
-  Future<void> _onUpdateFontFamily(
-    TerminalSettingsUpdateFontFamily event,
-    Emitter<TerminalSettingsState> emit,
-  ) async {
-    if (state is! TerminalSettingsLoaded) return;
-
-    final currentState = state as TerminalSettingsLoaded;
-
-    emit(currentState.copyWith(fontFamily: event.fontFamily));
-    try {
-      await _vault.write(key: _fontFamilyKey, value: event.fontFamily);
-    } catch (_) {
-      // Persistence failure; setting still applies for current session.
-    }
-  }
 }

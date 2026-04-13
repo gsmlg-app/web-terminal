@@ -12,6 +12,7 @@ class SettingsScreenNames {
   static const selectTheme = 'Select Theme';
   static const webServer = 'web-server';
   static const shellProfiles = 'Shell Profiles';
+  static const shellProfileEdit = 'Shell Profile Edit';
 }
 
 /// Shared configuration for RootSettingList navigation

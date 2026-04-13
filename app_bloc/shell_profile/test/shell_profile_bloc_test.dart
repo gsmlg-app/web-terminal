@@ -62,7 +62,7 @@ void main() {
       expect(event.shellType, ShellType.sh);
       expect(event.environmentVariables, isEmpty);
       expect(event.aliases, isEmpty);
-      expect(event.fontFamily, 'monospace');
+      expect(event.fontFamily, 'Source Code Pro');
       expect(event.fontSize, 14.0);
       expect(event.colorTheme, 'default');
       expect(event.isDefault, false);
@@ -84,6 +84,10 @@ void main() {
         fontFamily: 'monospace',
         fontSize: 14.0,
         colorTheme: 'default',
+        workingDirectory: '',
+        startupCommand: '',
+        cursorStyle: 0,
+        scrollbackLines: 10000,
         isDefault: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),

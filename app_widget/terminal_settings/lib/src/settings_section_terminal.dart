@@ -3,18 +3,6 @@ import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 
-/// Available monospace font families for terminal.
-const List<String> kTerminalFontFamilies = [
-  'monospace',
-  'Menlo',
-  'Monaco',
-  'Consolas',
-  'Courier New',
-  'Source Code Pro',
-  'JetBrains Mono',
-  'Fira Code',
-];
-
 /// Settings section for terminal configuration including environment variables.
 class SettingsSectionTerminal extends AbstractSettingsSection {
   /// Screen name for terminal environment settings.
@@ -44,14 +32,6 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
         final maxShells = state is TerminalSettingsLoaded
             ? state.maxOpenShells
             : kTerminalDefaultMaxOpenShells;
-
-        final fontSize = state is TerminalSettingsLoaded
-            ? state.fontSize
-            : kTerminalDefaultFontSize;
-
-        final fontFamily = state is TerminalSettingsLoaded
-            ? state.fontFamily
-            : kTerminalDefaultFontFamily;
 
         return SettingsSection(
           title: const Text('Terminal'),
@@ -87,57 +67,6 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
                     context.read<TerminalSettingsBloc>().add(
                           TerminalSettingsUpdateMaxOpenShells(
                               maxOpenShells: value),
-                        );
-                  }
-                },
-              ),
-            ),
-            SettingsTile(
-              leading: const Icon(Icons.format_size),
-              title: const Text('Font Size'),
-              description: Text('${fontSize.toInt()} px'),
-              trailing: DropdownButton<int>(
-                value: fontSize.toInt(),
-                underline: const SizedBox(),
-                items: [
-                  for (int i = 8; i <= 32; i++)
-                    DropdownMenuItem<int>(
-                      value: i,
-                      child: Text('$i px'),
-                    ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    context.read<TerminalSettingsBloc>().add(
-                          TerminalSettingsUpdateFontSize(
-                              fontSize: value.toDouble()),
-                        );
-                  }
-                },
-              ),
-            ),
-            SettingsTile(
-              leading: const Icon(Icons.font_download),
-              title: const Text('Font Family'),
-              description: Text(fontFamily),
-              trailing: DropdownButton<String>(
-                value: kTerminalFontFamilies.contains(fontFamily)
-                    ? fontFamily
-                    : kTerminalFontFamilies.first,
-                underline: const SizedBox(),
-                items: kTerminalFontFamilies
-                    .map((value) => DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: TextStyle(fontFamily: value),
-                          ),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    context.read<TerminalSettingsBloc>().add(
-                          TerminalSettingsUpdateFontFamily(fontFamily: value),
                         );
                   }
                 },

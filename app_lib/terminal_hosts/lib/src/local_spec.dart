@@ -12,13 +12,20 @@ class LocalHostSpec implements HostSpec {
   /// These are typically export/alias commands from a shell profile.
   final String? initCommands;
 
+  /// Optional working directory to start the shell in.
+  final String? workingDirectory;
+
   LocalHostSpec({
     this.name = 'Local',
     this.environment = const {},
     this.initCommands,
+    this.workingDirectory,
   });
 
   @override
-  HostConnector createConnector() =>
-      LocalConnector(environment: environment, initCommands: initCommands);
+  HostConnector createConnector() => LocalConnector(
+        environment: environment,
+        initCommands: initCommands,
+        workingDirectory: workingDirectory,
+      );
 }

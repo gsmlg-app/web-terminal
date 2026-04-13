@@ -31,6 +31,11 @@ extension ShellProfileParsing on ShellProfile {
     return ShellType.fromValue(shellType) ?? ShellType.sh;
   }
 
+  /// Get the CursorStyleType enum from the stored integer.
+  CursorStyleType get parsedCursorStyle {
+    return CursorStyleType.fromValue(cursorStyle);
+  }
+
   /// Generate shell initialization commands from profile settings.
   ///
   /// This produces commands to:
@@ -49,6 +54,11 @@ extension ShellProfileParsing on ShellProfile {
     for (final entry in parsedAliases.entries) {
       final escapedValue = entry.value.replaceAll("'", "'\\''");
       buffer.writeln("alias ${entry.key}='$escapedValue'");
+    }
+
+    // Run startup command if set
+    if (startupCommand.isNotEmpty) {
+      buffer.writeln(startupCommand);
     }
 
     return buffer.toString();

@@ -1,13 +1,16 @@
 import 'dart:convert';
+import 'dart:io' show Platform;
 
 import 'package:app_database/app_database.dart';
 import 'package:bloc/bloc.dart';
 import 'package:drift/drift.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:meta/meta.dart';
 
-/// Re-export ShellProfile and ShellType from app_database for convenience
-export 'package:app_database/app_database.dart' show ShellProfile, ShellType;
+/// Re-export ShellProfile, ShellType, and CursorStyleType from app_database
+export 'package:app_database/app_database.dart'
+    show ShellProfile, ShellType, CursorStyleType;
 
 part 'event.dart';
 part 'state.dart';
@@ -29,6 +32,7 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
     on<UpdateShellProfile>(_onUpdate);
     on<DeleteShellProfile>(_onDelete);
     on<SetDefaultProfile>(_onSetDefault);
+    on<EnsureDefaultProfile>(_onEnsureDefault);
   }
 
   Future<void> _onLoad(
@@ -64,6 +68,10 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
               fontFamily: Value(event.fontFamily),
               fontSize: Value(event.fontSize),
               colorTheme: Value(event.colorTheme),
+              workingDirectory: Value(event.workingDirectory),
+              startupCommand: Value(event.startupCommand),
+              cursorStyle: Value(event.cursorStyle),
+              scrollbackLines: Value(event.scrollbackLines),
               isDefault: Value(event.isDefault),
               createdAt: Value(DateTime.now()),
               updatedAt: Value(DateTime.now()),
@@ -107,6 +115,18 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
             : const Value.absent(),
         colorTheme: event.colorTheme != null
             ? Value(event.colorTheme!)
+            : const Value.absent(),
+        workingDirectory: event.workingDirectory != null
+            ? Value(event.workingDirectory!)
+            : const Value.absent(),
+        startupCommand: event.startupCommand != null
+            ? Value(event.startupCommand!)
+            : const Value.absent(),
+        cursorStyle: event.cursorStyle != null
+            ? Value(event.cursorStyle!)
+            : const Value.absent(),
+        scrollbackLines: event.scrollbackLines != null
+            ? Value(event.scrollbackLines!)
             : const Value.absent(),
         isDefault: event.isDefault != null
             ? Value(event.isDefault!)
@@ -165,6 +185,34 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
       emit(ShellProfileLoaded(profiles));
     } catch (e) {
       emit(ShellProfileError(e));
+    }
+  }
+
+  Future<void> _onEnsureDefault(
+    EnsureDefaultProfile event,
+    Emitter<ShellProfileState> emit,
+  ) async {
+    try {
+      final profiles = await database.select(database.shellProfiles).get();
+      if (profiles.isEmpty) {
+        // Determine default shell type based on platform
+        final defaultShellType =
+            (!kIsWeb && Platform.isMacOS) ? ShellType.zsh : ShellType.bash;
+
+        await database.into(database.shellProfiles).insert(
+              ShellProfilesCompanion.insert(
+                name: 'Default',
+                shellType: Value(defaultShellType.value),
+                fontFamily: const Value('Source Code Pro'),
+                fontSize: const Value(14.0),
+                isDefault: const Value(true),
+                createdAt: Value(DateTime.now()),
+                updatedAt: Value(DateTime.now()),
+              ),
+            );
+      }
+    } catch (_) {
+      // Non-fatal — profile loading will still work
     }
   }
 

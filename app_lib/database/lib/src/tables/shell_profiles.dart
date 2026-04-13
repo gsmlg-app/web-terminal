@@ -19,6 +19,23 @@ enum ShellType {
   }
 }
 
+/// Available cursor styles for terminal display
+enum CursorStyleType {
+  block(0),
+  underline(1),
+  verticalBar(2);
+
+  const CursorStyleType(this.value);
+  final int value;
+
+  static CursorStyleType fromValue(int value) {
+    return CursorStyleType.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => CursorStyleType.block,
+    );
+  }
+}
+
 /// Table for storing shell profile configurations
 @DataClassName('ShellProfile')
 class ShellProfiles extends Table {
@@ -49,6 +66,21 @@ class ShellProfiles extends Table {
 
   /// Color theme name (references terminal theme)
   TextColumn get colorTheme => text().withDefault(const Constant('default'))();
+
+  /// Working directory to start the shell in (empty = system default)
+  TextColumn get workingDirectory =>
+      text().withDefault(const Constant(''))();
+
+  /// Command to run automatically when the shell opens (e.g., tmux)
+  TextColumn get startupCommand =>
+      text().withDefault(const Constant(''))();
+
+  /// Cursor style (0=block, 1=underline, 2=verticalBar)
+  IntColumn get cursorStyle => integer().withDefault(const Constant(0))();
+
+  /// Number of lines to keep in scroll history
+  IntColumn get scrollbackLines =>
+      integer().withDefault(const Constant(10000))();
 
   /// Whether this is the default profile for new sessions
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();

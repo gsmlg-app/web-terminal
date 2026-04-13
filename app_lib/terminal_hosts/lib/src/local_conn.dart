@@ -8,10 +8,21 @@ class LocalConnector extends HostConnector<LocalHost> {
   /// Optional init commands to run when shell starts.
   final String? initCommands;
 
-  LocalConnector({this.environment = const {}, this.initCommands});
+  /// Optional working directory to start the shell in.
+  final String? workingDirectory;
+
+  LocalConnector({
+    this.environment = const {},
+    this.initCommands,
+    this.workingDirectory,
+  });
 
   @override
   Future<LocalHost> createHost() async {
-    return LocalHost(environment: environment, initCommands: initCommands);
+    return LocalHost(
+      environment: environment,
+      initCommands: initCommands,
+      workingDirectory: workingDirectory,
+    );
   }
 }

@@ -23,6 +23,10 @@ final class AddShellProfile extends ShellProfileEvent {
   final String fontFamily;
   final double fontSize;
   final String colorTheme;
+  final String workingDirectory;
+  final String startupCommand;
+  final int cursorStyle;
+  final int scrollbackLines;
   final bool isDefault;
 
   const AddShellProfile({
@@ -30,9 +34,13 @@ final class AddShellProfile extends ShellProfileEvent {
     this.shellType = ShellType.sh,
     this.environmentVariables = const {},
     this.aliases = const {},
-    this.fontFamily = 'monospace',
+    this.fontFamily = 'Source Code Pro',
     this.fontSize = 14.0,
     this.colorTheme = 'default',
+    this.workingDirectory = '',
+    this.startupCommand = '',
+    this.cursorStyle = 0,
+    this.scrollbackLines = 10000,
     this.isDefault = false,
   });
 
@@ -45,6 +53,10 @@ final class AddShellProfile extends ShellProfileEvent {
         fontFamily,
         fontSize,
         colorTheme,
+        workingDirectory,
+        startupCommand,
+        cursorStyle,
+        scrollbackLines,
         isDefault,
       ];
 }
@@ -59,6 +71,10 @@ final class UpdateShellProfile extends ShellProfileEvent {
   final String? fontFamily;
   final double? fontSize;
   final String? colorTheme;
+  final String? workingDirectory;
+  final String? startupCommand;
+  final int? cursorStyle;
+  final int? scrollbackLines;
   final bool? isDefault;
 
   const UpdateShellProfile({
@@ -70,6 +86,10 @@ final class UpdateShellProfile extends ShellProfileEvent {
     this.fontFamily,
     this.fontSize,
     this.colorTheme,
+    this.workingDirectory,
+    this.startupCommand,
+    this.cursorStyle,
+    this.scrollbackLines,
     this.isDefault,
   });
 
@@ -83,6 +103,10 @@ final class UpdateShellProfile extends ShellProfileEvent {
         fontFamily,
         fontSize,
         colorTheme,
+        workingDirectory,
+        startupCommand,
+        cursorStyle,
+        scrollbackLines,
         isDefault,
       ];
 }
@@ -95,6 +119,11 @@ final class DeleteShellProfile extends ShellProfileEvent {
 
   @override
   List<Object?> get props => [profile];
+}
+
+/// Ensure a default profile exists (creates one if none exist).
+final class EnsureDefaultProfile extends ShellProfileEvent {
+  const EnsureDefaultProfile();
 }
 
 /// Set a profile as the default.

@@ -17,6 +17,7 @@ import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_plugin/terminal_plugin.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:xterm/xterm.dart' show TerminalCursorType;
 
 import 'widgets/widgets.dart';
 
@@ -95,18 +96,25 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   void _openLocalShellWithProfile(ShellProfile? profile) {
-    final plugin = TerminalPlugin();
+    final plugin = TerminalPlugin(
+      profileFontSize: profile?.fontSize ?? 14.0,
+      profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
+      profileCursorType: TerminalCursorType.values[
+          (profile?.cursorStyle ?? 0).clamp(0, TerminalCursorType.values.length - 1)],
+      scrollbackLines: profile?.scrollbackLines ?? 10000,
+    );
     HostSpec hostSpec;
 
     if (profile != null) {
-      // Create host spec with profile settings
       hostSpec = createDefaultHostSpec(
         name: profile.name,
         environment: profile.parsedEnvironmentVariables,
         initCommands: profile.generateInitCommands(),
+        workingDirectory: profile.workingDirectory.isNotEmpty
+            ? profile.workingDirectory
+            : null,
       );
     } else {
-      // Default shell without profile
       hostSpec = createDefaultHostSpec();
     }
 
@@ -115,7 +123,6 @@ class _TerminalScreenState extends State<TerminalScreen> {
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
     _requestTerminalFocus();
 
-    // Track session creation
     _analytics.trackSessionCreated(
       SessionType.local,
       metadata: profile != null ? {'profile': profile.name} : null,

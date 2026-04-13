@@ -4,18 +4,32 @@ import 'dart:convert';
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
 import 'package:terminal_plugin/src/terminal_shortcut_handler.dart';
-import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:xterm/xterm.dart';
 
 class TerminalPlugin extends Plugin {
-  final terminal = Terminal(
-    maxLines: 10000,
-    batchWrites: true, // Enable write batching for better performance
-  );
+  TerminalPlugin({
+    this.profileFontSize = 14.0,
+    this.profileFontFamily = 'Source Code Pro',
+    this.profileCursorType = TerminalCursorType.block,
+    int scrollbackLines = 10000,
+  }) : terminal = Terminal(
+          maxLines: scrollbackLines,
+          batchWrites: true,
+        );
+
+  final Terminal terminal;
+
+  /// Font size from the shell profile.
+  final double profileFontSize;
+
+  /// Font family from the shell profile.
+  final String profileFontFamily;
+
+  /// Cursor type from the shell profile.
+  final TerminalCursorType profileCursorType;
 
   final terminalController = TerminalController();
 
@@ -170,54 +184,43 @@ class _TerminalTabViewState extends State<TerminalTabView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<TerminalSettingsBloc, TerminalSettingsState>(
-      builder: (context, state) {
-        // Get font settings from state or use defaults
-        final fontSize = state is TerminalSettingsLoaded
-            ? state.fontSize
-            : kTerminalDefaultFontSize;
-        final fontFamily = state is TerminalSettingsLoaded
-            ? state.fontFamily
-            : kTerminalDefaultFontFamily;
-
-        return CupertinoPageScaffold(
-          key: ValueKey(widget.plugin),
-          backgroundColor: Colors.transparent,
-          child: SafeArea(
-            child: Stack(
-              children: [
-                ClipRect(
-                  child: TerminalView(
-                    widget.plugin.terminal,
-                    controller: widget.plugin.terminalController,
-                    focusNode: _terminalFocusNode,
-                    onKeyEvent: TerminalShortcutHandler.of(context)?.onKeyEvent,
-                    onSecondaryTapDown: (_, __) => showMenu(),
-                    backgroundOpacity: 0.8,
-                    autofocus: true,
-                    textStyle: TerminalStyle(
-                      fontSize: fontSize,
-                      fontFamily: fontFamily,
-                    ),
-                  ),
+    return CupertinoPageScaffold(
+      key: ValueKey(widget.plugin),
+      backgroundColor: Colors.transparent,
+      child: SafeArea(
+        child: Stack(
+          children: [
+            ClipRect(
+              child: TerminalView(
+                widget.plugin.terminal,
+                controller: widget.plugin.terminalController,
+                focusNode: _terminalFocusNode,
+                onKeyEvent: TerminalShortcutHandler.of(context)?.onKeyEvent,
+                onSecondaryTapDown: (_, __) => showMenu(),
+                backgroundOpacity: 0.8,
+                autofocus: true,
+                cursorType: widget.plugin.profileCursorType,
+                textStyle: TerminalStyle(
+                  fontSize: widget.plugin.profileFontSize,
+                  fontFamily: widget.plugin.profileFontFamily,
                 ),
-                ValueListenableBuilder<String?>(
-                  valueListenable: widget.plugin.connectionError,
-                  builder: (context, error, _) {
-                    if (error == null) return const SizedBox.shrink();
-                    return _ConnectionErrorOverlay(
-                      error: error,
-                      onRetry: () {
-                        widget.plugin.connectionError.value = null;
-                      },
-                    );
-                  },
-                ),
-              ],
+              ),
             ),
-          ),
-        );
-      },
+            ValueListenableBuilder<String?>(
+              valueListenable: widget.plugin.connectionError,
+              builder: (context, error, _) {
+                if (error == null) return const SizedBox.shrink();
+                return _ConnectionErrorOverlay(
+                  error: error,
+                  onRetry: () {
+                    widget.plugin.connectionError.value = null;
+                  },
+                );
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 

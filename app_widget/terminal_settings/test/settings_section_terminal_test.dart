@@ -4,37 +4,6 @@ import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:terminal_settings/terminal_settings.dart';
 
 void main() {
-  group('kTerminalFontFamilies', () {
-    test('contains expected font families', () {
-      expect(kTerminalFontFamilies, contains('monospace'));
-      expect(kTerminalFontFamilies, contains('Menlo'));
-      expect(kTerminalFontFamilies, contains('Monaco'));
-      expect(kTerminalFontFamilies, contains('Consolas'));
-      expect(kTerminalFontFamilies, contains('Courier New'));
-      expect(kTerminalFontFamilies, contains('Source Code Pro'));
-      expect(kTerminalFontFamilies, contains('JetBrains Mono'));
-      expect(kTerminalFontFamilies, contains('Fira Code'));
-    });
-
-    test('has 8 font families', () {
-      expect(kTerminalFontFamilies.length, 8);
-    });
-
-    test('all families are non-empty strings', () {
-      for (final family in kTerminalFontFamilies) {
-        expect(family.isNotEmpty, isTrue);
-      }
-    });
-
-    test('first family is monospace', () {
-      expect(kTerminalFontFamilies.first, 'monospace');
-    });
-
-    test('list is unmodifiable (const)', () {
-      expect(() => kTerminalFontFamilies.add('test'), throwsUnsupportedError);
-    });
-  });
-
   group('SettingsSectionTerminal', () {
     group('construction', () {
       test('can be instantiated', () {

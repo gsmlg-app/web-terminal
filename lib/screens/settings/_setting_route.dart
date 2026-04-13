@@ -6,6 +6,7 @@ import 'package:web_terminal/screens/settings/select_brightness.dart';
 import 'package:web_terminal/screens/settings/select_theme.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:web_terminal/screens/settings/shell_profile_screen.dart';
+import 'package:web_terminal/screens/settings/shell_profile_edit_screen.dart';
 import 'package:web_terminal/screens/settings/ssh_key_management.dart';
 import 'package:web_terminal/screens/settings/terminal_env_screen.dart';
 import 'package:web_terminal/screens/settings/web_server/web_server_screen.dart';
@@ -109,6 +110,20 @@ final settingRoute = GoRoute(
           child: const ShellProfileScreen(),
         );
       },
+      routes: [
+        GoRoute(
+          name: ShellProfileEditScreen.name,
+          path: ShellProfileEditScreen.path,
+          pageBuilder: (context, state) {
+            final idStr = state.uri.queryParameters['id'];
+            final profileId = idStr != null ? int.tryParse(idStr) : null;
+            return NoTransitionPage<void>(
+              key: state.pageKey,
+              child: ShellProfileEditScreen(profileId: profileId),
+            );
+          },
+        ),
+      ],
     ),
   ],
 );

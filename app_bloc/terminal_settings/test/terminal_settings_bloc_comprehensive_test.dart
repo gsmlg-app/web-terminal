@@ -96,21 +96,6 @@ void main() {
       expect(event1.hashCode, equals(event2.hashCode));
     });
 
-    test('TerminalSettingsUpdateFontSize instances with same value are equal',
-        () {
-      const event1 = TerminalSettingsUpdateFontSize(fontSize: 14.0);
-      const event2 = TerminalSettingsUpdateFontSize(fontSize: 14.0);
-      expect(event1, equals(event2));
-      expect(event1.hashCode, equals(event2.hashCode));
-    });
-
-    test('TerminalSettingsUpdateFontFamily instances with same value are equal',
-        () {
-      const event1 = TerminalSettingsUpdateFontFamily(fontFamily: 'Consolas');
-      const event2 = TerminalSettingsUpdateFontFamily(fontFamily: 'Consolas');
-      expect(event1, equals(event2));
-      expect(event1.hashCode, equals(event2.hashCode));
-    });
   });
 
   group('State Equatable Tests', () {
@@ -132,14 +117,10 @@ void main() {
       const state1 = TerminalSettingsLoaded(
         environmentVariables: {'PATH': '/bin'},
         maxOpenShells: 15,
-        fontSize: 14.0,
-        fontFamily: 'Consolas',
       );
       const state2 = TerminalSettingsLoaded(
         environmentVariables: {'PATH': '/bin'},
         maxOpenShells: 15,
-        fontSize: 14.0,
-        fontFamily: 'Consolas',
       );
       expect(state1, equals(state2));
       expect(state1.hashCode, equals(state2.hashCode));
@@ -149,11 +130,9 @@ void main() {
         () {
       const state1 = TerminalSettingsLoaded(maxOpenShells: 10);
       const state2 = TerminalSettingsLoaded(maxOpenShells: 20);
-      const state3 = TerminalSettingsLoaded(fontSize: 14.0);
       const state4 =
           TerminalSettingsLoaded(environmentVariables: {'KEY': 'value'});
       expect(state1, isNot(equals(state2)));
-      expect(state1, isNot(equals(state3)));
       expect(state1, isNot(equals(state4)));
     });
 
@@ -161,16 +140,12 @@ void main() {
       const original = TerminalSettingsLoaded(
         environmentVariables: {'PATH': '/bin', 'HOME': '/home'},
         maxOpenShells: 25,
-        fontSize: 16.0,
-        fontFamily: 'Fira Code',
       );
 
-      final copied = original.copyWith(fontSize: 18.0);
+      final copied = original.copyWith(maxOpenShells: 30);
 
-      expect(copied.fontSize, equals(18.0));
+      expect(copied.maxOpenShells, equals(30));
       expect(copied.environmentVariables, equals(original.environmentVariables));
-      expect(copied.maxOpenShells, equals(original.maxOpenShells));
-      expect(copied.fontFamily, equals(original.fontFamily));
     });
 
     test('TerminalSettingsError instances with same error are equal', () {
@@ -257,29 +232,6 @@ void main() {
     );
 
     blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'UpdateFontSize persists to vault',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 20.0)),
-      verify: (_) {
-        expect(mockVault.getStorage()['terminal_font_size'], equals('20.0'));
-      },
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'UpdateFontFamily persists to vault',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(
-        const TerminalSettingsUpdateFontFamily(fontFamily: 'JetBrains Mono'),
-      ),
-      verify: (_) {
-        expect(mockVault.getStorage()['terminal_font_family'],
-            equals('JetBrains Mono'));
-      },
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
       'Load reads persisted env vars from vault',
       build: () {
         mockVault.seed({
@@ -310,8 +262,6 @@ void main() {
         mockVault.seed({
           'terminal_env_API_KEY': 'secret',
           'terminal_max_open_shells': '35',
-          'terminal_font_size': '16.5',
-          'terminal_font_family': 'Source Code Pro',
         });
         return TerminalSettingsBloc(vault: mockVault);
       },
@@ -324,9 +274,7 @@ void main() {
               'environmentVariables',
               {'API_KEY': 'secret'},
             )
-            .having((s) => s.maxOpenShells, 'maxOpenShells', 35)
-            .having((s) => s.fontSize, 'fontSize', 16.5)
-            .having((s) => s.fontFamily, 'fontFamily', 'Source Code Pro'),
+            .having((s) => s.maxOpenShells, 'maxOpenShells', 35),
       ],
     );
   });
@@ -369,43 +317,6 @@ void main() {
           'env after remove VAR2',
           {'VAR1': 'a', 'VAR3': 'c'},
         ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles rapid font setting updates correctly',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) async {
-        bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 12.0));
-        await Future.delayed(const Duration(milliseconds: 10));
-        bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 14.0));
-        await Future.delayed(const Duration(milliseconds: 10));
-        bloc.add(const TerminalSettingsUpdateFontFamily(fontFamily: 'Consolas'));
-        await Future.delayed(const Duration(milliseconds: 10));
-        bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 16.0));
-      },
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize after first update',
-          12.0,
-        ),
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize after second update',
-          14.0,
-        ),
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.fontSize, 'fontSize preserved', 14.0)
-            .having(
-              (s) => s.fontFamily,
-              'fontFamily after update',
-              'Consolas',
-            ),
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.fontSize, 'fontSize after third update', 16.0)
-            .having((s) => s.fontFamily, 'fontFamily preserved', 'Consolas'),
       ],
     );
 
@@ -453,8 +364,6 @@ void main() {
       act: (bloc) {
         bloc.add(const TerminalSettingsUpdateEnvVar(key: 'ENV', value: 'prod'));
         bloc.add(const TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 25));
-        bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 15.0));
-        bloc.add(const TerminalSettingsUpdateFontFamily(fontFamily: 'Monaco'));
       },
       expect: () => [
         isA<TerminalSettingsLoaded>().having(
@@ -465,15 +374,6 @@ void main() {
         isA<TerminalSettingsLoaded>()
             .having((s) => s.environmentVariables, 'env', {'ENV': 'prod'})
             .having((s) => s.maxOpenShells, 'maxShells', 25),
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.environmentVariables, 'env', {'ENV': 'prod'})
-            .having((s) => s.maxOpenShells, 'maxShells', 25)
-            .having((s) => s.fontSize, 'fontSize', 15.0),
-        isA<TerminalSettingsLoaded>()
-            .having((s) => s.environmentVariables, 'env', {'ENV': 'prod'})
-            .having((s) => s.maxOpenShells, 'maxShells', 25)
-            .having((s) => s.fontSize, 'fontSize', 15.0)
-            .having((s) => s.fontFamily, 'fontFamily', 'Monaco'),
       ],
     );
   });
@@ -590,99 +490,6 @@ void main() {
       ],
     );
 
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles boundary value for fontSize (8.0)',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 8.0)),
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize',
-          8.0,
-        ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles boundary value for fontSize (32.0)',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 32.0)),
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize',
-          32.0,
-        ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles decimal fontSize values correctly',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateFontSize(fontSize: 13.5)),
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize',
-          13.5,
-        ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles empty font family string',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateFontFamily(fontFamily: '')),
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontFamily,
-          'fontFamily',
-          '',
-        ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles very long font family name',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(
-        const TerminalSettingsUpdateFontFamily(
-          fontFamily: 'Very Long Font Family Name With Many Words',
-        ),
-      ),
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontFamily,
-          'fontFamily',
-          'Very Long Font Family Name With Many Words',
-        ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'handles unicode in font family name',
-      build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) => bloc.add(
-        const TerminalSettingsUpdateFontFamily(fontFamily: 'Courier 新宋体'),
-      ),
-      expect: () => [
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontFamily,
-          'fontFamily',
-          'Courier 新宋体',
-        ),
-      ],
-    );
   });
 
   group('Load Event Edge Cases', () {
@@ -725,23 +532,6 @@ void main() {
     );
 
     blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'Load handles malformed fontSize value gracefully',
-      build: () {
-        mockVault.seed({'terminal_font_size': 'invalid'});
-        return TerminalSettingsBloc(vault: mockVault);
-      },
-      act: (bloc) => bloc.add(const TerminalSettingsLoad()),
-      expect: () => [
-        isA<TerminalSettingsLoading>(),
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize defaults',
-          kTerminalDefaultFontSize,
-        ),
-      ],
-    );
-
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
       'Load handles negative maxOpenShells value (loads as-is, no clamping)',
       build: () {
         mockVault.seed({'terminal_max_open_shells': '-5'});
@@ -758,22 +548,6 @@ void main() {
       ],
     );
 
-    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
-      'Load handles negative fontSize value (loads as-is, no clamping)',
-      build: () {
-        mockVault.seed({'terminal_font_size': '-10.0'});
-        return TerminalSettingsBloc(vault: mockVault);
-      },
-      act: (bloc) => bloc.add(const TerminalSettingsLoad()),
-      expect: () => [
-        isA<TerminalSettingsLoading>(),
-        isA<TerminalSettingsLoaded>().having(
-          (s) => s.fontSize,
-          'fontSize loaded as negative',
-          -10.0,
-        ),
-      ],
-    );
   });
 
   group('State Immutability', () {
@@ -781,8 +555,6 @@ void main() {
       const original = TerminalSettingsLoaded(
         environmentVariables: {'KEY': 'value'},
         maxOpenShells: 20,
-        fontSize: 14.0,
-        fontFamily: 'Consolas',
       );
 
       final copied = original.copyWith(maxOpenShells: 25);
@@ -811,22 +583,12 @@ void main() {
 
       expect(state.environmentVariables, isEmpty);
       expect(state.maxOpenShells, equals(kTerminalDefaultMaxOpenShells));
-      expect(state.fontSize, equals(kTerminalDefaultFontSize));
-      expect(state.fontFamily, equals(kTerminalDefaultFontFamily));
     });
   });
 
   group('Constant Values', () {
     test('kTerminalDefaultMaxOpenShells is 10', () {
       expect(kTerminalDefaultMaxOpenShells, equals(10));
-    });
-
-    test('kTerminalDefaultFontSize is 13.0', () {
-      expect(kTerminalDefaultFontSize, equals(13.0));
-    });
-
-    test('kTerminalDefaultFontFamily is monospace', () {
-      expect(kTerminalDefaultFontFamily, equals('monospace'));
     });
   });
 }

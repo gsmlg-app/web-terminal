@@ -985,6 +985,38 @@ class $ShellProfilesTable extends ShellProfiles
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       defaultValue: const Constant('default'));
+  static const VerificationMeta _workingDirectoryMeta =
+      const VerificationMeta('workingDirectory');
+  @override
+  late final GeneratedColumn<String> workingDirectory = GeneratedColumn<String>(
+      'working_directory', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _startupCommandMeta =
+      const VerificationMeta('startupCommand');
+  @override
+  late final GeneratedColumn<String> startupCommand = GeneratedColumn<String>(
+      'startup_command', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _cursorStyleMeta =
+      const VerificationMeta('cursorStyle');
+  @override
+  late final GeneratedColumn<int> cursorStyle = GeneratedColumn<int>(
+      'cursor_style', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0));
+  static const VerificationMeta _scrollbackLinesMeta =
+      const VerificationMeta('scrollbackLines');
+  @override
+  late final GeneratedColumn<int> scrollbackLines = GeneratedColumn<int>(
+      'scrollback_lines', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(10000));
   static const VerificationMeta _isDefaultMeta =
       const VerificationMeta('isDefault');
   @override
@@ -1017,6 +1049,10 @@ class $ShellProfilesTable extends ShellProfiles
         fontFamily,
         fontSize,
         colorTheme,
+        workingDirectory,
+        startupCommand,
+        cursorStyle,
+        scrollbackLines,
         isDefault,
         createdAt,
         updatedAt
@@ -1070,6 +1106,30 @@ class $ShellProfilesTable extends ShellProfiles
           colorTheme.isAcceptableOrUnknown(
               data['color_theme']!, _colorThemeMeta));
     }
+    if (data.containsKey('working_directory')) {
+      context.handle(
+          _workingDirectoryMeta,
+          workingDirectory.isAcceptableOrUnknown(
+              data['working_directory']!, _workingDirectoryMeta));
+    }
+    if (data.containsKey('startup_command')) {
+      context.handle(
+          _startupCommandMeta,
+          startupCommand.isAcceptableOrUnknown(
+              data['startup_command']!, _startupCommandMeta));
+    }
+    if (data.containsKey('cursor_style')) {
+      context.handle(
+          _cursorStyleMeta,
+          cursorStyle.isAcceptableOrUnknown(
+              data['cursor_style']!, _cursorStyleMeta));
+    }
+    if (data.containsKey('scrollback_lines')) {
+      context.handle(
+          _scrollbackLinesMeta,
+          scrollbackLines.isAcceptableOrUnknown(
+              data['scrollback_lines']!, _scrollbackLinesMeta));
+    }
     if (data.containsKey('is_default')) {
       context.handle(_isDefaultMeta,
           isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
@@ -1108,6 +1168,14 @@ class $ShellProfilesTable extends ShellProfiles
           .read(DriftSqlType.double, data['${effectivePrefix}font_size'])!,
       colorTheme: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}color_theme'])!,
+      workingDirectory: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}working_directory'])!,
+      startupCommand: attachedDatabase.typeMapping.read(
+          DriftSqlType.string, data['${effectivePrefix}startup_command'])!,
+      cursorStyle: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}cursor_style'])!,
+      scrollbackLines: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}scrollback_lines'])!,
       isDefault: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
       createdAt: attachedDatabase.typeMapping
@@ -1150,6 +1218,18 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
   /// Color theme name (references terminal theme)
   final String colorTheme;
 
+  /// Working directory to start the shell in (empty = system default)
+  final String workingDirectory;
+
+  /// Command to run automatically when the shell opens (e.g., tmux)
+  final String startupCommand;
+
+  /// Cursor style (0=block, 1=underline, 2=verticalBar)
+  final int cursorStyle;
+
+  /// Number of lines to keep in scroll history
+  final int scrollbackLines;
+
   /// Whether this is the default profile for new sessions
   final bool isDefault;
 
@@ -1167,6 +1247,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       required this.fontFamily,
       required this.fontSize,
       required this.colorTheme,
+      required this.workingDirectory,
+      required this.startupCommand,
+      required this.cursorStyle,
+      required this.scrollbackLines,
       required this.isDefault,
       this.createdAt,
       this.updatedAt});
@@ -1181,6 +1265,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
     map['font_family'] = Variable<String>(fontFamily);
     map['font_size'] = Variable<double>(fontSize);
     map['color_theme'] = Variable<String>(colorTheme);
+    map['working_directory'] = Variable<String>(workingDirectory);
+    map['startup_command'] = Variable<String>(startupCommand);
+    map['cursor_style'] = Variable<int>(cursorStyle);
+    map['scrollback_lines'] = Variable<int>(scrollbackLines);
     map['is_default'] = Variable<bool>(isDefault);
     if (!nullToAbsent || createdAt != null) {
       map['created_at'] = Variable<DateTime>(createdAt);
@@ -1201,6 +1289,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       fontFamily: Value(fontFamily),
       fontSize: Value(fontSize),
       colorTheme: Value(colorTheme),
+      workingDirectory: Value(workingDirectory),
+      startupCommand: Value(startupCommand),
+      cursorStyle: Value(cursorStyle),
+      scrollbackLines: Value(scrollbackLines),
       isDefault: Value(isDefault),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
@@ -1224,6 +1316,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       fontFamily: serializer.fromJson<String>(json['fontFamily']),
       fontSize: serializer.fromJson<double>(json['fontSize']),
       colorTheme: serializer.fromJson<String>(json['colorTheme']),
+      workingDirectory: serializer.fromJson<String>(json['workingDirectory']),
+      startupCommand: serializer.fromJson<String>(json['startupCommand']),
+      cursorStyle: serializer.fromJson<int>(json['cursorStyle']),
+      scrollbackLines: serializer.fromJson<int>(json['scrollbackLines']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
       createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
@@ -1241,6 +1337,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       'fontFamily': serializer.toJson<String>(fontFamily),
       'fontSize': serializer.toJson<double>(fontSize),
       'colorTheme': serializer.toJson<String>(colorTheme),
+      'workingDirectory': serializer.toJson<String>(workingDirectory),
+      'startupCommand': serializer.toJson<String>(startupCommand),
+      'cursorStyle': serializer.toJson<int>(cursorStyle),
+      'scrollbackLines': serializer.toJson<int>(scrollbackLines),
       'isDefault': serializer.toJson<bool>(isDefault),
       'createdAt': serializer.toJson<DateTime?>(createdAt),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
@@ -1256,6 +1356,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           String? fontFamily,
           double? fontSize,
           String? colorTheme,
+          String? workingDirectory,
+          String? startupCommand,
+          int? cursorStyle,
+          int? scrollbackLines,
           bool? isDefault,
           Value<DateTime?> createdAt = const Value.absent(),
           Value<DateTime?> updatedAt = const Value.absent()}) =>
@@ -1268,6 +1372,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
         fontFamily: fontFamily ?? this.fontFamily,
         fontSize: fontSize ?? this.fontSize,
         colorTheme: colorTheme ?? this.colorTheme,
+        workingDirectory: workingDirectory ?? this.workingDirectory,
+        startupCommand: startupCommand ?? this.startupCommand,
+        cursorStyle: cursorStyle ?? this.cursorStyle,
+        scrollbackLines: scrollbackLines ?? this.scrollbackLines,
         isDefault: isDefault ?? this.isDefault,
         createdAt: createdAt.present ? createdAt.value : this.createdAt,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
@@ -1286,6 +1394,17 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       fontSize: data.fontSize.present ? data.fontSize.value : this.fontSize,
       colorTheme:
           data.colorTheme.present ? data.colorTheme.value : this.colorTheme,
+      workingDirectory: data.workingDirectory.present
+          ? data.workingDirectory.value
+          : this.workingDirectory,
+      startupCommand: data.startupCommand.present
+          ? data.startupCommand.value
+          : this.startupCommand,
+      cursorStyle:
+          data.cursorStyle.present ? data.cursorStyle.value : this.cursorStyle,
+      scrollbackLines: data.scrollbackLines.present
+          ? data.scrollbackLines.value
+          : this.scrollbackLines,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
@@ -1303,6 +1422,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           ..write('fontFamily: $fontFamily, ')
           ..write('fontSize: $fontSize, ')
           ..write('colorTheme: $colorTheme, ')
+          ..write('workingDirectory: $workingDirectory, ')
+          ..write('startupCommand: $startupCommand, ')
+          ..write('cursorStyle: $cursorStyle, ')
+          ..write('scrollbackLines: $scrollbackLines, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -1320,6 +1443,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       fontFamily,
       fontSize,
       colorTheme,
+      workingDirectory,
+      startupCommand,
+      cursorStyle,
+      scrollbackLines,
       isDefault,
       createdAt,
       updatedAt);
@@ -1335,6 +1462,10 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           other.fontFamily == this.fontFamily &&
           other.fontSize == this.fontSize &&
           other.colorTheme == this.colorTheme &&
+          other.workingDirectory == this.workingDirectory &&
+          other.startupCommand == this.startupCommand &&
+          other.cursorStyle == this.cursorStyle &&
+          other.scrollbackLines == this.scrollbackLines &&
           other.isDefault == this.isDefault &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
@@ -1349,6 +1480,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
   final Value<String> fontFamily;
   final Value<double> fontSize;
   final Value<String> colorTheme;
+  final Value<String> workingDirectory;
+  final Value<String> startupCommand;
+  final Value<int> cursorStyle;
+  final Value<int> scrollbackLines;
   final Value<bool> isDefault;
   final Value<DateTime?> createdAt;
   final Value<DateTime?> updatedAt;
@@ -1361,6 +1496,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     this.fontFamily = const Value.absent(),
     this.fontSize = const Value.absent(),
     this.colorTheme = const Value.absent(),
+    this.workingDirectory = const Value.absent(),
+    this.startupCommand = const Value.absent(),
+    this.cursorStyle = const Value.absent(),
+    this.scrollbackLines = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1374,6 +1513,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     this.fontFamily = const Value.absent(),
     this.fontSize = const Value.absent(),
     this.colorTheme = const Value.absent(),
+    this.workingDirectory = const Value.absent(),
+    this.startupCommand = const Value.absent(),
+    this.cursorStyle = const Value.absent(),
+    this.scrollbackLines = const Value.absent(),
     this.isDefault = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
@@ -1387,6 +1530,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     Expression<String>? fontFamily,
     Expression<double>? fontSize,
     Expression<String>? colorTheme,
+    Expression<String>? workingDirectory,
+    Expression<String>? startupCommand,
+    Expression<int>? cursorStyle,
+    Expression<int>? scrollbackLines,
     Expression<bool>? isDefault,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
@@ -1401,6 +1548,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
       if (fontFamily != null) 'font_family': fontFamily,
       if (fontSize != null) 'font_size': fontSize,
       if (colorTheme != null) 'color_theme': colorTheme,
+      if (workingDirectory != null) 'working_directory': workingDirectory,
+      if (startupCommand != null) 'startup_command': startupCommand,
+      if (cursorStyle != null) 'cursor_style': cursorStyle,
+      if (scrollbackLines != null) 'scrollback_lines': scrollbackLines,
       if (isDefault != null) 'is_default': isDefault,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
@@ -1416,6 +1567,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
       Value<String>? fontFamily,
       Value<double>? fontSize,
       Value<String>? colorTheme,
+      Value<String>? workingDirectory,
+      Value<String>? startupCommand,
+      Value<int>? cursorStyle,
+      Value<int>? scrollbackLines,
       Value<bool>? isDefault,
       Value<DateTime?>? createdAt,
       Value<DateTime?>? updatedAt}) {
@@ -1428,6 +1583,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
       fontFamily: fontFamily ?? this.fontFamily,
       fontSize: fontSize ?? this.fontSize,
       colorTheme: colorTheme ?? this.colorTheme,
+      workingDirectory: workingDirectory ?? this.workingDirectory,
+      startupCommand: startupCommand ?? this.startupCommand,
+      cursorStyle: cursorStyle ?? this.cursorStyle,
+      scrollbackLines: scrollbackLines ?? this.scrollbackLines,
       isDefault: isDefault ?? this.isDefault,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -1462,6 +1621,18 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     if (colorTheme.present) {
       map['color_theme'] = Variable<String>(colorTheme.value);
     }
+    if (workingDirectory.present) {
+      map['working_directory'] = Variable<String>(workingDirectory.value);
+    }
+    if (startupCommand.present) {
+      map['startup_command'] = Variable<String>(startupCommand.value);
+    }
+    if (cursorStyle.present) {
+      map['cursor_style'] = Variable<int>(cursorStyle.value);
+    }
+    if (scrollbackLines.present) {
+      map['scrollback_lines'] = Variable<int>(scrollbackLines.value);
+    }
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
     }
@@ -1485,6 +1656,10 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
           ..write('fontFamily: $fontFamily, ')
           ..write('fontSize: $fontSize, ')
           ..write('colorTheme: $colorTheme, ')
+          ..write('workingDirectory: $workingDirectory, ')
+          ..write('startupCommand: $startupCommand, ')
+          ..write('cursorStyle: $cursorStyle, ')
+          ..write('scrollbackLines: $scrollbackLines, ')
           ..write('isDefault: $isDefault, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
@@ -2132,6 +2307,10 @@ typedef $$ShellProfilesTableCreateCompanionBuilder = ShellProfilesCompanion
   Value<String> fontFamily,
   Value<double> fontSize,
   Value<String> colorTheme,
+  Value<String> workingDirectory,
+  Value<String> startupCommand,
+  Value<int> cursorStyle,
+  Value<int> scrollbackLines,
   Value<bool> isDefault,
   Value<DateTime?> createdAt,
   Value<DateTime?> updatedAt,
@@ -2146,6 +2325,10 @@ typedef $$ShellProfilesTableUpdateCompanionBuilder = ShellProfilesCompanion
   Value<String> fontFamily,
   Value<double> fontSize,
   Value<String> colorTheme,
+  Value<String> workingDirectory,
+  Value<String> startupCommand,
+  Value<int> cursorStyle,
+  Value<int> scrollbackLines,
   Value<bool> isDefault,
   Value<DateTime?> createdAt,
   Value<DateTime?> updatedAt,
@@ -2184,6 +2367,21 @@ class $$ShellProfilesTableFilterComposer
 
   ColumnFilters<String> get colorTheme => $composableBuilder(
       column: $table.colorTheme, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get workingDirectory => $composableBuilder(
+      column: $table.workingDirectory,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get startupCommand => $composableBuilder(
+      column: $table.startupCommand,
+      builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get cursorStyle => $composableBuilder(
+      column: $table.cursorStyle, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get scrollbackLines => $composableBuilder(
+      column: $table.scrollbackLines,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
       column: $table.isDefault, builder: (column) => ColumnFilters(column));
@@ -2229,6 +2427,21 @@ class $$ShellProfilesTableOrderingComposer
   ColumnOrderings<String> get colorTheme => $composableBuilder(
       column: $table.colorTheme, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get workingDirectory => $composableBuilder(
+      column: $table.workingDirectory,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get startupCommand => $composableBuilder(
+      column: $table.startupCommand,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get cursorStyle => $composableBuilder(
+      column: $table.cursorStyle, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get scrollbackLines => $composableBuilder(
+      column: $table.scrollbackLines,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<bool> get isDefault => $composableBuilder(
       column: $table.isDefault, builder: (column) => ColumnOrderings(column));
 
@@ -2271,6 +2484,18 @@ class $$ShellProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get colorTheme => $composableBuilder(
       column: $table.colorTheme, builder: (column) => column);
+
+  GeneratedColumn<String> get workingDirectory => $composableBuilder(
+      column: $table.workingDirectory, builder: (column) => column);
+
+  GeneratedColumn<String> get startupCommand => $composableBuilder(
+      column: $table.startupCommand, builder: (column) => column);
+
+  GeneratedColumn<int> get cursorStyle => $composableBuilder(
+      column: $table.cursorStyle, builder: (column) => column);
+
+  GeneratedColumn<int> get scrollbackLines => $composableBuilder(
+      column: $table.scrollbackLines, builder: (column) => column);
 
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
@@ -2316,6 +2541,10 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             Value<String> fontFamily = const Value.absent(),
             Value<double> fontSize = const Value.absent(),
             Value<String> colorTheme = const Value.absent(),
+            Value<String> workingDirectory = const Value.absent(),
+            Value<String> startupCommand = const Value.absent(),
+            Value<int> cursorStyle = const Value.absent(),
+            Value<int> scrollbackLines = const Value.absent(),
             Value<bool> isDefault = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
             Value<DateTime?> updatedAt = const Value.absent(),
@@ -2329,6 +2558,10 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             fontFamily: fontFamily,
             fontSize: fontSize,
             colorTheme: colorTheme,
+            workingDirectory: workingDirectory,
+            startupCommand: startupCommand,
+            cursorStyle: cursorStyle,
+            scrollbackLines: scrollbackLines,
             isDefault: isDefault,
             createdAt: createdAt,
             updatedAt: updatedAt,
@@ -2342,6 +2575,10 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             Value<String> fontFamily = const Value.absent(),
             Value<double> fontSize = const Value.absent(),
             Value<String> colorTheme = const Value.absent(),
+            Value<String> workingDirectory = const Value.absent(),
+            Value<String> startupCommand = const Value.absent(),
+            Value<int> cursorStyle = const Value.absent(),
+            Value<int> scrollbackLines = const Value.absent(),
             Value<bool> isDefault = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
             Value<DateTime?> updatedAt = const Value.absent(),
@@ -2355,6 +2592,10 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             fontFamily: fontFamily,
             fontSize: fontSize,
             colorTheme: colorTheme,
+            workingDirectory: workingDirectory,
+            startupCommand: startupCommand,
+            cursorStyle: cursorStyle,
+            scrollbackLines: scrollbackLines,
             isDefault: isDefault,
             createdAt: createdAt,
             updatedAt: updatedAt,
