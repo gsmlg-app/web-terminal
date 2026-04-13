@@ -64,19 +64,8 @@ class _WebServerScreenState extends State<WebServerScreen> {
           ],
         ),
       ),
-      largeBody: (context) => SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              title: Text(context.l10n.settingsTitle),
-              automaticallyImplyLeading: false,
-            ),
-            const SliverFillRemaining(
-              child: RootSettingList(config: rootSettingListConfig),
-            ),
-          ],
-        ),
+      largeBody: (context) => const SafeArea(
+        child: RootSettingList(config: rootSettingListConfig),
       ),
       largeSecondaryBody: (context) => SafeArea(
         child: CustomScrollView(

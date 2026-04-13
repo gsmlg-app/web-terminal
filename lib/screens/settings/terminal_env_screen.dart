@@ -35,21 +35,22 @@ class TerminalEnvScreen extends StatelessWidget {
         ),
       ),
       smallSecondaryBody: DmAdaptiveScaffold.emptyBuilder,
-      largeBody: (context) => SafeArea(
+      largeBody: (context) => const SafeArea(
+        child: RootSettingList(config: rootSettingListConfig),
+      ),
+      largeSecondaryBody: (_) => SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: const <Widget>[
             SliverAppBar(
               title: Text('Environment Variables'),
+              automaticallyImplyLeading: false,
             ),
             SliverFillRemaining(
               child: EnvSettingsList(),
             ),
           ],
         ),
-      ),
-      largeSecondaryBody: (_) => SafeArea(
-        child: Container(),
       ),
     );
   }

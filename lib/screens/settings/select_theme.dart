@@ -49,19 +49,8 @@ class SettingsSelectTheme extends StatelessWidget {
           ],
         ),
       ),
-      largeBody: (context) => SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: <Widget>[
-            SliverAppBar(
-              title: Text(context.l10n.settingsTitle),
-              automaticallyImplyLeading: false,
-            ),
-            SliverFillRemaining(
-              child: RootSettingList(config: rootSettingListConfig),
-            ),
-          ],
-        ),
+      largeBody: (context) => const SafeArea(
+        child: RootSettingList(config: rootSettingListConfig),
       ),
       largeSecondaryBody: (_) => SafeArea(
         child: CustomScrollView(

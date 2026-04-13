@@ -5,7 +5,6 @@ import 'package:web_terminal/screens/settings/_setting_config.dart';
 import 'package:web_terminal/screens/settings/settings_screen.dart';
 import 'package:terminal_settings/terminal_settings.dart';
 import 'package:web_terminal/destinations.dart';
-import 'package:app_locale/app_locale.dart';
 
 class WifiInfoScreen extends StatelessWidget {
   static const name = SettingsScreenNames.wifiInfo;
@@ -37,18 +36,8 @@ class WifiInfoScreen extends StatelessWidget {
           ],
         ),
       ),
-      largeBody: (context) => SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverAppBar(
-              title: Text(context.l10n.settingsTitle),
-              automaticallyImplyLeading: false,
-            ),
-            SliverFillRemaining(
-              child: RootSettingList(config: rootSettingListConfig),
-            ),
-          ],
-        ),
+      largeBody: (context) => const SafeArea(
+        child: RootSettingList(config: rootSettingListConfig),
       ),
       largeSecondaryBody: (context) => SafeArea(
         child: CustomScrollView(

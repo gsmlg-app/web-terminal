@@ -54,19 +54,8 @@ class ShellProfileScreen extends StatelessWidget {
           ],
         ),
       ),
-      largeBody: (context) => SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: <Widget>[
-            const SliverAppBar(
-              title: Text('Settings'),
-              automaticallyImplyLeading: false,
-            ),
-            SliverFillRemaining(
-              child: RootSettingList(config: rootSettingListConfig),
-            ),
-          ],
-        ),
+      largeBody: (context) => const SafeArea(
+        child: RootSettingList(config: rootSettingListConfig),
       ),
       largeSecondaryBody: (_) => SafeArea(
         child: CustomScrollView(
