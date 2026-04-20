@@ -406,6 +406,15 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
   void _paint(PaintingContext context, Offset offset) {
     final canvas = context.canvas;
 
+    // Fill the entire visible area with the terminal background color to
+    // prevent sub-pixel gaps between lines from showing through.
+    canvas.drawRect(
+      offset & size,
+      Paint()
+        ..color = _painter.theme.background
+        ..isAntiAlias = false,
+    );
+
     final lines = _terminal.buffer.lines;
     final charHeight = _painter.cellSize.height;
 
@@ -418,12 +427,16 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     final effectFirstLine = firstLine.clamp(0, lines.length - 1);
     final effectLastLine = lastLine.clamp(0, lines.length - 1);
 
+    // Round the first line's ABSOLUTE screen Y coordinate to an integer pixel,
+    // then place all subsequent lines at exact charHeight offsets. This prevents
+    // sub-pixel gaps caused by fractional parent offsets (AppBar, safe areas).
+    final firstLineScreenY =
+        (offset.dy + effectFirstLine * charHeight + _lineOffset)
+            .roundToDouble();
+
     for (var i = effectFirstLine; i <= effectLastLine; i++) {
-      _painter.paintLine(
-        canvas,
-        offset.translate(0, (i * charHeight + _lineOffset).truncateToDouble()),
-        lines[i],
-      );
+      final lineY = firstLineScreenY + (i - effectFirstLine) * charHeight;
+      _painter.paintLine(canvas, Offset(offset.dx, lineY), lines[i]);
     }
 
     if (_terminal.buffer.absoluteCursorY >= effectFirstLine &&

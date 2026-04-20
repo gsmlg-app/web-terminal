@@ -70,7 +70,7 @@ class TerminalPainter {
 
     final result = Size(
       paragraph.maxIntrinsicWidth / test.length,
-      paragraph.height,
+      paragraph.height.ceilToDouble(),
     );
 
     paragraph.dispose();
@@ -131,7 +131,8 @@ class TerminalPainter {
 
     final paint = Paint()
       ..color = color
-      ..strokeWidth = 1;
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = false;
 
     canvas.drawRect(
       Rect.fromPoints(offset, endOffset),
@@ -234,7 +235,9 @@ class TerminalPainter {
       color = resolveBackgroundColor(cellData.background);
     }
 
-    final paint = Paint()..color = color;
+    final paint = Paint()
+      ..color = color
+      ..isAntiAlias = false;
     final doubleWidth = cellData.content >> CellContent.widthShift == 2;
     final widthScale = doubleWidth ? 2 : 1;
     final size = Size(_cellSize.width * widthScale + 1, _cellSize.height);
