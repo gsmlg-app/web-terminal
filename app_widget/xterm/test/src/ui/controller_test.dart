@@ -76,6 +76,42 @@ void main() {
 
       expect(terminalView.selection, isNull);
     });
+
+    test('extendSelection preserves the existing selection base', () {
+      final terminal = Terminal();
+      final terminalView = TerminalController();
+
+      terminalView.setSelection(
+        terminal.buffer.createAnchor(1, 0),
+        terminal.buffer.createAnchor(2, 0),
+      );
+
+      final extended = terminalView.extendSelection(
+        terminal.buffer.createAnchor(5, 0),
+      );
+
+      expect(extended, isTrue);
+      expect(
+        terminalView.selection,
+        BufferRangeLine(
+          const CellOffset(1, 0),
+          const CellOffset(5, 0),
+        ),
+      );
+    });
+
+    test('extendSelection disposes the new anchor without a selection base',
+        () {
+      final terminal = Terminal();
+      final terminalView = TerminalController();
+      final anchor = terminal.buffer.createAnchor(5, 0);
+
+      final extended = terminalView.extendSelection(anchor);
+
+      expect(extended, isFalse);
+      expect(anchor.attached, isFalse);
+      expect(terminalView.selection, isNull);
+    });
   });
 
   group('TerminalController.highlight', () {

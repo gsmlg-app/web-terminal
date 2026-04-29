@@ -298,6 +298,23 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     }
   }
 
+  /// Extends the current character selection to the cell at [to].
+  bool extendSelection(Offset to) {
+    final basePosition = _controller.selectionBaseOffset;
+    if (basePosition == null) {
+      return false;
+    }
+
+    var toPosition = getCellOffset(to);
+    if (!toPosition.isBefore(basePosition)) {
+      toPosition = CellOffset(toPosition.x + 1, toPosition.y);
+    }
+
+    return _controller.extendSelection(
+      _terminal.buffer.createAnchorFromOffset(toPosition),
+    );
+  }
+
   /// Send a mouse event at [offset] with [button] being currently in [buttonState].
   bool mouseEvent(
     TerminalMouseButton button,

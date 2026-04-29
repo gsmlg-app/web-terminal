@@ -1,4 +1,5 @@
 import 'package:flutter/gestures.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:xterm/src/core/mouse/button.dart';
 import 'package:xterm/src/core/mouse/button_state.dart';
@@ -126,6 +127,11 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
   }
 
   void onTapDown(TapDownDetails details) {
+    if (_isExpandingSelection) {
+      widget.onTapDown?.call(details);
+      return;
+    }
+
     // onTapDown is special, as it will always call the supplied callback.
     // The TerminalView depends on it to bring the terminal into focus.
     _tapDown(
@@ -137,6 +143,11 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
   }
 
   void onSingleTapUp(TapUpDetails details) {
+    if (_isExpandingSelection &&
+        renderTerminal.extendSelection(details.localPosition)) {
+      return;
+    }
+
     _tapUp(widget.onSingleTapUp, details, TerminalMouseButton.left);
   }
 
@@ -177,15 +188,30 @@ class _TerminalGestureHandlerState extends State<TerminalGestureHandler> {
   void onDragStart(DragStartDetails details) {
     _lastDragStartDetails = details;
 
+    if (_isExpandingSelection) {
+      renderTerminal.extendSelection(details.localPosition);
+      return;
+    }
+
     details.kind == PointerDeviceKind.mouse
         ? renderTerminal.selectCharacters(details.localPosition)
         : renderTerminal.selectWord(details.localPosition);
   }
 
   void onDragUpdate(DragUpdateDetails details) {
+    if (_isExpandingSelection) {
+      renderTerminal.extendSelection(details.localPosition);
+      return;
+    }
+
     renderTerminal.selectCharacters(
       _lastDragStartDetails!.localPosition,
       details.localPosition,
     );
+  }
+
+  bool get _isExpandingSelection {
+    return HardwareKeyboard.instance.isShiftPressed &&
+        widget.terminalController.selection != null;
   }
 }

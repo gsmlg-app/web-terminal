@@ -50,6 +50,14 @@ class TerminalController with ChangeNotifier {
     return _createRange(base.offset, extent.offset);
   }
 
+  CellOffset? get selectionBaseOffset {
+    final base = _selectionBase;
+    if (base == null || !base.attached) {
+      return null;
+    }
+    return base.offset;
+  }
+
   /// Set selection on the terminal from [base] to [extent]. This method takes
   /// the ownership of [base] and [extent] and will dispose them when the
   /// selection is cleared or changed.
@@ -65,6 +73,26 @@ class TerminalController with ChangeNotifier {
     }
 
     notifyListeners();
+  }
+
+  /// Extends the current selection to [extent] while preserving the original
+  /// selection base.
+  bool extendSelection(CellAnchor extent, {SelectionMode? mode}) {
+    final base = _selectionBase;
+    if (base == null || !base.attached) {
+      extent.dispose();
+      return false;
+    }
+
+    _selectionExtent?.dispose();
+    _selectionExtent = extent;
+
+    if (mode != null) {
+      _selectionMode = mode;
+    }
+
+    notifyListeners();
+    return true;
   }
 
   BufferRange _createRange(CellOffset begin, CellOffset end) {

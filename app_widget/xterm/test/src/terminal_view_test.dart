@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:xterm/src/ui/render.dart';
 import 'package:xterm/xterm.dart';
 
 import '../_fixture/_fixture.dart';
@@ -237,6 +238,52 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(output, isEmpty);
+    });
+  });
+
+  group('TerminalView.selection', () {
+    testWidgets('shift primary tap extends the current selection',
+        (tester) async {
+      final terminal = Terminal();
+      final controller = TerminalController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TerminalView(
+              terminal,
+              controller: controller,
+            ),
+          ),
+        ),
+      );
+
+      controller.setSelection(
+        terminal.buffer.createAnchor(1, 0),
+        terminal.buffer.createAnchor(2, 0),
+      );
+      await tester.pump();
+
+      final terminalViewState =
+          tester.state<TerminalViewState>(find.byType(TerminalView));
+      final RenderTerminal renderTerminal = terminalViewState.renderTerminal;
+      final tapOffset = renderTerminal.localToGlobal(
+        renderTerminal.getOffset(const CellOffset(4, 0)) +
+            renderTerminal.cellSize.center(Offset.zero),
+      );
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.tapAt(tapOffset);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pump(kDoubleTapTimeout);
+
+      expect(
+        controller.selection,
+        BufferRangeLine(
+          const CellOffset(1, 0),
+          const CellOffset(5, 0),
+        ),
+      );
     });
   });
 
