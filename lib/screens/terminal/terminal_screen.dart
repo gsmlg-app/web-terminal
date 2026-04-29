@@ -99,8 +99,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final plugin = TerminalPlugin(
       profileFontSize: profile?.fontSize ?? 14.0,
       profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
-      profileCursorType: TerminalCursorType.values[
-          (profile?.cursorStyle ?? 0).clamp(0, TerminalCursorType.values.length - 1)],
+      profileCursorType:
+          TerminalCursorType.values[(profile?.cursorStyle ?? 0).clamp(
+            0,
+            TerminalCursorType.values.length - 1,
+          )],
       scrollbackLines: profile?.scrollbackLines ?? 10000,
     );
     HostSpec hostSpec;
@@ -168,7 +171,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: const Text('No SSH key selected for this host. Please edit the host and select a key.'),
+                content: const Text(
+                  'No SSH key selected for this host. Please edit the host and select a key.',
+                ),
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
             );
@@ -209,9 +214,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
   /// Loads SSH key data from the database by key ID.
   Future<SshKeyData> _loadSshKeyData(int keyId) async {
     final database = context.read<AppDatabase>();
-    final key = await (database.select(database.sshKeys)
-          ..where((t) => t.id.equals(keyId)))
-        .getSingleOrNull();
+    final key = await (database.select(
+      database.sshKeys,
+    )..where((t) => t.id.equals(keyId))).getSingleOrNull();
 
     if (key == null) {
       throw Exception('SSH key not found');
@@ -224,7 +229,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
     // Note: This password is stored encrypted in the database and decrypted with AesHelper
     return SshKeyData(
       content: pemContent,
-      passphrase: key.password, // SSH key passphrase (null for unencrypted keys)
+      passphrase:
+          key.password, // SSH key passphrase (null for unencrypted keys)
     );
   }
 
@@ -282,7 +288,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final ctrl = HardwareKeyboard.instance.isControlPressed;
     final shift = HardwareKeyboard.instance.isShiftPressed;
     final meta = HardwareKeyboard.instance.isMetaPressed;
-    final isApple = defaultTargetPlatform == TargetPlatform.macOS ||
+    final isApple =
+        defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.iOS;
     final mod = isApple ? meta : ctrl;
 
@@ -347,7 +354,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       String name = 'Terminal';
       bool isRunning = false;
       if (tab is PluginTab) {
-        name = tab.plugin.title.value ?? tab.manager.hostSpec.name;
+        name = tab.displayTitle;
         isRunning = tab.manager.isConnected;
       }
       return SessionInfo(
@@ -355,7 +362,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
         name: name,
         isRunning: isRunning,
         onClose: () {
-          _terminalTabBloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
+          _terminalTabBloc.add(
+            TerminalTabCloseSession(tab.hashCode.toString()),
+          );
         },
       );
     }).toList();
@@ -365,7 +374,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final activeTab = state.activeTab;
     if (activeTab == null) return 'Terminal';
     if (activeTab is PluginTab) {
-      return activeTab.plugin.title.value ?? activeTab.manager.hostSpec.name;
+      return activeTab.displayTitle;
     }
     return 'Terminal';
   }
@@ -378,9 +387,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
           child: BlocBuilder<TerminalTabBloc, TerminalTabState>(
             builder: (context, state) {
               if (state is! TerminalTabLoaded) {
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
+                return const Center(child: CircularProgressIndicator());
               }
 
               final activePlugin = state.activeTab is PluginTab
@@ -442,10 +449,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
           },
         ),
       },
-      child: Focus(
-        autofocus: true,
-        child: widget,
-      ),
+      child: Focus(autofocus: true, child: widget),
     );
 
     return BlocBuilder<TerminalTabBloc, TerminalTabState>(
@@ -457,16 +461,17 @@ class _TerminalScreenState extends State<TerminalScreen> {
         return true;
       },
       builder: (context, state) {
-        final isFullscreen =
-            state is TerminalTabLoaded ? state.isFullscreen : false;
+        final isFullscreen = state is TerminalTabLoaded
+            ? state.isFullscreen
+            : false;
 
         return AppAdaptiveScaffold(
-          selectedIndex:
-              Destinations.indexOf(const Key(TerminalScreen.name), context),
-          onSelectedIndexChange: (idx) => Destinations.changeHandler(
-            idx,
+          selectedIndex: Destinations.indexOf(
+            const Key(TerminalScreen.name),
             context,
           ),
+          onSelectedIndexChange: (idx) =>
+              Destinations.changeHandler(idx, context),
           destinations: Destinations.navs(context),
           hideNavigation: isFullscreen,
           body: (context) => widget,
@@ -493,8 +498,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
             Text(
               'No active session',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.outline,
-                  ),
+                color: Theme.of(context).colorScheme.outline,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
@@ -513,8 +518,6 @@ class _TerminalScreenState extends State<TerminalScreen> {
       return content;
     }
 
-    return const Center(
-      child: CircularProgressIndicator(),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 }

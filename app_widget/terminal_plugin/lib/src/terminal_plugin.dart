@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:convert';
 
 import 'package:context_menus/context_menus.dart';
@@ -40,13 +39,9 @@ class TerminalPlugin extends Plugin {
 
   ExecutionSession? session;
 
-  Timer? _resizeTitleTimer;
-
   void _updateTitle() {
-    if (session != null) {
-      title.value =
-          '$terminalTitle — ${terminal.viewWidth}x${terminal.viewHeight}';
-    }
+    final nextTitle = terminalTitle.trim();
+    title.value = nextTitle.isEmpty ? 'Terminal' : nextTitle;
   }
 
   @override
@@ -64,12 +59,6 @@ class TerminalPlugin extends Plugin {
 
     terminal.onResize = (w, h, pw, ph) {
       session?.resize(w, h);
-      // Debounce title update during resize to avoid excessive rebuilds
-      // that can overwhelm the EGL rendering pipeline on Linux.
-      _resizeTitleTimer?.cancel();
-      _resizeTitleTimer = Timer(const Duration(milliseconds: 100), () {
-        _updateTitle();
-      });
     };
 
     super.didMounted();
@@ -87,8 +76,8 @@ class TerminalPlugin extends Plugin {
 
       // Add welcome message
       terminal.write('\r\nWelcome to Web Terminal!\r\n');
-      terminal
-          .write('Type "help" for available commands or start typing...\r\n\r\n');
+      terminal.write(
+          'Type "help" for available commands or start typing...\r\n\r\n');
 
       session!.output
           .cast<List<int>>()
@@ -111,7 +100,6 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didDisconnected() {
-    _resizeTitleTimer?.cancel();
     session = null;
     title.value = 'Disconnected';
   }

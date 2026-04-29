@@ -2,13 +2,18 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:terminal_core/terminal_core.dart';
+import 'package:terminal_hosts/terminal_hosts.dart';
 
 class PluginTab extends TabItem {
+  static int _nextTabNumber = 1;
+
   final Plugin plugin;
 
   final PluginManager manager;
 
-  PluginTab(this.plugin, this.manager) {
+  final int tabNumber;
+
+  PluginTab(this.plugin, this.manager) : tabNumber = _nextTabNumber++ {
     manager.add(plugin);
 
     _updateTitle();
@@ -31,22 +36,82 @@ class PluginTab extends TabItem {
   }
 
   void _updateTitle() {
-    final titleWidget = plugin.title.value;
+    final titleText = displayTitle;
     title.value = Row(
       mainAxisSize: MainAxisSize.min,
-      children: [
-        if (titleWidget != null)
-          Flexible(child: Text(titleWidget, softWrap: false)),
-        if (titleWidget != null) const SizedBox(width: 4),
-        Text(
-          manager.hostSpec.name,
-          style: const TextStyle(
-            fontSize: 12,
-            color: CupertinoColors.systemGrey,
-          ),
-        ),
-      ],
+      children: [Flexible(child: Text(titleText, softWrap: false))],
     );
+  }
+
+  String get displayTitle {
+    final workingDirectory = _extractWorkingDirectory(plugin.title.value);
+    final prefix = '$tabNumber';
+    if (manager.hostSpec is SSHHostSpec) {
+      final sshHostSpec = manager.hostSpec as SSHHostSpec;
+      return '$prefix ${sshHostSpec.name} $workingDirectory';
+    }
+    return '$prefix $workingDirectory';
+  }
+
+  String _extractWorkingDirectory(String? title) {
+    final cleaned = _removeTerminalSize(title?.trim() ?? '');
+    final directory = _parseWorkingDirectory(cleaned);
+    if (directory != null) return directory;
+
+    if (manager.hostSpec is LocalHostSpec) {
+      final localHostSpec = manager.hostSpec as LocalHostSpec;
+      final configuredDirectory = localHostSpec.workingDirectory;
+      if (configuredDirectory != null && configuredDirectory.isNotEmpty) {
+        return configuredDirectory;
+      }
+    }
+
+    return '~';
+  }
+
+  String _removeTerminalSize(String title) {
+    return title
+        .replaceFirst(RegExp(r'\s*[—-]\s*\d+x\d+\s*$'), '')
+        .replaceFirst(RegExp(r'\s+\d+x\d+\s*$'), '')
+        .trim();
+  }
+
+  String? _parseWorkingDirectory(String title) {
+    if (title.isEmpty) return null;
+    if (_isConnectionStatus(title)) return null;
+    if (_looksLikeDirectory(title)) return title;
+
+    final colonIndex = title.lastIndexOf(':');
+    if (colonIndex >= 0 && colonIndex < title.length - 1) {
+      final afterColon = title.substring(colonIndex + 1).trim();
+      if (_looksLikeDirectory(afterColon)) {
+        return afterColon;
+      }
+    }
+
+    final spaceParts = title.split(RegExp(r'\s+'));
+    for (final part in spaceParts.reversed) {
+      if (_looksLikeDirectory(part)) return part;
+    }
+
+    return null;
+  }
+
+  bool _isConnectionStatus(String title) {
+    return switch (title) {
+      'Connecting' ||
+      'Terminal' ||
+      'Disconnected' ||
+      'Connection Failed' => true,
+      _ => false,
+    };
+  }
+
+  bool _looksLikeDirectory(String value) {
+    if (value == '~') return true;
+    return value.startsWith('~/') ||
+        value.startsWith('/') ||
+        RegExp(r'^[A-Za-z]:[\\/]').hasMatch(value);
   }
 
   void _onPluginManagerChanged() {
@@ -92,8 +157,7 @@ class _PluginTabViewState extends State<PluginTabView> {
           if (connector?.host != null) {
             widget.plugin.manager.didConnected(connector!.host!);
           } else if (connector?.lastError != null) {
-            widget.plugin.manager
-                .didConnectionError(connector!.lastError!);
+            widget.plugin.manager.didConnectionError(connector!.lastError!);
           }
         });
       });

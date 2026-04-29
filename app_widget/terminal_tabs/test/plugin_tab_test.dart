@@ -4,7 +4,9 @@ import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
+import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_tabs/src/plugin_tab.dart';
 
 // Mock implementations for testing
@@ -70,6 +72,14 @@ class MockHost extends Host {
   }
 }
 
+String rowText(Widget widget) {
+  final row = widget as Row;
+  return row.children.whereType<Flexible>().map((flexible) {
+    final text = flexible.child as Text;
+    return text.data;
+  }).join();
+}
+
 void main() {
   group('PluginTab', () {
     test('extends TabItem', () {
@@ -118,6 +128,7 @@ void main() {
 
       final titleWidget = tab.title.value;
       expect(titleWidget, isA<Row>());
+      expect(rowText(titleWidget!), matches(RegExp(r'^\d+ ~')));
 
       tab.dispose();
     });
@@ -148,6 +159,52 @@ void main() {
       expect(newTitle, isNot(same(initialTitle)));
 
       tab.dispose();
+    });
+
+    test('title strips terminal size and keeps working directory', () {
+      final plugin = MockPlugin();
+      final manager = PluginManager(
+        LocalHostSpec(workingDirectory: '/Users/test'),
+      );
+      final tab = PluginTab(plugin, manager);
+
+      plugin.title.value = 'user@host: ~/Projects/web-terminal — 120x40';
+
+      expect(rowText(tab.title.value!), contains('~/Projects/web-terminal'));
+      expect(rowText(tab.title.value!), isNot(contains('120x40')));
+      expect(rowText(tab.title.value!), isNot(contains('user@host')));
+
+      tab.dispose();
+    });
+
+    test('ssh title includes hostname and working directory', () {
+      final plugin = MockPlugin();
+      final host = SshHost(
+        id: 1,
+        hostname: 'example.com',
+        port: 22,
+        username: 'user',
+      );
+      final manager = PluginManager(SSHHostSpec(host));
+      final tab = PluginTab(plugin, manager);
+
+      plugin.title.value = 'user@example.com:/var/www — 100x24';
+
+      final title = rowText(tab.title.value!);
+      expect(title, contains('example.com /var/www'));
+      expect(title, isNot(contains('100x24')));
+
+      tab.dispose();
+    });
+
+    test('tab numbers auto increment when tabs are created', () {
+      final first = PluginTab(MockPlugin(), PluginManager(MockHostSpec()));
+      final second = PluginTab(MockPlugin(), PluginManager(MockHostSpec()));
+
+      expect(second.tabNumber, first.tabNumber + 1);
+
+      first.dispose();
+      second.dispose();
     });
   });
 
