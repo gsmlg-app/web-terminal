@@ -68,12 +68,10 @@ class ShellProfiles extends Table {
   TextColumn get colorTheme => text().withDefault(const Constant('default'))();
 
   /// Working directory to start the shell in (empty = system default)
-  TextColumn get workingDirectory =>
-      text().withDefault(const Constant(''))();
+  TextColumn get workingDirectory => text().withDefault(const Constant(''))();
 
   /// Command to run automatically when the shell opens (e.g., tmux)
-  TextColumn get startupCommand =>
-      text().withDefault(const Constant(''))();
+  TextColumn get startupCommand => text().withDefault(const Constant(''))();
 
   /// Cursor style (0=block, 1=underline, 2=verticalBar)
   IntColumn get cursorStyle => integer().withDefault(const Constant(0))();
@@ -84,6 +82,10 @@ class ShellProfiles extends Table {
 
   /// Whether this is the default profile for new sessions
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
+
+  /// Whether new shells from this profile inherit state from the active tab.
+  BoolColumn get inheritCurrentState =>
+      boolean().withDefault(const Constant(false))();
 
   /// Creation timestamp
   DateTimeColumn get createdAt => dateTime().nullable()();

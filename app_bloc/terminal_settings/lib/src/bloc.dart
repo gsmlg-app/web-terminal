@@ -20,6 +20,9 @@ class TerminalSettingsBloc
   /// Key for max open shells setting.
   static const _maxOpenShellsKey = 'terminal_max_open_shells';
 
+  /// Key for restoring open terminal tabs after app restart.
+  static const _restoreTabsKey = 'terminal_restore_tabs';
+
   final VaultRepository _vault;
 
   TerminalSettingsBloc({required VaultRepository vault})
@@ -30,6 +33,7 @@ class TerminalSettingsBloc
     on<TerminalSettingsRemoveEnvVar>(_onRemoveEnvVar);
     on<TerminalSettingsClearEnvVars>(_onClearEnvVars);
     on<TerminalSettingsUpdateMaxOpenShells>(_onUpdateMaxOpenShells);
+    on<TerminalSettingsUpdateRestoreTabs>(_onUpdateRestoreTabs);
   }
 
   Future<void> _onLoad(
@@ -54,11 +58,13 @@ class TerminalSettingsBloc
       final maxOpenShells =
           int.tryParse(allSecrets[_maxOpenShellsKey] ?? '') ??
           kTerminalDefaultMaxOpenShells;
+      final restoreTerminalTabs = allSecrets[_restoreTabsKey] == 'true';
 
       emit(
         TerminalSettingsLoaded(
           environmentVariables: envVars,
           maxOpenShells: maxOpenShells,
+          restoreTerminalTabs: restoreTerminalTabs,
         ),
       );
     } catch (e) {
@@ -137,4 +143,22 @@ class TerminalSettingsBloc
     }
   }
 
+  Future<void> _onUpdateRestoreTabs(
+    TerminalSettingsUpdateRestoreTabs event,
+    Emitter<TerminalSettingsState> emit,
+  ) async {
+    if (state is! TerminalSettingsLoaded) return;
+
+    final currentState = state as TerminalSettingsLoaded;
+
+    emit(currentState.copyWith(restoreTerminalTabs: event.restoreTerminalTabs));
+    try {
+      await _vault.write(
+        key: _restoreTabsKey,
+        value: event.restoreTerminalTabs.toString(),
+      );
+    } catch (_) {
+      // Persistence failure; setting still applies for current session.
+    }
+  }
 }

@@ -66,6 +66,7 @@ void main() {
       expect(event.fontSize, 14.0);
       expect(event.colorTheme, 'default');
       expect(event.isDefault, false);
+      expect(event.inheritCurrentState, false);
     });
 
     test('UpdateShellProfile stores id', () {
@@ -89,6 +90,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -134,13 +136,20 @@ void main() {
         fontSize: 16.0,
         colorTheme: 'dark',
         isDefault: true,
+        inheritCurrentState: true,
       )),
       expect: () => [
-        isA<ShellProfileLoaded>().having(
-          (s) => s.profiles.first.name,
-          'name',
-          'Custom Profile',
-        ),
+        isA<ShellProfileLoaded>()
+            .having(
+              (s) => s.profiles.first.name,
+              'name',
+              'Custom Profile',
+            )
+            .having(
+              (s) => s.profiles.first.inheritCurrentState,
+              'inheritCurrentState',
+              true,
+            ),
       ],
     );
 

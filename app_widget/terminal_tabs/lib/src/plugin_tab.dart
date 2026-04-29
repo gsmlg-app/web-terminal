@@ -13,7 +13,10 @@ class PluginTab extends TabItem {
 
   final int tabNumber;
 
-  PluginTab(this.plugin, this.manager) : tabNumber = _nextTabNumber++ {
+  final int? shellProfileId;
+
+  PluginTab(this.plugin, this.manager, {this.shellProfileId})
+    : tabNumber = _nextTabNumber++ {
     manager.add(plugin);
 
     _updateTitle();
@@ -44,13 +47,17 @@ class PluginTab extends TabItem {
   }
 
   String get displayTitle {
-    final workingDirectory = _extractWorkingDirectory(plugin.title.value);
+    final workingDirectory = currentWorkingDirectory;
     final prefix = '$tabNumber';
     if (manager.hostSpec is SSHHostSpec) {
       final sshHostSpec = manager.hostSpec as SSHHostSpec;
       return '$prefix ${sshHostSpec.name} $workingDirectory';
     }
     return '$prefix $workingDirectory';
+  }
+
+  String get currentWorkingDirectory {
+    return _extractWorkingDirectory(plugin.title.value);
   }
 
   String _extractWorkingDirectory(String? title) {

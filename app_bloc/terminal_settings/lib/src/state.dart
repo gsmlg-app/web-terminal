@@ -26,24 +26,31 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
   /// Maximum number of concurrent shell sessions allowed.
   final int maxOpenShells;
 
+  /// Whether open terminal tabs should be restored after app restart.
+  final bool restoreTerminalTabs;
+
   const TerminalSettingsLoaded({
     this.environmentVariables = const {},
     this.maxOpenShells = kTerminalDefaultMaxOpenShells,
+    this.restoreTerminalTabs = false,
   });
 
   @override
   List<Object?> get props => [
     environmentVariables,
     maxOpenShells,
+    restoreTerminalTabs,
   ];
 
   TerminalSettingsLoaded copyWith({
     Map<String, String>? environmentVariables,
     int? maxOpenShells,
+    bool? restoreTerminalTabs,
   }) {
     return TerminalSettingsLoaded(
       environmentVariables: environmentVariables ?? this.environmentVariables,
       maxOpenShells: maxOpenShells ?? this.maxOpenShells,
+      restoreTerminalTabs: restoreTerminalTabs ?? this.restoreTerminalTabs,
     );
   }
 }

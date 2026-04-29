@@ -51,19 +51,33 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
       final plugin = TerminalPlugin(
         profileFontSize: profile?.fontSize ?? 14.0,
         profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
-        profileCursorType: TerminalCursorType.values[
-            (profile?.cursorStyle ?? 0)
-                .clamp(0, TerminalCursorType.values.length - 1)],
+        profileCursorType:
+            TerminalCursorType.values[(profile?.cursorStyle ?? 0).clamp(
+              0,
+              TerminalCursorType.values.length - 1,
+            )],
         scrollbackLines: profile?.scrollbackLines ?? 10000,
       );
-      final manager = PluginManager(createDefaultHostSpec(
-        environment: profile?.parsedEnvironmentVariables,
-        initCommands: profile?.generateInitCommands(),
-        workingDirectory: (profile?.workingDirectory?.isNotEmpty ?? false)
-            ? profile!.workingDirectory
-            : null,
-      ));
-      final tabItem = PluginTab(plugin, manager);
+      String? inheritedWorkingDirectory;
+      final tabState = context.read<TerminalTabBloc>().state;
+      if (profile?.inheritCurrentState == true &&
+          tabState is TerminalTabLoaded &&
+          tabState.activeTab is PluginTab) {
+        inheritedWorkingDirectory =
+            (tabState.activeTab as PluginTab).currentWorkingDirectory;
+      }
+      final manager = PluginManager(
+        createDefaultHostSpec(
+          environment: profile?.parsedEnvironmentVariables,
+          initCommands: profile?.generateInitCommands(),
+          workingDirectory:
+              inheritedWorkingDirectory ??
+              ((profile?.workingDirectory.isNotEmpty ?? false)
+                  ? profile!.workingDirectory
+                  : null),
+        ),
+      );
+      final tabItem = PluginTab(plugin, manager, shellProfileId: profile?.id);
       context.read<TerminalTabBloc>().add(TerminalTabOpenTab(tabItem));
     });
   }

@@ -1027,6 +1027,16 @@ class $ShellProfilesTable extends ShellProfiles
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("is_default" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _inheritCurrentStateMeta =
+      const VerificationMeta('inheritCurrentState');
+  @override
+  late final GeneratedColumn<bool> inheritCurrentState = GeneratedColumn<bool>(
+      'inherit_current_state', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("inherit_current_state" IN (0, 1))'),
+      defaultValue: const Constant(false));
   static const VerificationMeta _createdAtMeta =
       const VerificationMeta('createdAt');
   @override
@@ -1054,6 +1064,7 @@ class $ShellProfilesTable extends ShellProfiles
         cursorStyle,
         scrollbackLines,
         isDefault,
+        inheritCurrentState,
         createdAt,
         updatedAt
       ];
@@ -1134,6 +1145,12 @@ class $ShellProfilesTable extends ShellProfiles
       context.handle(_isDefaultMeta,
           isDefault.isAcceptableOrUnknown(data['is_default']!, _isDefaultMeta));
     }
+    if (data.containsKey('inherit_current_state')) {
+      context.handle(
+          _inheritCurrentStateMeta,
+          inheritCurrentState.isAcceptableOrUnknown(
+              data['inherit_current_state']!, _inheritCurrentStateMeta));
+    }
     if (data.containsKey('created_at')) {
       context.handle(_createdAtMeta,
           createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
@@ -1178,6 +1195,8 @@ class $ShellProfilesTable extends ShellProfiles
           .read(DriftSqlType.int, data['${effectivePrefix}scrollback_lines'])!,
       isDefault: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}is_default'])!,
+      inheritCurrentState: attachedDatabase.typeMapping.read(
+          DriftSqlType.bool, data['${effectivePrefix}inherit_current_state'])!,
       createdAt: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at']),
       updatedAt: attachedDatabase.typeMapping
@@ -1233,6 +1252,9 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
   /// Whether this is the default profile for new sessions
   final bool isDefault;
 
+  /// Whether new shells from this profile inherit state from the active tab.
+  final bool inheritCurrentState;
+
   /// Creation timestamp
   final DateTime? createdAt;
 
@@ -1252,6 +1274,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       required this.cursorStyle,
       required this.scrollbackLines,
       required this.isDefault,
+      required this.inheritCurrentState,
       this.createdAt,
       this.updatedAt});
   @override
@@ -1270,6 +1293,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
     map['cursor_style'] = Variable<int>(cursorStyle);
     map['scrollback_lines'] = Variable<int>(scrollbackLines);
     map['is_default'] = Variable<bool>(isDefault);
+    map['inherit_current_state'] = Variable<bool>(inheritCurrentState);
     if (!nullToAbsent || createdAt != null) {
       map['created_at'] = Variable<DateTime>(createdAt);
     }
@@ -1294,6 +1318,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       cursorStyle: Value(cursorStyle),
       scrollbackLines: Value(scrollbackLines),
       isDefault: Value(isDefault),
+      inheritCurrentState: Value(inheritCurrentState),
       createdAt: createdAt == null && nullToAbsent
           ? const Value.absent()
           : Value(createdAt),
@@ -1321,6 +1346,8 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       cursorStyle: serializer.fromJson<int>(json['cursorStyle']),
       scrollbackLines: serializer.fromJson<int>(json['scrollbackLines']),
       isDefault: serializer.fromJson<bool>(json['isDefault']),
+      inheritCurrentState:
+          serializer.fromJson<bool>(json['inheritCurrentState']),
       createdAt: serializer.fromJson<DateTime?>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime?>(json['updatedAt']),
     );
@@ -1342,6 +1369,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       'cursorStyle': serializer.toJson<int>(cursorStyle),
       'scrollbackLines': serializer.toJson<int>(scrollbackLines),
       'isDefault': serializer.toJson<bool>(isDefault),
+      'inheritCurrentState': serializer.toJson<bool>(inheritCurrentState),
       'createdAt': serializer.toJson<DateTime?>(createdAt),
       'updatedAt': serializer.toJson<DateTime?>(updatedAt),
     };
@@ -1361,6 +1389,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           int? cursorStyle,
           int? scrollbackLines,
           bool? isDefault,
+          bool? inheritCurrentState,
           Value<DateTime?> createdAt = const Value.absent(),
           Value<DateTime?> updatedAt = const Value.absent()}) =>
       ShellProfile(
@@ -1377,6 +1406,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
         cursorStyle: cursorStyle ?? this.cursorStyle,
         scrollbackLines: scrollbackLines ?? this.scrollbackLines,
         isDefault: isDefault ?? this.isDefault,
+        inheritCurrentState: inheritCurrentState ?? this.inheritCurrentState,
         createdAt: createdAt.present ? createdAt.value : this.createdAt,
         updatedAt: updatedAt.present ? updatedAt.value : this.updatedAt,
       );
@@ -1406,6 +1436,9 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           ? data.scrollbackLines.value
           : this.scrollbackLines,
       isDefault: data.isDefault.present ? data.isDefault.value : this.isDefault,
+      inheritCurrentState: data.inheritCurrentState.present
+          ? data.inheritCurrentState.value
+          : this.inheritCurrentState,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -1427,6 +1460,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           ..write('cursorStyle: $cursorStyle, ')
           ..write('scrollbackLines: $scrollbackLines, ')
           ..write('isDefault: $isDefault, ')
+          ..write('inheritCurrentState: $inheritCurrentState, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -1448,6 +1482,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
       cursorStyle,
       scrollbackLines,
       isDefault,
+      inheritCurrentState,
       createdAt,
       updatedAt);
   @override
@@ -1467,6 +1502,7 @@ class ShellProfile extends DataClass implements Insertable<ShellProfile> {
           other.cursorStyle == this.cursorStyle &&
           other.scrollbackLines == this.scrollbackLines &&
           other.isDefault == this.isDefault &&
+          other.inheritCurrentState == this.inheritCurrentState &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -1485,6 +1521,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
   final Value<int> cursorStyle;
   final Value<int> scrollbackLines;
   final Value<bool> isDefault;
+  final Value<bool> inheritCurrentState;
   final Value<DateTime?> createdAt;
   final Value<DateTime?> updatedAt;
   const ShellProfilesCompanion({
@@ -1501,6 +1538,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     this.cursorStyle = const Value.absent(),
     this.scrollbackLines = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.inheritCurrentState = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   });
@@ -1518,6 +1556,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     this.cursorStyle = const Value.absent(),
     this.scrollbackLines = const Value.absent(),
     this.isDefault = const Value.absent(),
+    this.inheritCurrentState = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
   }) : name = Value(name);
@@ -1535,6 +1574,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     Expression<int>? cursorStyle,
     Expression<int>? scrollbackLines,
     Expression<bool>? isDefault,
+    Expression<bool>? inheritCurrentState,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
   }) {
@@ -1553,6 +1593,8 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
       if (cursorStyle != null) 'cursor_style': cursorStyle,
       if (scrollbackLines != null) 'scrollback_lines': scrollbackLines,
       if (isDefault != null) 'is_default': isDefault,
+      if (inheritCurrentState != null)
+        'inherit_current_state': inheritCurrentState,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
     });
@@ -1572,6 +1614,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
       Value<int>? cursorStyle,
       Value<int>? scrollbackLines,
       Value<bool>? isDefault,
+      Value<bool>? inheritCurrentState,
       Value<DateTime?>? createdAt,
       Value<DateTime?>? updatedAt}) {
     return ShellProfilesCompanion(
@@ -1588,6 +1631,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
       cursorStyle: cursorStyle ?? this.cursorStyle,
       scrollbackLines: scrollbackLines ?? this.scrollbackLines,
       isDefault: isDefault ?? this.isDefault,
+      inheritCurrentState: inheritCurrentState ?? this.inheritCurrentState,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
@@ -1636,6 +1680,9 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
     if (isDefault.present) {
       map['is_default'] = Variable<bool>(isDefault.value);
     }
+    if (inheritCurrentState.present) {
+      map['inherit_current_state'] = Variable<bool>(inheritCurrentState.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -1661,6 +1708,7 @@ class ShellProfilesCompanion extends UpdateCompanion<ShellProfile> {
           ..write('cursorStyle: $cursorStyle, ')
           ..write('scrollbackLines: $scrollbackLines, ')
           ..write('isDefault: $isDefault, ')
+          ..write('inheritCurrentState: $inheritCurrentState, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -2312,6 +2360,7 @@ typedef $$ShellProfilesTableCreateCompanionBuilder = ShellProfilesCompanion
   Value<int> cursorStyle,
   Value<int> scrollbackLines,
   Value<bool> isDefault,
+  Value<bool> inheritCurrentState,
   Value<DateTime?> createdAt,
   Value<DateTime?> updatedAt,
 });
@@ -2330,6 +2379,7 @@ typedef $$ShellProfilesTableUpdateCompanionBuilder = ShellProfilesCompanion
   Value<int> cursorStyle,
   Value<int> scrollbackLines,
   Value<bool> isDefault,
+  Value<bool> inheritCurrentState,
   Value<DateTime?> createdAt,
   Value<DateTime?> updatedAt,
 });
@@ -2385,6 +2435,10 @@ class $$ShellProfilesTableFilterComposer
 
   ColumnFilters<bool> get isDefault => $composableBuilder(
       column: $table.isDefault, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get inheritCurrentState => $composableBuilder(
+      column: $table.inheritCurrentState,
+      builder: (column) => ColumnFilters(column));
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnFilters(column));
@@ -2445,6 +2499,10 @@ class $$ShellProfilesTableOrderingComposer
   ColumnOrderings<bool> get isDefault => $composableBuilder(
       column: $table.isDefault, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<bool> get inheritCurrentState => $composableBuilder(
+      column: $table.inheritCurrentState,
+      builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
       column: $table.createdAt, builder: (column) => ColumnOrderings(column));
 
@@ -2500,6 +2558,9 @@ class $$ShellProfilesTableAnnotationComposer
   GeneratedColumn<bool> get isDefault =>
       $composableBuilder(column: $table.isDefault, builder: (column) => column);
 
+  GeneratedColumn<bool> get inheritCurrentState => $composableBuilder(
+      column: $table.inheritCurrentState, builder: (column) => column);
+
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
@@ -2546,6 +2607,7 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             Value<int> cursorStyle = const Value.absent(),
             Value<int> scrollbackLines = const Value.absent(),
             Value<bool> isDefault = const Value.absent(),
+            Value<bool> inheritCurrentState = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
             Value<DateTime?> updatedAt = const Value.absent(),
           }) =>
@@ -2563,6 +2625,7 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             cursorStyle: cursorStyle,
             scrollbackLines: scrollbackLines,
             isDefault: isDefault,
+            inheritCurrentState: inheritCurrentState,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),
@@ -2580,6 +2643,7 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             Value<int> cursorStyle = const Value.absent(),
             Value<int> scrollbackLines = const Value.absent(),
             Value<bool> isDefault = const Value.absent(),
+            Value<bool> inheritCurrentState = const Value.absent(),
             Value<DateTime?> createdAt = const Value.absent(),
             Value<DateTime?> updatedAt = const Value.absent(),
           }) =>
@@ -2597,6 +2661,7 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             cursorStyle: cursorStyle,
             scrollbackLines: scrollbackLines,
             isDefault: isDefault,
+            inheritCurrentState: inheritCurrentState,
             createdAt: createdAt,
             updatedAt: updatedAt,
           ),

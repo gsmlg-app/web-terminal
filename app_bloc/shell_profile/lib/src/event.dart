@@ -28,6 +28,7 @@ final class AddShellProfile extends ShellProfileEvent {
   final int cursorStyle;
   final int scrollbackLines;
   final bool isDefault;
+  final bool inheritCurrentState;
 
   const AddShellProfile({
     required this.name,
@@ -42,6 +43,7 @@ final class AddShellProfile extends ShellProfileEvent {
     this.cursorStyle = 0,
     this.scrollbackLines = 10000,
     this.isDefault = false,
+    this.inheritCurrentState = false,
   });
 
   @override
@@ -58,6 +60,7 @@ final class AddShellProfile extends ShellProfileEvent {
         cursorStyle,
         scrollbackLines,
         isDefault,
+        inheritCurrentState,
       ];
 }
 
@@ -76,6 +79,7 @@ final class UpdateShellProfile extends ShellProfileEvent {
   final int? cursorStyle;
   final int? scrollbackLines;
   final bool? isDefault;
+  final bool? inheritCurrentState;
 
   const UpdateShellProfile({
     required this.id,
@@ -91,6 +95,7 @@ final class UpdateShellProfile extends ShellProfileEvent {
     this.cursorStyle,
     this.scrollbackLines,
     this.isDefault,
+    this.inheritCurrentState,
   });
 
   @override
@@ -108,6 +113,7 @@ final class UpdateShellProfile extends ShellProfileEvent {
         cursorStyle,
         scrollbackLines,
         isDefault,
+        inheritCurrentState,
       ];
 }
 

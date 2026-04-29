@@ -48,3 +48,12 @@ class TerminalSettingsUpdateMaxOpenShells extends TerminalSettingsEvent {
   List<Object?> get props => [maxOpenShells];
 }
 
+/// Update whether terminal tabs are restored across app restarts.
+class TerminalSettingsUpdateRestoreTabs extends TerminalSettingsEvent {
+  final bool restoreTerminalTabs;
+
+  const TerminalSettingsUpdateRestoreTabs({required this.restoreTerminalTabs});
+
+  @override
+  List<Object?> get props => [restoreTerminalTabs];
+}

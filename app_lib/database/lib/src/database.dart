@@ -26,7 +26,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -45,6 +45,10 @@ class AppDatabase extends _$AppDatabase {
           await m.addColumn(shellProfiles, shellProfiles.startupCommand);
           await m.addColumn(shellProfiles, shellProfiles.cursorStyle);
           await m.addColumn(shellProfiles, shellProfiles.scrollbackLines);
+        }
+        if (from < 4) {
+          // Add shell profile state inheritance option in version 4
+          await m.addColumn(shellProfiles, shellProfiles.inheritCurrentState);
         }
       },
     );

@@ -33,6 +33,9 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
             ? state.maxOpenShells
             : kTerminalDefaultMaxOpenShells;
 
+        final restoreTabs =
+            state is TerminalSettingsLoaded ? state.restoreTerminalTabs : false;
+
         return SettingsSection(
           title: const Text('Terminal'),
           tiles: <Widget>[
@@ -71,6 +74,19 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
                   }
                 },
               ),
+            ),
+            SettingsTile.switchTile(
+              leading: const Icon(Icons.restore_page),
+              title: const Text('Restore Open Tabs'),
+              description: const Text('Reopen terminal tabs after restart'),
+              initialValue: restoreTabs,
+              onToggle: (value) {
+                context.read<TerminalSettingsBloc>().add(
+                      TerminalSettingsUpdateRestoreTabs(
+                        restoreTerminalTabs: value,
+                      ),
+                    );
+              },
             ),
           ],
         );

@@ -73,6 +73,7 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
               cursorStyle: Value(event.cursorStyle),
               scrollbackLines: Value(event.scrollbackLines),
               isDefault: Value(event.isDefault),
+              inheritCurrentState: Value(event.inheritCurrentState),
               createdAt: Value(DateTime.now()),
               updatedAt: Value(DateTime.now()),
             ),
@@ -130,6 +131,9 @@ class ShellProfileBloc extends Bloc<ShellProfileEvent, ShellProfileState> {
             : const Value.absent(),
         isDefault: event.isDefault != null
             ? Value(event.isDefault!)
+            : const Value.absent(),
+        inheritCurrentState: event.inheritCurrentState != null
+            ? Value(event.inheritCurrentState!)
             : const Value.absent(),
         updatedAt: Value(DateTime.now()),
       );

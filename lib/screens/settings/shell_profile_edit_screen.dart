@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
-import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:terminal_settings/terminal_settings.dart';
@@ -38,6 +36,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
   var _cursorStyle = CursorStyleType.block;
   var _scrollbackLines = 10000;
   var _colorTheme = 'default';
+  var _inheritCurrentState = false;
 
   ShellProfile? _loadedProfile;
   bool _initialized = false;
@@ -55,8 +54,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
     'Fira Code',
   ];
   static const _scrollbackOptions = [1000, 5000, 10000, 50000, 100000];
-  static final _fontSizeOptions =
-      List.generate(25, (i) => (i + 8).toDouble());
+  static final _fontSizeOptions = List.generate(25, (i) => (i + 8).toDouble());
 
   @override
   void initState() {
@@ -101,6 +99,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
         ? profile.scrollbackLines
         : 10000;
     _colorTheme = profile.colorTheme;
+    _inheritCurrentState = profile.inheritCurrentState;
   }
 
   void _save() {
@@ -110,32 +109,38 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
     final bloc = context.read<ShellProfileBloc>();
 
     if (_isEditing) {
-      bloc.add(UpdateShellProfile(
-        id: widget.profileId!,
-        name: name,
-        shellType: _shellType,
-        isDefault: _isDefault,
-        workingDirectory: _workingDirController.text.trim(),
-        startupCommand: _startupCmdController.text.trim(),
-        fontFamily: _fontFamily,
-        fontSize: _fontSize,
-        cursorStyle: _cursorStyle.value,
-        scrollbackLines: _scrollbackLines,
-        colorTheme: _colorTheme,
-      ));
+      bloc.add(
+        UpdateShellProfile(
+          id: widget.profileId!,
+          name: name,
+          shellType: _shellType,
+          isDefault: _isDefault,
+          workingDirectory: _workingDirController.text.trim(),
+          startupCommand: _startupCmdController.text.trim(),
+          fontFamily: _fontFamily,
+          fontSize: _fontSize,
+          cursorStyle: _cursorStyle.value,
+          scrollbackLines: _scrollbackLines,
+          colorTheme: _colorTheme,
+          inheritCurrentState: _inheritCurrentState,
+        ),
+      );
     } else {
-      bloc.add(AddShellProfile(
-        name: name,
-        shellType: _shellType,
-        isDefault: _isDefault,
-        workingDirectory: _workingDirController.text.trim(),
-        startupCommand: _startupCmdController.text.trim(),
-        fontFamily: _fontFamily,
-        fontSize: _fontSize,
-        cursorStyle: _cursorStyle.value,
-        scrollbackLines: _scrollbackLines,
-        colorTheme: _colorTheme,
-      ));
+      bloc.add(
+        AddShellProfile(
+          name: name,
+          shellType: _shellType,
+          isDefault: _isDefault,
+          workingDirectory: _workingDirController.text.trim(),
+          startupCommand: _startupCmdController.text.trim(),
+          fontFamily: _fontFamily,
+          fontSize: _fontSize,
+          cursorStyle: _cursorStyle.value,
+          scrollbackLines: _scrollbackLines,
+          colorTheme: _colorTheme,
+          inheritCurrentState: _inheritCurrentState,
+        ),
+      );
     }
 
     context.goNamed(ShellProfileScreen.name);
@@ -153,11 +158,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
     return [
       AppAdaptiveActionList(
         actions: [
-          AppAdaptiveAction(
-            icon: Icons.check,
-            title: 'Save',
-            onPressed: _save,
-          ),
+          AppAdaptiveAction(icon: Icons.check, title: 'Save', onPressed: _save),
         ],
       ),
     ];
@@ -187,10 +188,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
                 value: _shellType,
                 underline: const SizedBox.shrink(),
                 items: ShellType.values.map((type) {
-                  return DropdownMenuItem(
-                    value: type,
-                    child: Text(type.name),
-                  );
+                  return DropdownMenuItem(value: type, child: Text(type.name));
                 }).toList(),
                 onChanged: (value) {
                   if (value != null) setState(() => _shellType = value);
@@ -231,6 +229,17 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
                 ),
               ),
               leading: const Icon(Icons.play_arrow),
+            ),
+            SettingsTile.switchTile(
+              title: const Text('Inherit Active Terminal State'),
+              description: const Text(
+                'New terminals use the active terminal working directory',
+              ),
+              leading: const Icon(Icons.call_split),
+              initialValue: _inheritCurrentState,
+              onToggle: (value) {
+                setState(() => _inheritCurrentState = value);
+              },
             ),
           ],
         ),
@@ -313,10 +322,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
                 value: _scrollbackLines,
                 underline: const SizedBox.shrink(),
                 items: _scrollbackOptions.map((n) {
-                  return DropdownMenuItem(
-                    value: n,
-                    child: Text(n.toString()),
-                  );
+                  return DropdownMenuItem(value: n, child: Text(n.toString()));
                 }).toList(),
                 onChanged: (value) {
                   if (value != null) setState(() => _scrollbackLines = value);
@@ -332,9 +338,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
               SettingsTile(
                 title: Text(
                   'Delete Profile',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
                 ),
                 leading: Icon(
                   Icons.delete_forever,
@@ -363,16 +367,14 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
             TextButton(
               onPressed: () {
                 context.read<ShellProfileBloc>().add(
-                      DeleteShellProfile(_loadedProfile!),
-                    );
+                  DeleteShellProfile(_loadedProfile!),
+                );
                 Navigator.of(dialogContext).pop();
                 context.goNamed(ShellProfileScreen.name);
               },
               child: Text(
                 'Delete',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.error,
-                ),
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
               ),
             ),
           ],
@@ -386,29 +388,22 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
     final title = _isEditing ? 'Edit Profile' : 'New Profile';
 
     return AppAdaptiveScaffold(
-      selectedIndex:
-          Destinations.indexOf(const Key(SettingsScreen.name), context),
-      onSelectedIndexChange: (idx) => Destinations.changeHandler(
-        idx,
+      selectedIndex: Destinations.indexOf(
+        const Key(SettingsScreen.name),
         context,
       ),
+      onSelectedIndexChange: (idx) => Destinations.changeHandler(idx, context),
       destinations: Destinations.navs(context),
       body: (context) => SafeArea(
         child: CustomScrollView(
           slivers: <Widget>[
-            SliverAppBar(
-              title: Text(title),
-              actions: _getActions(),
-            ),
-            SliverFillRemaining(
-              child: _buildForm(),
-            ),
+            SliverAppBar(title: Text(title), actions: _getActions()),
+            SliverFillRemaining(child: _buildForm()),
           ],
         ),
       ),
-      largeBody: (context) => const SafeArea(
-        child: RootSettingList(config: rootSettingListConfig),
-      ),
+      largeBody: (context) =>
+          const SafeArea(child: RootSettingList(config: rootSettingListConfig)),
       largeSecondaryBody: (_) => SafeArea(
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -418,9 +413,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
               automaticallyImplyLeading: false,
               actions: _getActions(),
             ),
-            SliverFillRemaining(
-              child: _buildForm(),
-            ),
+            SliverFillRemaining(child: _buildForm()),
           ],
         ),
       ),

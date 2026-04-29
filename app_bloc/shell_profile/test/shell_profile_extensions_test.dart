@@ -22,6 +22,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );

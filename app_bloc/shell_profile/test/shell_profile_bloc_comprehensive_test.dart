@@ -82,6 +82,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -105,6 +106,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -130,6 +132,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -147,6 +150,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -172,6 +176,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -189,6 +194,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -213,6 +219,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: false,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -230,6 +237,7 @@ void main() {
         cursorStyle: 0,
         scrollbackLines: 10000,
         isDefault: true,
+        inheritCurrentState: false,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
       );
@@ -891,6 +899,7 @@ void main() {
           cursorStyle: 0,
           scrollbackLines: 10000,
           isDefault: false,
+          inheritCurrentState: false,
           createdAt: DateTime.now(),
           updatedAt: DateTime.now(),
         );
@@ -1024,7 +1033,6 @@ void main() {
         ),
       ],
     );
-
   });
 
   group('Edge Cases and Complex Scenarios', () {
@@ -1093,7 +1101,8 @@ void main() {
           'PATH': '/usr/local/bin:/usr/bin:/bin',
           'LS_COLORS':
               'di=01;34:ln=01;36:so=01;35:pi=40;33:ex=01;32:bd=40;33;01',
-          'PS1': r'\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$',
+          'PS1':
+              r'\[\e]0;\u@\h: \w\a\]${debian_chroot:+($debian_chroot)}\u@\h:\w\$',
           'EMPTY': '',
         },
       )),

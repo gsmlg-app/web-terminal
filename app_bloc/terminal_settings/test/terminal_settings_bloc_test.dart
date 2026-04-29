@@ -72,7 +72,8 @@ void main() {
               (s) => s.maxOpenShells,
               'maxOpenShells',
               kTerminalDefaultMaxOpenShells,
-            ),
+            )
+            .having((s) => s.restoreTerminalTabs, 'restoreTerminalTabs', false),
       ],
     );
 
@@ -101,6 +102,7 @@ void main() {
       build: () {
         mockVault.seed({
           'terminal_max_open_shells': '25',
+          'terminal_restore_tabs': 'true',
         });
         return TerminalSettingsBloc(vault: mockVault);
       },
@@ -108,7 +110,8 @@ void main() {
       expect: () => [
         isA<TerminalSettingsLoading>(),
         isA<TerminalSettingsLoaded>()
-            .having((s) => s.maxOpenShells, 'maxOpenShells', 25),
+            .having((s) => s.maxOpenShells, 'maxOpenShells', 25)
+            .having((s) => s.restoreTerminalTabs, 'restoreTerminalTabs', true),
       ],
     );
 
@@ -230,6 +233,22 @@ void main() {
           bloc.add(TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20)),
       expect: () => [], // No state changes expected
     );
+
+    blocTest<TerminalSettingsBloc, TerminalSettingsState>(
+      'UpdateRestoreTabs updates restore tabs setting',
+      build: () => TerminalSettingsBloc(vault: mockVault),
+      seed: () => const TerminalSettingsLoaded(),
+      act: (bloc) => bloc.add(
+        const TerminalSettingsUpdateRestoreTabs(restoreTerminalTabs: true),
+      ),
+      expect: () => [
+        isA<TerminalSettingsLoaded>().having(
+          (s) => s.restoreTerminalTabs,
+          'restoreTerminalTabs',
+          true,
+        ),
+      ],
+    );
   });
 
   group('TerminalSettingsState', () {
@@ -238,6 +257,7 @@ void main() {
 
       expect(state.environmentVariables, isEmpty);
       expect(state.maxOpenShells, equals(kTerminalDefaultMaxOpenShells));
+      expect(state.restoreTerminalTabs, isFalse);
     });
 
     test('TerminalSettingsLoaded copyWith creates new instance', () {
@@ -253,6 +273,7 @@ void main() {
         copied.environmentVariables,
         equals(original.environmentVariables),
       );
+      expect(copied.restoreTerminalTabs, isFalse);
     });
 
     test('TerminalSettingsLoaded equality works correctly', () {

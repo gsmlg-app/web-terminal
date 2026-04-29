@@ -148,7 +148,7 @@ void main() {
 
     test('creates in-memory database for testing', () {
       expect(db, isNotNull);
-      expect(db.schemaVersion, 2);
+      expect(db.schemaVersion, 4);
     });
 
     group('SshKeys table', () {
