@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -240,6 +241,19 @@ class TerminalViewState extends State<TerminalView> {
       },
     );
 
+    child = _TerminalScrollbar(
+      controller: _scrollController,
+      thumbVisibility: true,
+      trackVisibility: true,
+      thickness: 8,
+      radius: const Radius.circular(4),
+      thumbColor: _scrollbarThumbColor,
+      trackColor: _scrollbarTrackColor,
+      trackBorderColor: _scrollbarTrackBorderColor,
+      interactive: true,
+      child: child,
+    );
+
     child = TerminalScrollGestureHandler(
       terminal: widget.terminal,
       simulateScroll: widget.simulateScroll,
@@ -373,6 +387,27 @@ class TerminalViewState extends State<TerminalView> {
     return _customTextEditKey.currentState?.hasInputConnection == true;
   }
 
+  Color get _scrollbarThumbColor {
+    return Color.alphaBlend(
+      widget.theme.foreground.withOpacity(0.72),
+      widget.theme.background,
+    );
+  }
+
+  Color get _scrollbarTrackColor {
+    return Color.alphaBlend(
+      widget.theme.foreground.withOpacity(0.16),
+      widget.theme.background,
+    );
+  }
+
+  Color get _scrollbarTrackBorderColor {
+    return Color.alphaBlend(
+      widget.theme.foreground.withOpacity(0.28),
+      widget.theme.background,
+    );
+  }
+
   void _onInsert(String text) {
     final key = charToTerminalKey(text.trim());
 
@@ -412,6 +447,10 @@ class TerminalViewState extends State<TerminalView> {
       return KeyEventResult.ignored;
     }
 
+    if (_handleScrollKeyEvent(event)) {
+      return KeyEventResult.handled;
+    }
+
     final key = keyToTerminalKey(event.logicalKey);
 
     if (key == null) {
@@ -430,6 +469,39 @@ class TerminalViewState extends State<TerminalView> {
     }
 
     return handled ? KeyEventResult.handled : KeyEventResult.ignored;
+  }
+
+  bool _handleScrollKeyEvent(KeyEvent event) {
+    if (!HardwareKeyboard.instance.isShiftPressed ||
+        HardwareKeyboard.instance.isControlPressed ||
+        HardwareKeyboard.instance.isAltPressed) {
+      return false;
+    }
+
+    final position = _scrollableKey.currentState?.position;
+    if (position == null || !position.hasPixels) {
+      return false;
+    }
+
+    final pageDelta = (position.viewportDimension - renderTerminal.lineHeight)
+        .clamp(renderTerminal.lineHeight, position.viewportDimension);
+
+    double? target;
+    switch (event.logicalKey) {
+      case LogicalKeyboardKey.pageUp:
+        target = position.pixels - pageDelta;
+        break;
+      case LogicalKeyboardKey.pageDown:
+        target = position.pixels + pageDelta;
+        break;
+      default:
+        return false;
+    }
+
+    position.jumpTo(
+      target.clamp(position.minScrollExtent, position.maxScrollExtent),
+    );
+    return true;
   }
 
   void _onKeyboardShow() {
@@ -531,5 +603,84 @@ class _TerminalView extends LeafRenderObjectWidget {
       ..alwaysShowCursor = alwaysShowCursor
       ..onEditableRect = onEditableRect
       ..composingText = composingText;
+  }
+}
+
+class _TerminalScrollbar extends RawScrollbar {
+  const _TerminalScrollbar({
+    required super.child,
+    super.controller,
+    super.thumbVisibility,
+    super.trackVisibility,
+    super.thickness,
+    super.radius,
+    super.thumbColor,
+    super.trackColor,
+    super.trackBorderColor,
+    super.interactive,
+  });
+
+  @override
+  RawScrollbarState<_TerminalScrollbar> createState() =>
+      _TerminalScrollbarState();
+}
+
+class _TerminalScrollbarState extends RawScrollbarState<_TerminalScrollbar> {
+  var _isHoveringScrollbar = false;
+
+  @override
+  void handleHover(PointerHoverEvent event) {
+    final isHoveringScrollbar = isPointerOverScrollbar(
+      event.position,
+      event.kind,
+      forHover: true,
+    );
+    if (_isHoveringScrollbar != isHoveringScrollbar) {
+      setState(() => _isHoveringScrollbar = isHoveringScrollbar);
+    }
+    super.handleHover(event);
+  }
+
+  @override
+  void handleHoverExit(PointerExitEvent event) {
+    if (_isHoveringScrollbar) {
+      setState(() => _isHoveringScrollbar = false);
+    }
+    super.handleHoverExit(event);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onHover: _handleMouseHover,
+      onExit: _handleMouseExit,
+      cursor:
+          _isHoveringScrollbar ? SystemMouseCursors.click : MouseCursor.defer,
+      child: super.build(context),
+    );
+  }
+
+  void _handleMouseHover(PointerHoverEvent event) {
+    final renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox) {
+      return;
+    }
+
+    final localPosition = renderObject.globalToLocal(event.position);
+    final hitWidth = (widget.thickness ?? 8) + 4;
+    final isHoveringScrollbar =
+        localPosition.dx >= renderObject.size.width - hitWidth &&
+            localPosition.dy >= 0 &&
+            localPosition.dy <= renderObject.size.height;
+
+    if (_isHoveringScrollbar != isHoveringScrollbar) {
+      setState(() => _isHoveringScrollbar = isHoveringScrollbar);
+    }
+  }
+
+  void _handleMouseExit(PointerExitEvent event) {
+    if (_isHoveringScrollbar) {
+      setState(() => _isHoveringScrollbar = false);
+    }
   }
 }

@@ -242,6 +242,48 @@ void main() {
   });
 
   group('TerminalView.selection', () {
+    testWidgets('double click selects the word under the pointer',
+        (tester) async {
+      final terminal = Terminal();
+      final controller = TerminalController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TerminalView(
+              terminal,
+              controller: controller,
+            ),
+          ),
+        ),
+      );
+
+      terminal.write('hello world');
+      await tester.pump();
+
+      final terminalViewState =
+          tester.state<TerminalViewState>(find.byType(TerminalView));
+      final RenderTerminal renderTerminal = terminalViewState.renderTerminal;
+      final tapOffset = renderTerminal.localToGlobal(
+        renderTerminal.getOffset(const CellOffset(7, 0)) +
+            renderTerminal.cellSize.center(Offset.zero),
+      );
+
+      await tester.tapAt(tapOffset);
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tapAt(tapOffset);
+      await tester.pump(kDoubleTapTimeout);
+
+      expect(
+        controller.selection,
+        BufferRangeLine(
+          const CellOffset(6, 0),
+          const CellOffset(11, 0),
+        ),
+      );
+      expect(terminal.buffer.getText(controller.selection), 'world');
+    });
+
     testWidgets('shift primary tap extends the current selection',
         (tester) async {
       final terminal = Terminal();
@@ -284,6 +326,137 @@ void main() {
           const CellOffset(5, 0),
         ),
       );
+    });
+  });
+
+  group('TerminalView.scroll', () {
+    testWidgets('shows a high-contrast raw scrollbar', (tester) async {
+      final terminal = Terminal();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: TerminalView(terminal),
+          ),
+        ),
+      );
+
+      final scrollbar = tester.widget<RawScrollbar>(
+        find.bySubtype<RawScrollbar>(),
+      );
+
+      expect(scrollbar.thumbVisibility, isTrue);
+      expect(scrollbar.trackVisibility, isTrue);
+      expect(scrollbar.thickness, 8);
+      expect(scrollbar.thumbColor, isNotNull);
+      expect(scrollbar.trackColor, isNotNull);
+    });
+
+    testWidgets('uses click cursor over the scrollbar', (tester) async {
+      final terminal = Terminal();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 120,
+              child: TerminalView(terminal),
+            ),
+          ),
+        ),
+      );
+
+      terminal.write(List.generate(80, (i) => 'line $i').join('\r\n'));
+      terminal.flush();
+      await tester.pump();
+
+      final terminalBounds = tester.getRect(find.byType(TerminalView));
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer
+            .hover(Offset(terminalBounds.right - 2, terminalBounds.bottom - 4)),
+      );
+      await tester.pump();
+
+      final cursors = tester
+          .widgetList<MouseRegion>(find.byType(MouseRegion))
+          .map((region) => region.cursor);
+
+      expect(cursors, contains(SystemMouseCursors.click));
+    });
+
+    testWidgets('shift page up and down scrolls the viewport', (tester) async {
+      final terminalOutput = <String>[];
+      final terminal = Terminal(onOutput: terminalOutput.add);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 120,
+              child: TerminalView(
+                terminal,
+                autofocus: true,
+                textStyle: TerminalStyle(fontSize: 10),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      terminal.write(List.generate(80, (i) => 'line $i').join('\r\n'));
+      terminal.flush();
+      await tester.pump();
+
+      final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+      final bottomOffset = scrollable.position.pixels;
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageUp);
+      await tester.pump();
+
+      expect(scrollable.position.pixels, lessThan(bottomOffset));
+      expect(terminalOutput.join(), isEmpty);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.pageDown);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+      await tester.pump();
+
+      expect(scrollable.position.pixels, bottomOffset);
+      expect(terminalOutput.join(), isEmpty);
+    });
+
+    testWidgets('mouse wheel scrolls the viewport', (tester) async {
+      final terminal = Terminal();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              height: 120,
+              child: TerminalView(
+                terminal,
+                textStyle: TerminalStyle(fontSize: 10),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      terminal.write(List.generate(80, (i) => 'line $i').join('\r\n'));
+      terminal.flush();
+      await tester.pump();
+
+      final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+      final bottomOffset = scrollable.position.pixels;
+      final center = tester.getCenter(find.byType(TerminalView));
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+
+      await tester.sendEventToBinding(pointer.hover(center));
+      await tester.sendEventToBinding(pointer.scroll(const Offset(0, -240)));
+      await tester.pump();
+
+      expect(scrollable.position.pixels, lessThan(bottomOffset));
     });
   });
 
