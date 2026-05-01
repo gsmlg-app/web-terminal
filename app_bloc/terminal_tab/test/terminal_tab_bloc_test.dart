@@ -1,4 +1,5 @@
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
@@ -332,6 +333,98 @@ void main() {
       });
     });
 
+    group('TerminalTabReorderSessions', () {
+      test('reorders tabs to match session ID order', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab1 = TestTabItem('tab-1');
+        final tab2 = TestTabItem('tab-2');
+        final tab3 = TestTabItem('tab-3');
+        bloc.add(TerminalTabOpenTab(tab1));
+        bloc.add(TerminalTabOpenTab(tab2));
+        bloc.add(TerminalTabOpenTab(tab3));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(
+          TerminalTabReorderSessions([
+            tab2.hashCode.toString(),
+            tab3.hashCode.toString(),
+            tab1.hashCode.toString(),
+          ]),
+        );
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.allTabs, [tab2, tab3, tab1]);
+      });
+
+      test('does nothing when session IDs do not match open tabs', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab1 = TestTabItem('tab-1');
+        final tab2 = TestTabItem('tab-2');
+        bloc.add(TerminalTabOpenTab(tab1));
+        bloc.add(TerminalTabOpenTab(tab2));
+        await Future.delayed(Duration.zero);
+
+        final version = (bloc.state as TerminalTabLoaded).version;
+        bloc.add(
+          TerminalTabReorderSessions([
+            tab2.hashCode.toString(),
+            'missing-session',
+          ]),
+        );
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(state.allTabs, [tab1, tab2]);
+        expect(state.version, version);
+      });
+    });
+
+    group('TerminalTabRenameSession', () {
+      test('renames tab title by session ID', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab));
+        await Future.delayed(Duration.zero);
+
+        bloc.add(
+          TerminalTabRenameSession(
+            tab.hashCode.toString(),
+            'Build logs',
+          ),
+        );
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        final title = tab.title.value as Text;
+        expect(title.data, 'Build logs');
+        expect(state.version, 2);
+      });
+
+      test('does nothing when title is empty', () async {
+        bloc.add(TerminalTabStart());
+        await Future.delayed(Duration.zero);
+
+        final tab = TestTabItem('tab-1');
+        bloc.add(TerminalTabOpenTab(tab));
+        await Future.delayed(Duration.zero);
+
+        final version = (bloc.state as TerminalTabLoaded).version;
+        bloc.add(TerminalTabRenameSession(tab.hashCode.toString(), '   '));
+        await Future.delayed(Duration.zero);
+
+        final state = bloc.state as TerminalTabLoaded;
+        expect(tab.title.value, isNull);
+        expect(state.version, version);
+      });
+    });
+
     group('State properties', () {
       test('TerminalTabInitial props is empty list', () {
         expect(TerminalTabInitial().props, isEmpty);
@@ -540,8 +633,8 @@ void main() {
         },
         verify: (bloc) {
           final state = bloc.state as TerminalTabLoaded;
-          expect(state.version,
-              2); // version incremented twice (once per OpenTab)
+          expect(
+              state.version, 2); // version incremented twice (once per OpenTab)
         },
       );
 
@@ -917,8 +1010,8 @@ void main() {
 
         bloc.add(TerminalTabOpenTab(TestTabItem('tab-2')));
         await Future.delayed(Duration.zero);
-        expect((bloc.state as TerminalTabLoaded).isFullscreen,
-            true); // Preserved
+        expect(
+            (bloc.state as TerminalTabLoaded).isFullscreen, true); // Preserved
         expect((bloc.state as TerminalTabLoaded).tabCount, 2);
 
         bloc.add(TerminalTabToggleFullscreen());

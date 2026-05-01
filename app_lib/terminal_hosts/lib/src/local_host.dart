@@ -67,14 +67,17 @@ class LocalHost implements Host {
       ackRead: true, // Enable backpressure to prevent message queue flooding
     );
 
-    // Send init commands if provided (after a short delay for shell to start)
-    final initCmds = _initCommands;
-    if (initCmds != null && initCmds.isNotEmpty) {
-      // Wait briefly for shell prompt
-      Future.delayed(const Duration(milliseconds: 100), () {
-        pty.write(utf8.encode('$initCmds\n'));
-      });
-    }
+    // Wait briefly for shell prompt before installing cwd tracking hooks.
+    Future.delayed(const Duration(milliseconds: 100), () {
+      final startupCommands = Platform.isWindows
+          ? _initCommands ?? ''
+          : buildLocalShellStartupCommands(
+              workingDirectory: _workingDirectory,
+              initCommands: _initCommands,
+            );
+      if (startupCommands.isEmpty) return;
+      pty.write(utf8.encode('$startupCommands\n'));
+    });
 
     return LocalExecutionSession(pty);
   }
@@ -157,4 +160,47 @@ _ShellCommand get _platformShell {
 
   final shell = Platform.environment['SHELL'] ?? 'sh';
   return _ShellCommand(shell, []);
+}
+
+String buildLocalShellStartupCommands({
+  String? workingDirectory,
+  String? initCommands,
+}) {
+  final commands = <String>[
+    r'''
+__web_terminal_update_cwd() {
+  printf '\033]7;file://%s%s\007' "${HOSTNAME:-localhost}" "$PWD"
+}
+if [ -n "${ZSH_VERSION-}" ]; then
+  autoload -Uz add-zsh-hook 2>/dev/null
+  if command -v add-zsh-hook >/dev/null 2>&1; then
+    add-zsh-hook precmd __web_terminal_update_cwd
+  else
+    eval 'precmd_functions+=(__web_terminal_update_cwd)'
+  fi
+fi
+if [ -n "${BASH_VERSION-}" ]; then
+  PROMPT_COMMAND="__web_terminal_update_cwd${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
+fi
+'''
+        .trim(),
+  ];
+
+  final directory = workingDirectory;
+  if (directory != null && directory.isNotEmpty) {
+    commands.add('cd ${_quotePosixShellArgument(directory)}');
+  }
+
+  commands.add('__web_terminal_update_cwd');
+
+  final profileCommands = initCommands;
+  if (profileCommands != null && profileCommands.isNotEmpty) {
+    commands.add(profileCommands);
+  }
+
+  return commands.join('\n');
+}
+
+String _quotePosixShellArgument(String value) {
+  return "'${value.replaceAll("'", r"'\''")}'";
 }

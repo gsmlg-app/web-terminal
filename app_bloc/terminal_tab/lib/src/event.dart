@@ -31,6 +31,22 @@ class TerminalTabCloseSession extends TerminalTabEvent {
   TerminalTabCloseSession(this.sessionId);
 }
 
+/// Reorders sessions to match the provided session ID order.
+class TerminalTabReorderSessions extends TerminalTabEvent {
+  final List<String> sessionIds;
+
+  TerminalTabReorderSessions(List<String> sessionIds)
+      : sessionIds = List.unmodifiable(sessionIds);
+}
+
+/// Renames a session by its ID.
+class TerminalTabRenameSession extends TerminalTabEvent {
+  final String sessionId;
+  final String title;
+
+  TerminalTabRenameSession(this.sessionId, this.title);
+}
+
 /// Activates the next tab (wraps around).
 class TerminalTabNextTab extends TerminalTabEvent {}
 

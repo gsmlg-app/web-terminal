@@ -42,6 +42,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
   StreamSubscription<TerminalTabState>? _stateSubscription;
   StreamSubscription<TerminalSettingsState>? _settingsSubscription;
   StreamSubscription<ShellProfileState>? _profileSubscription;
+  final _tabTitlePersistenceListeners = <PluginTab, VoidCallback>{};
+  Timer? _saveOpenTabsTimer;
   bool _initialTabsHandled = false;
   bool _handlingInitialTabs = false;
   bool? _previousFullscreenState;
@@ -70,6 +72,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   void _onStateChanged(TerminalTabState state) {
+    if (state is TerminalTabLoaded) {
+      _syncTabTitlePersistenceListeners(state);
+    }
     _tryRestoreOrOpenInitialTabs();
     _trackFullscreenChange(state);
     if (_initialTabsHandled) {
@@ -131,7 +136,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
   @override
   void dispose() {
+    _saveOpenTabsTimer?.cancel();
     _saveOpenTabsToDisk();
+    _removeTabTitlePersistenceListeners();
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     _stateSubscription?.cancel();
     _settingsSubscription?.cancel();
@@ -139,6 +146,40 @@ class _TerminalScreenState extends State<TerminalScreen> {
     _terminalFocusNotifier.dispose();
     _terminalTabBloc.add(TerminalTabStop());
     super.dispose();
+  }
+
+  void _syncTabTitlePersistenceListeners(TerminalTabLoaded state) {
+    final currentTabs = state.allTabs.whereType<PluginTab>().toSet();
+
+    for (final tab in _tabTitlePersistenceListeners.keys.toList()) {
+      if (!currentTabs.contains(tab)) {
+        tab.plugin.title.removeListener(_tabTitlePersistenceListeners[tab]!);
+        _tabTitlePersistenceListeners.remove(tab);
+      }
+    }
+
+    for (final tab in currentTabs) {
+      if (_tabTitlePersistenceListeners.containsKey(tab)) continue;
+      void listener() => _scheduleSaveOpenTabsToDisk();
+      _tabTitlePersistenceListeners[tab] = listener;
+      tab.plugin.title.addListener(listener);
+    }
+  }
+
+  void _removeTabTitlePersistenceListeners() {
+    for (final entry in _tabTitlePersistenceListeners.entries) {
+      entry.key.plugin.title.removeListener(entry.value);
+    }
+    _tabTitlePersistenceListeners.clear();
+  }
+
+  void _scheduleSaveOpenTabsToDisk() {
+    if (!mounted || !_initialTabsHandled) return;
+    _saveOpenTabsTimer?.cancel();
+    _saveOpenTabsTimer = Timer(const Duration(milliseconds: 300), () {
+      if (!mounted) return;
+      unawaited(_saveOpenTabsToDisk());
+    });
   }
 
   void _openLocalShell() {
@@ -450,10 +491,6 @@ class _TerminalScreenState extends State<TerminalScreen> {
     );
   }
 
-  void _onSessionSelected(String sessionId) {
-    _terminalTabBloc.add(TerminalTabSelectSession(sessionId));
-  }
-
   Future<void> _showTabSwitcher() async {
     final state = _terminalTabBloc.state;
     if (state is! TerminalTabLoaded) return;
@@ -464,6 +501,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
       context,
       sessions: sessions,
       currentSessionId: currentId,
+      onReorder: (sessionIds) {
+        _terminalTabBloc.add(TerminalTabReorderSessions(sessionIds));
+      },
+      onRename: (sessionId, title) {
+        _terminalTabBloc.add(TerminalTabRenameSession(sessionId, title));
+      },
     );
     if (!mounted || result == null) return;
     switch (result) {
@@ -472,6 +515,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
         _requestTerminalFocus();
       case TabSwitcherClose(:final sessionId):
         _terminalTabBloc.add(TerminalTabCloseSession(sessionId));
+        _requestTerminalFocus();
+      case TabSwitcherCloseSelected(:final sessionIds):
+        for (final sessionId in sessionIds) {
+          _terminalTabBloc.add(TerminalTabCloseSession(sessionId));
+        }
         _requestTerminalFocus();
     }
   }
@@ -610,7 +658,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                       builder: (context, _, _) => TerminalAppBar(
                         currentSessionName: _getCurrentSessionName(state),
                         sessions: _buildSessionList(state),
-                        onSessionSelected: _onSessionSelected,
+                        onShowTabSwitcher: _showTabSwitcher,
                         onNewLocalShell: _openLocalShell,
                         onNewSshSession: _openSshSession,
                         onNewSftpSession: _openSftpSession,
@@ -620,7 +668,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
                     TerminalAppBar(
                       currentSessionName: _getCurrentSessionName(state),
                       sessions: _buildSessionList(state),
-                      onSessionSelected: _onSessionSelected,
+                      onShowTabSwitcher: _showTabSwitcher,
                       onNewLocalShell: _openLocalShell,
                       onNewSshSession: _openSshSession,
                       onNewSftpSession: _openSftpSession,

@@ -92,6 +92,32 @@ void main() {
       expect(host, isA<LocalHost>());
     });
 
+    test('startup commands install cwd reporter', () {
+      final commands = buildLocalShellStartupCommands();
+
+      expect(commands, contains('__web_terminal_update_cwd'));
+      expect(commands, contains(r']7;file://%s%s'));
+      expect(commands, contains('PROMPT_COMMAND'));
+      expect(commands, contains('add-zsh-hook precmd'));
+    });
+
+    test('startup commands cd to restored working directory', () {
+      final commands = buildLocalShellStartupCommands(
+        workingDirectory: '/Users/test/Projects/web-terminal',
+      );
+
+      expect(commands, contains("cd '/Users/test/Projects/web-terminal'"));
+      expect(commands, contains('__web_terminal_update_cwd'));
+    });
+
+    test('startup commands append profile init commands', () {
+      final commands = buildLocalShellStartupCommands(
+        initCommands: 'alias ll="ls -la"',
+      );
+
+      expect(commands.trimRight(), endsWith('alias ll="ls -la"'));
+    });
+
     test('connectFileSystem returns LocalFileSystem', () async {
       final host = LocalHost();
       final fs = await host.connectFileSystem();

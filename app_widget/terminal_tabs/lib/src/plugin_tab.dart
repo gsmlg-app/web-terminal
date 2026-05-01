@@ -1,10 +1,11 @@
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/terminal_hosts.dart';
 
-class PluginTab extends TabItem {
+class PluginTab extends TabItem implements TerminalTabTitleRenamer {
   static int _nextTabNumber = 1;
 
   final Plugin plugin;
@@ -14,6 +15,8 @@ class PluginTab extends TabItem {
   final int tabNumber;
 
   final int? shellProfileId;
+
+  String? _customTitle;
 
   PluginTab(this.plugin, this.manager, {this.shellProfileId})
     : tabNumber = _nextTabNumber++ {
@@ -46,7 +49,20 @@ class PluginTab extends TabItem {
     );
   }
 
+  @override
+  void renameTitle(String title) {
+    final trimmed = title.trim();
+    if (trimmed.isEmpty) return;
+    _customTitle = trimmed;
+    _updateTitle();
+  }
+
   String get displayTitle {
+    final customTitle = _customTitle;
+    if (customTitle != null && customTitle.isNotEmpty) {
+      return customTitle;
+    }
+
     final workingDirectory = currentWorkingDirectory;
     final prefix = '$tabNumber';
     if (manager.hostSpec is SSHHostSpec) {

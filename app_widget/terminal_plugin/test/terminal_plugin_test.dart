@@ -258,6 +258,40 @@ void main() {
 
         expect(plugin.terminalTitle, 'New Title');
       });
+
+      test('OSC 7 working directory updates title', () {
+        manager.add(plugin);
+
+        plugin.terminal.write(
+          '\x1b]7;file://localhost/Users/test/Projects/web-terminal\x07',
+        );
+        plugin.terminal.flush();
+
+        expect(plugin.title.value, '/Users/test/Projects/web-terminal');
+      });
+
+      test('OSC 7 working directory accepts spaces', () {
+        manager.add(plugin);
+
+        plugin.terminal.write(
+          '\x1b]7;file://localhost/Users/test/My Project\x07',
+        );
+        plugin.terminal.flush();
+
+        expect(plugin.title.value, '/Users/test/My Project');
+      });
+
+      test('OSC 7 working directory remains title source', () {
+        manager.add(plugin);
+
+        plugin.terminal.write(
+          '\x1b]7;file://localhost/Users/test/Projects/web-terminal\x07',
+        );
+        plugin.terminal.flush();
+        plugin.terminal.onTitleChange?.call('vim');
+
+        expect(plugin.title.value, '/Users/test/Projects/web-terminal');
+      });
     });
 
     group('manager integration', () {

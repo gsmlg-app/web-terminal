@@ -1,10 +1,14 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flex_tabs/flex_tabs.dart';
-import 'package:meta/meta.dart';
+import 'package:flutter/widgets.dart';
 
 part 'event.dart';
 part 'state.dart';
+
+abstract interface class TerminalTabTitleRenamer {
+  void renameTitle(String title);
+}
 
 class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
   TerminalTabBloc() : super(TerminalTabInitial()) {
@@ -14,6 +18,8 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabToggleFullscreen>(_onTerminalTabToggleFullscreen);
     on<TerminalTabSelectSession>(_onTerminalTabSelectSession);
     on<TerminalTabCloseSession>(_onTerminalTabCloseSession);
+    on<TerminalTabReorderSessions>(_onTerminalTabReorderSessions);
+    on<TerminalTabRenameSession>(_onTerminalTabRenameSession);
     on<TerminalTabNextTab>(_onTerminalTabNextTab);
     on<TerminalTabPreviousTab>(_onTerminalTabPreviousTab);
     on<TerminalTabGoToTab>(_onTerminalTabGoToTab);
@@ -98,6 +104,62 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
         emit(currentState.copyWith(incrementVersion: true));
       }
     }
+  }
+
+  void _onTerminalTabReorderSessions(
+    TerminalTabReorderSessions event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is! TerminalTabLoaded) return;
+    final currentState = state as TerminalTabLoaded;
+    final children = currentState.tabs.children;
+
+    if (event.sessionIds.length != children.length) return;
+
+    final tabsById = <String, TabItem>{
+      for (final child in children) child.hashCode.toString(): child,
+    };
+    if (tabsById.length != children.length) return;
+
+    final reorderedTabs = <TabItem>[];
+    for (final sessionId in event.sessionIds) {
+      final tab = tabsById[sessionId];
+      if (tab == null) return;
+      reorderedTabs.add(tab);
+    }
+
+    var changed = false;
+    for (var index = 0; index < reorderedTabs.length; index++) {
+      final tab = reorderedTabs[index];
+      if (currentState.tabs.indexOf(tab) != index) {
+        currentState.tabs.move(tab, index);
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      emit(currentState.copyWith(incrementVersion: true));
+    }
+  }
+
+  void _onTerminalTabRenameSession(
+    TerminalTabRenameSession event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    if (state is! TerminalTabLoaded) return;
+    final title = event.title.trim();
+    if (title.isEmpty) return;
+
+    final currentState = state as TerminalTabLoaded;
+    final tabItem = _findTabById(currentState.tabs, event.sessionId);
+    if (tabItem == null) return;
+
+    if (tabItem is TerminalTabTitleRenamer) {
+      (tabItem as TerminalTabTitleRenamer).renameTitle(title);
+    } else {
+      tabItem.title.value = Text(title);
+    }
+    emit(currentState.copyWith(incrementVersion: true));
   }
 
   void _onTerminalTabNextTab(

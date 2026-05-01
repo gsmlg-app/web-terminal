@@ -161,6 +161,23 @@ void main() {
       tab.dispose();
     });
 
+    test(
+      'renameTitle overrides generated title through plugin title changes',
+      () {
+        final plugin = MockPlugin();
+        final manager = PluginManager(MockHostSpec());
+        final tab = PluginTab(plugin, manager);
+
+        tab.renameTitle('Build logs');
+        plugin.title.value = '/tmp/project';
+
+        expect(tab.displayTitle, 'Build logs');
+        expect(rowText(tab.title.value!), 'Build logs');
+
+        tab.dispose();
+      },
+    );
+
     test('title strips terminal size and keeps working directory', () {
       final plugin = MockPlugin();
       final manager = PluginManager(

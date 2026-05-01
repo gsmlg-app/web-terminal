@@ -37,20 +37,33 @@ class TerminalPlugin extends Plugin {
 
   var terminalTitle = '';
 
+  String? _workingDirectoryTitle;
+
   ExecutionSession? session;
 
   void _updateTitle() {
-    final nextTitle = terminalTitle.trim();
+    final nextTitle = (_workingDirectoryTitle ?? terminalTitle).trim();
     title.value = nextTitle.isEmpty ? 'Terminal' : nextTitle;
   }
 
   @override
   void didMounted() {
+    _workingDirectoryTitle = null;
     title.value = 'Connecting';
 
     terminal.onTitleChange = (title) {
       terminalTitle = title;
       _updateTitle();
+    };
+
+    terminal.onPrivateOSC = (code, args) {
+      if (code == '7' && args.isNotEmpty) {
+        final workingDirectory = _workingDirectoryFromFileUri(args.first);
+        if (workingDirectory != null) {
+          _workingDirectoryTitle = workingDirectory;
+          _updateTitle();
+        }
+      }
     };
 
     terminal.onOutput = (data) {
@@ -66,6 +79,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didConnected() async {
+    _workingDirectoryTitle = null;
     title.value = 'Terminal';
 
     try {
@@ -101,6 +115,7 @@ class TerminalPlugin extends Plugin {
   @override
   void didDisconnected() {
     session = null;
+    _workingDirectoryTitle = null;
     title.value = 'Disconnected';
   }
 
@@ -108,12 +123,15 @@ class TerminalPlugin extends Plugin {
   void onConnectionStatus(HostConnectorStatus status) {
     switch (status) {
       case HostConnectorStatus.connecting:
+        _workingDirectoryTitle = null;
         title.value = 'Connecting';
         break;
       case HostConnectorStatus.connected:
+        _workingDirectoryTitle = null;
         title.value = 'Terminal';
         break;
       case HostConnectorStatus.disconnected:
+        _workingDirectoryTitle = null;
         title.value = 'Disconnected';
         break;
       default:
@@ -122,6 +140,7 @@ class TerminalPlugin extends Plugin {
 
   @override
   void onConnectionError(Object error) {
+    _workingDirectoryTitle = null;
     title.value = 'Connection Failed';
     connectionError.value = '$error';
   }
@@ -129,6 +148,14 @@ class TerminalPlugin extends Plugin {
   @override
   Widget build(BuildContext context) {
     return TerminalTabView(this);
+  }
+
+  String? _workingDirectoryFromFileUri(String value) {
+    final uri = Uri.tryParse(value.trim());
+    if (uri == null || uri.scheme != 'file' || uri.path.isEmpty) {
+      return null;
+    }
+    return Uri.decodeComponent(uri.path);
   }
 }
 
