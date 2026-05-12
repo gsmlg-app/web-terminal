@@ -1,0 +1,5 @@
+# Generated graphify outputs
+graphify-out/
+
+# Excluded from graphify corpus
+bricks/
