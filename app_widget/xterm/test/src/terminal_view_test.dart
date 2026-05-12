@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -326,6 +328,96 @@ void main() {
           const CellOffset(5, 0),
         ),
       );
+    });
+
+    testWidgets('selection highlight clips to line content while scrolled',
+        (tester) async {
+      const selectionColor = Color(0xFFFF0000);
+      const backgroundColor = Color(0xFF000000);
+      const testTheme = TerminalTheme(
+        cursor: Color(0xFFFFFFFF),
+        selection: selectionColor,
+        foreground: Color(0xFFFFFFFF),
+        background: backgroundColor,
+        black: Color(0xFF000000),
+        red: Color(0xFFFF0000),
+        green: Color(0xFF00FF00),
+        yellow: Color(0xFFFFFF00),
+        blue: Color(0xFF0000FF),
+        magenta: Color(0xFFFF00FF),
+        cyan: Color(0xFF00FFFF),
+        white: Color(0xFFFFFFFF),
+        brightBlack: Color(0xFF808080),
+        brightRed: Color(0xFFFF8080),
+        brightGreen: Color(0xFF80FF80),
+        brightYellow: Color(0xFFFFFF80),
+        brightBlue: Color(0xFF8080FF),
+        brightMagenta: Color(0xFFFF80FF),
+        brightCyan: Color(0xFF80FFFF),
+        brightWhite: Color(0xFFFFFFFF),
+        searchHitBackground: Color(0xFFFFFF00),
+        searchHitBackgroundCurrent: Color(0xFF00FF00),
+        searchHitForeground: Color(0xFF000000),
+      );
+      final repaintKey = GlobalKey();
+      final terminal = Terminal();
+      final controller = TerminalController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: RepaintBoundary(
+              key: repaintKey,
+              child: SizedBox(
+                width: 240,
+                height: 72,
+                child: TerminalView(
+                  terminal,
+                  controller: controller,
+                  theme: testTheme,
+                  textStyle: TerminalStyle(fontSize: 10),
+                  alwaysShowCursor: false,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      final lines = List.generate(24, (index) {
+        return index == 10 ? 'm   ' : 'line $index';
+      });
+      terminal.write(lines.join('\r\n'));
+      terminal.flush();
+      await tester.pump();
+
+      final terminalViewState =
+          tester.state<TerminalViewState>(find.byType(TerminalView));
+      final renderTerminal = terminalViewState.renderTerminal;
+      final scrollable = tester.state<ScrollableState>(find.byType(Scrollable));
+      scrollable.position.jumpTo(renderTerminal.lineHeight * 8);
+
+      controller.setSelection(
+        terminal.buffer.createAnchor(1, 9),
+        terminal.buffer.createAnchor(2, 11),
+      );
+      await tester.pump();
+
+      final insideContentColor = await _sampleTerminalPixel(
+        tester,
+        repaintKey,
+        renderTerminal,
+        const CellOffset(2, 10),
+      );
+      final outsideContentColor = await _sampleTerminalPixel(
+        tester,
+        repaintKey,
+        renderTerminal,
+        const CellOffset(8, 10),
+      );
+
+      expect(insideContentColor, selectionColor);
+      expect(outsideContentColor, backgroundColor);
     });
   });
 
@@ -677,4 +769,36 @@ void main() {
       expect(terminalOutput.join(), isEmpty);
     });
   });
+}
+
+Future<Color> _sampleTerminalPixel(
+  WidgetTester tester,
+  GlobalKey repaintKey,
+  RenderTerminal renderTerminal,
+  CellOffset offset,
+) async {
+  final boundary =
+      repaintKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+  final boundaryBox = boundary;
+  final image = await tester.runAsync(boundary.toImage);
+  final byteData = await tester.runAsync(
+    () => image!.toByteData(format: ui.ImageByteFormat.rawRgba),
+  );
+  final globalOffset = renderTerminal.localToGlobal(
+    renderTerminal.getOffset(offset) +
+        renderTerminal.cellSize.center(Offset.zero),
+  );
+  final localOffset = boundaryBox.globalToLocal(globalOffset);
+  final x = localOffset.dx.round().clamp(0, image!.width - 1);
+  final y = localOffset.dy.round().clamp(0, image.height - 1);
+  final byteOffset = (y * image.width + x) * 4;
+  final data = byteData!.buffer.asUint8List();
+  final color = Color.fromARGB(
+    data[byteOffset + 3],
+    data[byteOffset],
+    data[byteOffset + 1],
+    data[byteOffset + 2],
+  );
+  image.dispose();
+  return color;
 }

@@ -583,8 +583,13 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     Color color,
     Offset paintOffset,
   ) {
-    final start = segment.start ?? 0;
-    final end = segment.end ?? _terminal.viewWidth;
+    final line = _terminal.buffer.lines[segment.line];
+    final contentEnd = line.getTrimmedLength(_terminal.viewWidth);
+    final start = _clampColumn(segment.start ?? 0, contentEnd);
+    final end = _clampColumn(segment.end ?? contentEnd, contentEnd);
+    if (end <= start) {
+      return;
+    }
 
     final startOffset = Offset(
       paintOffset.dx + start * _painter.cellSize.width,
@@ -593,5 +598,15 @@ class RenderTerminal extends RenderBox with RelayoutWhenSystemFontsChangeMixin {
     );
 
     _painter.paintHighlight(canvas, startOffset, end - start, color);
+  }
+
+  int _clampColumn(int column, int contentEnd) {
+    if (column < 0) {
+      return 0;
+    }
+    if (column > contentEnd) {
+      return contentEnd;
+    }
+    return column;
   }
 }
