@@ -208,6 +208,16 @@ void main() {
         expect(plugin.title.value, 'Terminal');
       });
 
+      test('didConnected leaves terminal buffer empty before shell output',
+          () async {
+        manager.add(plugin);
+        manager.didConnected(mockHost);
+
+        await Future.delayed(const Duration(milliseconds: 50));
+
+        expect(plugin.terminal.buffer.getText().trim(), isEmpty);
+      });
+
       test('didDisconnected sets title to "Disconnected"', () async {
         manager.add(plugin);
         manager.didConnected(mockHost);

@@ -88,11 +88,6 @@ class TerminalPlugin extends Plugin {
         height: terminal.viewHeight,
       );
 
-      // Add welcome message
-      terminal.write('\r\nWelcome to Web Terminal!\r\n');
-      terminal.write(
-          'Type "help" for available commands or start typing...\r\n\r\n');
-
       session!.output
           .cast<List<int>>()
           .transform(const Utf8Decoder())

@@ -101,6 +101,14 @@ void main() {
       expect(commands, contains('add-zsh-hook precmd'));
     });
 
+    test('startup commands run silently and clear login noise', () {
+      final commands = buildLocalShellStartupCommands();
+
+      expect(commands, startsWith('stty -echo'));
+      expect(commands, contains(r"printf '\033[H\033[2J\033[3J'"));
+      expect(commands.trimRight(), endsWith('stty echo'));
+    });
+
     test('startup commands cd to restored working directory', () {
       final commands = buildLocalShellStartupCommands(
         workingDirectory: '/Users/test/Projects/web-terminal',
@@ -115,7 +123,11 @@ void main() {
         initCommands: 'alias ll="ls -la"',
       );
 
-      expect(commands.trimRight(), endsWith('alias ll="ls -la"'));
+      expect(commands, contains('alias ll="ls -la"'));
+      expect(
+        commands.indexOf('alias ll="ls -la"'),
+        lessThan(commands.indexOf(r"printf '\033[H\033[2J\033[3J'")),
+      );
     });
 
     test('connectFileSystem returns LocalFileSystem', () async {

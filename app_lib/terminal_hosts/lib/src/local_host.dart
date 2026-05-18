@@ -167,6 +167,7 @@ String buildLocalShellStartupCommands({
   String? initCommands,
 }) {
   final commands = <String>[
+    'stty -echo',
     r'''
 __web_terminal_update_cwd() {
   printf '\033]7;file://%s%s\007' "${HOSTNAME:-localhost}" "$PWD"
@@ -197,6 +198,9 @@ fi
   if (profileCommands != null && profileCommands.isNotEmpty) {
     commands.add(profileCommands);
   }
+
+  commands.add(r"printf '\033[H\033[2J\033[3J'");
+  commands.add('stty echo');
 
   return commands.join('\n');
 }
