@@ -575,80 +575,94 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
         ? colorScheme.primary
         : null;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 120),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(8),
-        border: borderColor == null
-            ? null
-            : Border.all(
-                color: borderColor,
-                width: isDropTarget || isCurrent ? 2 : 1.5,
-              ),
-        boxShadow: isDragging
-            ? [
-                BoxShadow(
-                  color: colorScheme.shadow.withValues(alpha: 0.18),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ]
-            : null,
-      ),
-      padding: const EdgeInsets.all(10),
-      child: Stack(
-        children: [
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _mode == _TabSwitcherMode.reorder
-                      ? Icons.drag_indicator
-                      : Icons.terminal,
-                  size: 24,
-                  color: isFocused || isMarkedForClose
-                      ? contentColor
-                      : colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  session.name,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: contentColor,
-                    fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isCompact = constraints.maxHeight < 80;
+        final padding = isCompact ? 8.0 : 10.0;
+        final iconSize = isCompact ? 20.0 : 24.0;
+        final iconGap = isCompact ? 4.0 : 6.0;
+
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(8),
+            border: borderColor == null
+                ? null
+                : Border.all(
+                    color: borderColor,
+                    width: isDropTarget || isCurrent ? 2 : 1.5,
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  '${index + 1}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: contentColor.withValues(alpha: 0.7),
-                  ),
-                ),
-              ],
-            ),
+            boxShadow: isDragging
+                ? [
+                    BoxShadow(
+                      color: colorScheme.shadow.withValues(alpha: 0.18),
+                      blurRadius: 12,
+                      offset: const Offset(0, 6),
+                    ),
+                  ]
+                : null,
           ),
-          if (isSelecting)
-            Positioned(
-              top: 0,
-              right: 0,
-              child: Icon(
-                isMarkedForClose
-                    ? Icons.check_circle
-                    : Icons.radio_button_unchecked,
-                size: 20,
-                color: isMarkedForClose
-                    ? colorScheme.secondary
-                    : colorScheme.onSurfaceVariant,
+          padding: EdgeInsets.all(padding),
+          child: Stack(
+            children: [
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      _mode == _TabSwitcherMode.reorder
+                          ? Icons.drag_indicator
+                          : Icons.terminal,
+                      size: iconSize,
+                      color: isFocused || isMarkedForClose
+                          ? contentColor
+                          : colorScheme.onSurfaceVariant,
+                    ),
+                    SizedBox(height: iconGap),
+                    Text(
+                      session.name,
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: contentColor,
+                        fontWeight: isCurrent
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                      ),
+                    ),
+                    if (!isCompact) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        '${index + 1}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: contentColor.withValues(alpha: 0.7),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-            ),
-        ],
-      ),
+              if (isSelecting)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Icon(
+                    isMarkedForClose
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    size: 20,
+                    color: isMarkedForClose
+                        ? colorScheme.secondary
+                        : colorScheme.onSurfaceVariant,
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

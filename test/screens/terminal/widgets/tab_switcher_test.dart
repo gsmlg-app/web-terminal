@@ -12,6 +12,7 @@ void main() {
 
   Future<ValueNotifier<TabSwitcherResult?>> pumpTabSwitcher(
     WidgetTester tester, {
+    List<SessionInfo> tabSessions = sessions,
     ValueChanged<List<String>>? onReorder,
     void Function(String sessionId, String title)? onRename,
   }) async {
@@ -26,7 +27,7 @@ void main() {
                 onPressed: () async {
                   result.value = await showTabSwitcher(
                     context,
-                    sessions: sessions,
+                    sessions: tabSessions,
                     currentSessionId: '1',
                     onReorder: onReorder,
                     onRename: onRename,
@@ -121,6 +122,20 @@ void main() {
 
       expect(renamed, {'2': 'Build logs'});
       expect(find.text('Build logs'), findsOneWidget);
+    });
+
+    testWidgets('does not overflow compact cards with many sessions', (
+      tester,
+    ) async {
+      final manySessions = List.generate(
+        25,
+        (index) =>
+            SessionInfo(id: '${index + 1}', name: '${index + 1} ~/workspace'),
+      );
+
+      await pumpTabSwitcher(tester, tabSessions: manySessions);
+
+      expect(tester.takeException(), isNull);
     });
   });
 }

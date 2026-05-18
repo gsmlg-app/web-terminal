@@ -36,6 +36,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
   static const _persistedTabsKey = 'terminal.open_tabs.v1';
 
   late final TerminalTabBloc _terminalTabBloc;
+  late final TerminalSettingsBloc _terminalSettingsBloc;
+  late final SharedPreferences _sharedPreferences;
   final _analytics = TerminalAnalytics();
   final _terminalFocusNotifier = ValueNotifier<int>(0);
   late final _TerminalLifecycleObserver _lifecycleObserver;
@@ -52,10 +54,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
   void initState() {
     super.initState();
     _terminalTabBloc = context.read<TerminalTabBloc>();
+    _terminalSettingsBloc = context.read<TerminalSettingsBloc>();
+    _sharedPreferences = context.read<SharedPreferences>();
     _terminalTabBloc.add(TerminalTabStart());
     // Listen for state changes to open initial tab when loaded
     _stateSubscription = _terminalTabBloc.stream.listen(_onStateChanged);
-    _settingsSubscription = context.read<TerminalSettingsBloc>().stream.listen(
+    _settingsSubscription = _terminalSettingsBloc.stream.listen(
       _onSettingsChanged,
     );
     _profileSubscription = context.read<ShellProfileBloc>().stream.listen(
@@ -137,7 +141,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   @override
   void dispose() {
     _saveOpenTabsTimer?.cancel();
-    _saveOpenTabsToDisk();
+    unawaited(_saveOpenTabsToDisk());
     _removeTabTitlePersistenceListeners();
     WidgetsBinding.instance.removeObserver(_lifecycleObserver);
     _stateSubscription?.cancel();
@@ -440,8 +444,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   Future<void> _saveOpenTabsToDisk() async {
-    final settingsState = context.read<TerminalSettingsBloc>().state;
-    final prefs = context.read<SharedPreferences>();
+    final settingsState = _terminalSettingsBloc.state;
+    final prefs = _sharedPreferences;
     if (settingsState is! TerminalSettingsLoaded ||
         !settingsState.restoreTerminalTabs) {
       await prefs.remove(_persistedTabsKey);
