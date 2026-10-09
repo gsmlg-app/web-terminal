@@ -10,8 +10,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  flutter_bloc: any
-  duskmoon_ui: any
+  flutter_bloc: ^9.1.1
+  duskmoon_ui: ^1.11.0
   web_session_bloc: any
   web_server: any
   xterm: any

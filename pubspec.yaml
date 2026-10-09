@@ -5,7 +5,8 @@ publish_to: "none"
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.8.0 <4.0.0"
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ">=3.47.0"
 
 workspace:
   - app_lib/database
@@ -58,51 +59,51 @@ dependencies:
 
   logging: ^1.3.0
 
-  go_router: ^17.0.1
+  go_router: ^18.0.2
 
-  bloc: ^9.0.0
-  flutter_bloc: ^9.0.0
-  equatable: ^2.0.7
+  bloc: ^9.2.1
+  flutter_bloc: ^9.1.1
+  equatable: ^2.1.0
 
-  shared_preferences: ^2.3.5
-  path_provider: ^2.1.5
-  path: any
+  shared_preferences: ^2.5.6
+  path_provider: ^2.1.6
+  path: ^1.9.1
 
-  duskmoon_ui: ^1.4.0
+  duskmoon_ui: ^1.11.0
 
-  cupertino_icons: ^1.0.8
-  flutter_svg: ^2.0.16
-  lottie: ^3.3.1
-  google_fonts: ^6.2.1
+  cupertino_icons: ^2.0.0
+  flutter_svg: ^2.3.0
+  lottie: ^3.6.1
+  google_fonts: ^9.0.0
 
   # Terminal emulation
   xterm: any
   flutter_pty: any
 
   # Code editor and highlighting
-  code_text_field: ^1.0.2
+  code_text_field: ^1.1.0
   highlight: ^0.7.0
   flutter_highlight: ^0.7.0
 
   # Data grid
-  syncfusion_flutter_datagrid: ^29.2.4
+  syncfusion_flutter_datagrid: ^35.1.39
 
   # Security
-  flutter_secure_storage: ^9.0.0
+  flutter_secure_storage: ^10.3.4
 
   # Window and UI
-  window_manager: ^0.5.0
-  macos_ui: ^2.0.5
+  window_manager: ^0.5.2
+  macos_ui: ^2.2.2
   context_menus: ^2.0.0+1
   flex_tabs: any
-  font_awesome_flutter: ^10.2.1
-  flutter_acrylic: ^1.0.0+2
+  font_awesome_flutter: ^11.0.0
+  flutter_acrylic: ^1.1.4
 
   # Utilities
-  file: any
-  uuid: any
-  meta: any
-  collection: ^1.16.0
+  file: ^7.0.1
+  uuid: ^4.6.0
+  meta: ^1.19.0
+  collection: ^1.19.1
 
   # workspace packages
   app_database: any
@@ -142,27 +143,27 @@ dev_dependencies:
     sdk: flutter
   integration_test:
     sdk: flutter
-  test: any
-  analyzer: any
+  test: ^1.31.1
+  analyzer: ^13.3.0
   bloc_test: ^10.0.0
-  mocktail: ^1.0.0
+  mocktail: ^1.0.5
 
   flutter_lints: ^6.0.0
 
-  build_runner: ^2.4.15
+  build_runner: ^2.16.1
 
   # Code generation
-  go_router_builder: ^4.1.1
+  go_router_builder: ^4.5.0
 
   # App packaging and icons
-  flutter_launcher_icons: ^0.14.1
-  icons_launcher: ^3.0.0
-  msix: ^3.6.6
+  flutter_launcher_icons: ^0.14.4
+  icons_launcher: ^3.1.0
+  msix: ^3.18.0
 
-  melos: ^7.0.0
-  mason: ^0.1.1
-  mason_cli: ^0.1.1
-  dependency_validator: ^5.0.2
+  melos: ^7.8.1
+  mason: ^0.1.3
+  mason_cli: ^0.1.3
+  dependency_validator: ^5.1.0
 
 flutter:
   generate: false
@@ -198,9 +199,11 @@ melos:
         - melos run build-runner
 
     build-runner:
-      run: dart run build_runner build --delete-conflicting-outputs
+      run: dart run build_runner build
       exec:
         orderDependents: true
+      packageFilters:
+        dependsOn: build_runner
       description: Run `dart/flutter analyze` for all packages.
 
     analyze:

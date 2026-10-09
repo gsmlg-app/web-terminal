@@ -13,11 +13,11 @@ dependencies:
   flutter:
     sdk: flutter
   flex_tabs: any
-  window_manager: any
-  equatable: any
-  path: any
+  window_manager: ^0.5.2
+  equatable: ^2.1.0
+  path: ^1.9.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: any
+  flutter_lints: ^6.0.0

@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   terminal_core: any
   xterm: any
-  context_menus: any
+  context_menus: ^2.0.0+1
   starter_plugin: any
   file_manager_plugin: any
 

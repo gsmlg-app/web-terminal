@@ -1756,8 +1756,7 @@ final class $$SshKeysTableReferences
   static MultiTypedResultKey<$SshHostsTable, List<SshHost>> _sshHostsRefsTable(
           _$AppDatabase db) =>
       MultiTypedResultKey.fromTable(db.sshHosts,
-          aliasName:
-              $_aliasNameGenerator(db.sshKeys.id, db.sshHosts.identityKeyId));
+          aliasName: 'ssh_keys__id__ssh_hosts__identity_key_id');
 
   $$SshHostsTableProcessedTableManager get sshHostsRefs {
     final manager = $$SshHostsTableTableManager($_db, $_db.sshHosts)
@@ -1963,8 +1962,10 @@ class $$SshKeysTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$SshKeysTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$SshKeysTable, SshKey>(table),
+                    $$SshKeysTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({sshHostsRefs = false}) {
             return PrefetchHooks(
@@ -2034,8 +2035,7 @@ final class $$SshHostsTableReferences
   $$SshHostsTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
   static $SshKeysTable _identityKeyIdTable(_$AppDatabase db) =>
-      db.sshKeys.createAlias(
-          $_aliasNameGenerator(db.sshHosts.identityKeyId, db.sshKeys.id));
+      db.sshKeys.createAlias('ssh_hosts__identity_key_id__ssh_keys__id');
 
   $$SshKeysTableProcessedTableManager? get identityKeyId {
     final $_column = $_itemColumn<int>('identity_key_id');
@@ -2292,8 +2292,10 @@ class $$SshHostsTableTableManager extends RootTableManager<
             createdAt: createdAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) =>
-                  (e.readTable(table), $$SshHostsTableReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$SshHostsTable, SshHost>(table),
+                    $$SshHostsTableReferences(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: ({identityKeyId = false}) {
             return PrefetchHooks(
@@ -2666,7 +2668,11 @@ class $$ShellProfilesTableTableManager extends RootTableManager<
             updatedAt: updatedAt,
           ),
           withReferenceMapper: (p0) => p0
-              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .map((e) => (
+                    e.readTable<$ShellProfilesTable, ShellProfile>(table),
+                    BaseReferences<_$AppDatabase, $ShellProfilesTable,
+                        ShellProfile>(db, table, e)
+                  ))
               .toList(),
           prefetchHooksCallback: null,
         ));

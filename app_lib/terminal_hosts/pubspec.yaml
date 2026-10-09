@@ -16,7 +16,7 @@ dependencies:
   flutter_pty: any
   app_ssh: any
   ssh_host_bloc: any
-  path: any
+  path: ^1.9.1
   android_shell: any
   ios_shell: any
 

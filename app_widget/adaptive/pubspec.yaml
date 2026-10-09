@@ -13,10 +13,10 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  intl: any
+  intl: ^0.20.3
 
-  duskmoon_ui: any
-  flutter_bloc: ^9.0.0
+  duskmoon_ui: ^1.11.0
+  flutter_bloc: ^9.1.1
 
 dev_dependencies:
   flutter_test:

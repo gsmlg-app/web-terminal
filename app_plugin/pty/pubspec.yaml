@@ -11,13 +11,13 @@ dependencies:
   flutter:
     sdk: flutter
 
-  ffi: ^2.0.1
+  ffi: ^2.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  ffigen: any
+  ffigen: ^23.0.0
 
   flutter_lints: ^6.0.0
 

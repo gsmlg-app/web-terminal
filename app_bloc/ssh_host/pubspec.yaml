@@ -7,14 +7,14 @@ environment:
 resolution: workspace
 
 dependencies:
-  bloc: ^9.0.0
-  drift: ^2.26.2
-  equatable: ^2.0.7
+  bloc: ^9.2.1
+  drift: ^2.35.2
+  equatable: ^2.1.0
   flutter:
     sdk: flutter
-  meta: any
+  meta: ^1.19.0
   app_database: any
-  duskmoon_ui: any
+  duskmoon_ui: ^1.11.0
   ssh_key_bloc: any
 
 dev_dependencies:

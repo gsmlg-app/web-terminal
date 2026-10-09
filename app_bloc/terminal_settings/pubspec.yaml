@@ -11,9 +11,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  bloc: ^9.0.0
-  equatable: ^2.0.7
-  meta: any
+  bloc: ^9.2.1
+  equatable: ^2.1.0
+  meta: ^1.19.0
   app_secure_storage: any
 
 dev_dependencies:

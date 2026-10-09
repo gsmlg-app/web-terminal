@@ -9,11 +9,11 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  duskmoon_ui: any
+  duskmoon_ui: ^1.11.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
   bloc_test: ^10.0.0
-  shared_preferences: any
+  shared_preferences: ^2.5.6
