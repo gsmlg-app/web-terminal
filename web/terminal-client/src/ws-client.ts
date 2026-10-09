@@ -190,7 +190,10 @@ export class WsClient {
   }
 
   // Encode binary frame: [ptyId length (1 byte)][ptyId bytes][data]
-  private encodeBinaryFrame(ptyId: string, data: Uint8Array): Uint8Array {
+  private encodeBinaryFrame(
+    ptyId: string,
+    data: Uint8Array
+  ): Uint8Array<ArrayBuffer> {
     const encoder = new TextEncoder();
     const ptyIdBytes = encoder.encode(ptyId);
     const frame = new Uint8Array(1 + ptyIdBytes.length + data.length);
