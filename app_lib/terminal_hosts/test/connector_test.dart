@@ -595,10 +595,7 @@ void main() {
         createdAt: DateTime.now(),
       );
 
-      expect(
-        () => SSHHostSpec(record),
-        throwsArgumentError,
-      );
+      expect(() => SSHHostSpec(record), throwsArgumentError);
     });
 
     test('creates with keyData for key-based auth', () {

@@ -20,7 +20,8 @@ void main() {
         final id = await db.into(db.sshKeys).insert(
               SshKeysCompanion.insert(
                 name: const Value('Production Key'),
-                content: const Value('-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----'),
+                content: const Value(
+                    '-----BEGIN RSA PRIVATE KEY-----\ntest\n-----END RSA PRIVATE KEY-----'),
                 password: const Value('keypass123'),
                 salt: const Value('salt_value'),
                 algorithm: Value(SshKeyAlgorithm.rsa.value),
@@ -92,7 +93,8 @@ void main() {
       });
 
       test('READ: get non-existent SSH key returns null', () async {
-        final key = await (db.select(db.sshKeys)..where((t) => t.id.equals(99999)))
+        final key = await (db.select(db.sshKeys)
+              ..where((t) => t.id.equals(99999)))
             .getSingleOrNull();
 
         expect(key, isNull);
@@ -160,12 +162,12 @@ void main() {
             );
 
         await (db.update(db.sshKeys)..where((t) => t.id.equals(id))).write(
-              SshKeysCompanion(
-                name: const Value('Updated'),
-                algorithm: Value(SshKeyAlgorithm.ed25519.value),
-                content: const Value('new_content'),
-              ),
-            );
+          SshKeysCompanion(
+            name: const Value('Updated'),
+            algorithm: Value(SshKeyAlgorithm.ed25519.value),
+            content: const Value('new_content'),
+          ),
+        );
 
         final key = await (db.select(db.sshKeys)..where((t) => t.id.equals(id)))
             .getSingle();
@@ -192,8 +194,9 @@ void main() {
       });
 
       test('DELETE: remove non-existent key returns 0', () async {
-        final deleteCount =
-            await (db.delete(db.sshKeys)..where((t) => t.id.equals(99999))).go();
+        final deleteCount = await (db.delete(db.sshKeys)
+              ..where((t) => t.id.equals(99999)))
+            .go();
 
         expect(deleteCount, 0);
       });
@@ -325,7 +328,8 @@ void main() {
             );
 
         final passwordHosts = await (db.select(db.sshHosts)
-              ..where((t) => t.identityType.equals(SshIdentityType.password.value)))
+              ..where(
+                  (t) => t.identityType.equals(SshIdentityType.password.value)))
             .get();
 
         expect(passwordHosts.length, 1);
@@ -361,12 +365,12 @@ void main() {
             );
 
         await (db.update(db.sshHosts)..where((t) => t.id.equals(hostId))).write(
-              SshHostsCompanion(
-                password: const Value.absent(),
-                identityKeyId: Value(keyId),
-                identityType: Value(SshIdentityType.key.value),
-              ),
-            );
+          SshHostsCompanion(
+            password: const Value.absent(),
+            identityKeyId: Value(keyId),
+            identityType: Value(SshIdentityType.key.value),
+          ),
+        );
 
         final host = await (db.select(db.sshHosts)
               ..where((t) => t.id.equals(hostId)))
@@ -419,7 +423,8 @@ void main() {
               ShellProfilesCompanion.insert(
                 name: 'Development Profile',
                 shellType: Value(ShellType.zsh.value),
-                environmentVariables: const Value('{"PATH":"/usr/local/bin","TERM":"xterm-256color"}'),
+                environmentVariables: const Value(
+                    '{"PATH":"/usr/local/bin","TERM":"xterm-256color"}'),
                 aliases: const Value('{"ll":"ls -la","gs":"git status"}'),
                 fontFamily: const Value('JetBrains Mono'),
                 fontSize: const Value(14.0),
@@ -568,7 +573,8 @@ void main() {
             );
 
         await (db.update(db.shellProfiles)..where((t) => t.id.equals(id)))
-            .write(ShellProfilesCompanion(shellType: Value(ShellType.zsh.value)));
+            .write(
+                ShellProfilesCompanion(shellType: Value(ShellType.zsh.value)));
 
         final profile = await (db.select(db.shellProfiles)
               ..where((t) => t.id.equals(id)))
@@ -582,11 +588,12 @@ void main() {
               ShellProfilesCompanion.insert(name: 'Profile'),
             );
 
-        await (db.update(db.shellProfiles)..where((t) => t.id.equals(id))).write(
-              const ShellProfilesCompanion(
-                environmentVariables: Value('{"NEW_VAR":"value"}'),
-              ),
-            );
+        await (db.update(db.shellProfiles)..where((t) => t.id.equals(id)))
+            .write(
+          const ShellProfilesCompanion(
+            environmentVariables: Value('{"NEW_VAR":"value"}'),
+          ),
+        );
 
         final profile = await (db.select(db.shellProfiles)
               ..where((t) => t.id.equals(id)))
@@ -648,7 +655,8 @@ void main() {
       });
 
       test('handles special characters in text', () async {
-        final specialText = 'Test\nWith\tSpecial\r\nCharacters "quotes" \'quotes\' & < >';
+        final specialText =
+            'Test\nWith\tSpecial\r\nCharacters "quotes" \'quotes\' & < >';
 
         final id = await db.into(db.sshKeys).insert(
               SshKeysCompanion.insert(name: Value(specialText)),
@@ -705,8 +713,10 @@ void main() {
       });
 
       test('handles complex JSON in shell profile', () async {
-        final complexEnv = '{"PATH":"/bin:/usr/bin","LANG":"en_US.UTF-8","CUSTOM":"value with spaces"}';
-        final complexAliases = '{"ll":"ls -la","gs":"git status","deploy":"npm run build && npm run deploy"}';
+        final complexEnv =
+            '{"PATH":"/bin:/usr/bin","LANG":"en_US.UTF-8","CUSTOM":"value with spaces"}';
+        final complexAliases =
+            '{"ll":"ls -la","gs":"git status","deploy":"npm run build && npm run deploy"}';
 
         final id = await db.into(db.shellProfiles).insert(
               ShellProfilesCompanion.insert(

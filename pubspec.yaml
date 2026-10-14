@@ -69,7 +69,7 @@ dependencies:
   path_provider: ^2.1.6
   path: ^1.9.1
 
-  duskmoon_ui: ^1.11.0
+  duskmoon_ui: ^1.11.1
 
   cupertino_icons: ^2.0.0
   flutter_svg: ^2.3.0
@@ -86,7 +86,7 @@ dependencies:
   flutter_highlight: ^0.7.0
 
   # Data grid
-  syncfusion_flutter_datagrid: ^35.1.39
+  syncfusion_flutter_datagrid: ^35.1.40+1
 
   # Security
   flutter_secure_storage: ^10.3.4

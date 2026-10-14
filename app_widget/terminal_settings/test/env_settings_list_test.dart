@@ -5,7 +5,8 @@ import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:terminal_settings/terminal_settings.dart';
 
 // Mock TerminalSettingsBloc for testing
-class MockTerminalSettingsBloc extends Bloc<TerminalSettingsEvent, TerminalSettingsState>
+class MockTerminalSettingsBloc
+    extends Bloc<TerminalSettingsEvent, TerminalSettingsState>
     implements TerminalSettingsBloc {
   MockTerminalSettingsBloc({TerminalSettingsState? initialState})
       : super(initialState ?? TerminalSettingsInitial()) {
@@ -41,7 +42,8 @@ void main() {
     });
 
     group('widget rendering', () {
-      testWidgets('shows loading indicator when state is initial', (tester) async {
+      testWidgets('shows loading indicator when state is initial',
+          (tester) async {
         final bloc = MockTerminalSettingsBloc();
 
         await tester.pumpWidget(
@@ -58,7 +60,8 @@ void main() {
         expect(find.byType(CircularProgressIndicator), findsOneWidget);
       });
 
-      testWidgets('shows Add Variable option when loaded with empty env vars', (tester) async {
+      testWidgets('shows Add Variable option when loaded with empty env vars',
+          (tester) async {
         final bloc = MockTerminalSettingsBloc(
           initialState: const TerminalSettingsLoaded(environmentVariables: {}),
         );
@@ -77,7 +80,8 @@ void main() {
         expect(find.text('Add Variable'), findsOneWidget);
       });
 
-      testWidgets('shows section title for Custom Environment Variables', (tester) async {
+      testWidgets('shows section title for Custom Environment Variables',
+          (tester) async {
         final bloc = MockTerminalSettingsBloc(
           initialState: const TerminalSettingsLoaded(environmentVariables: {}),
         );
@@ -280,7 +284,8 @@ void main() {
     });
 
     group('interactions', () {
-      testWidgets('tapping delete icon shows confirmation dialog', (tester) async {
+      testWidgets('tapping delete icon shows confirmation dialog',
+          (tester) async {
         final bloc = MockTerminalSettingsBloc(
           initialState: const TerminalSettingsLoaded(
             environmentVariables: {'TEST_VAR': 'test_value'},
@@ -304,12 +309,14 @@ void main() {
 
         // Confirmation dialog should appear
         expect(find.text('Delete Variable'), findsOneWidget);
-        expect(find.text('Are you sure you want to delete "TEST_VAR"?'), findsOneWidget);
+        expect(find.text('Are you sure you want to delete "TEST_VAR"?'),
+            findsOneWidget);
         expect(find.text('Cancel'), findsOneWidget);
         expect(find.text('Delete'), findsOneWidget);
       });
 
-      testWidgets('tapping Clear All shows confirmation dialog', (tester) async {
+      testWidgets('tapping Clear All shows confirmation dialog',
+          (tester) async {
         final bloc = MockTerminalSettingsBloc(
           initialState: const TerminalSettingsLoaded(
             environmentVariables: {'TEST': 'value'},
@@ -334,12 +341,14 @@ void main() {
         // Confirmation dialog should appear
         expect(find.text('Clear All Variables'), findsOneWidget);
         expect(
-          find.text('Are you sure you want to delete all custom environment variables?'),
+          find.text(
+              'Are you sure you want to delete all custom environment variables?'),
           findsOneWidget,
         );
       });
 
-      testWidgets('canceling delete dialog does not remove variable', (tester) async {
+      testWidgets('canceling delete dialog does not remove variable',
+          (tester) async {
         final bloc = MockTerminalSettingsBloc(
           initialState: const TerminalSettingsLoaded(
             environmentVariables: {'TEST_VAR': 'test_value'},

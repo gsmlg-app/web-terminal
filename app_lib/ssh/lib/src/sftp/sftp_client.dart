@@ -566,13 +566,15 @@ class SftpFile {
       throw SftpError('Length must be positive: $length');
     }
 
+    final totalLength = length;
+
     final streamController = StreamController<Uint8List>();
 
     var bytessRecieved = 0;
     var bytessRequested = 0;
 
     Future<void> readChunk(int chunkStart) async {
-      final chunkEnd = min(chunkStart + chunkSize, offset + length!);
+      final chunkEnd = min(chunkStart + chunkSize, offset + totalLength);
       final chunkLength = chunkEnd - chunkStart;
 
       bytessRequested += chunkLength;
@@ -599,7 +601,7 @@ class SftpFile {
 
       if (onProgress != null) onProgress(bytessRecieved);
 
-      if (bytessRecieved >= length) {
+      if (bytessRecieved >= totalLength) {
         streamController.close();
         return;
       }
@@ -610,7 +612,7 @@ class SftpFile {
         return;
       }
 
-      while (bytessRequested < length!) {
+      while (bytessRequested < totalLength) {
         final bytesOnTheWire = bytessRequested - bytessRecieved;
         if (bytesOnTheWire >= maxBytesOnTheWire) return;
         readChunk(bytessRequested + offset).then((_) => scheduleRead());

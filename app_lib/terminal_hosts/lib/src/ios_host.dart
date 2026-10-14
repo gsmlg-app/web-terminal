@@ -303,7 +303,9 @@ class IosExecutionSession implements ExecutionSession {
       }
 
       // If no output but non-zero exit code, show error
-      if (result.stdout.isEmpty && result.stderr.isEmpty && result.exitCode != 0) {
+      if (result.stdout.isEmpty &&
+          result.stderr.isEmpty &&
+          result.exitCode != 0) {
         _output('Command failed with exit code ${result.exitCode}\r\n');
       }
     } catch (e) {

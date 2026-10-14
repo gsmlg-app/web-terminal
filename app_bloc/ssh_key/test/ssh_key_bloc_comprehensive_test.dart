@@ -53,14 +53,18 @@ void main() {
     });
 
     test('SshKeyAdd with different parameters are not equal', () {
-      const event1 = SshKeyAdd(name: 'Test1', content: 'c1', salt: 's1', algorithm: 1);
-      const event2 = SshKeyAdd(name: 'Test2', content: 'c1', salt: 's1', algorithm: 1);
+      const event1 =
+          SshKeyAdd(name: 'Test1', content: 'c1', salt: 's1', algorithm: 1);
+      const event2 =
+          SshKeyAdd(name: 'Test2', content: 'c1', salt: 's1', algorithm: 1);
       expect(event1, isNot(equals(event2)));
     });
 
     test('SshKeyAdd with null password vs non-null password are not equal', () {
-      const event1 = SshKeyAdd(name: 'Test', content: 'c', password: null, salt: 's', algorithm: 1);
-      const event2 = SshKeyAdd(name: 'Test', content: 'c', password: 'pwd', salt: 's', algorithm: 1);
+      const event1 = SshKeyAdd(
+          name: 'Test', content: 'c', password: null, salt: 's', algorithm: 1);
+      const event2 = SshKeyAdd(
+          name: 'Test', content: 'c', password: 'pwd', salt: 's', algorithm: 1);
       expect(event1, isNot(equals(event2)));
     });
 
@@ -223,14 +227,14 @@ void main() {
       build: () => SshKeyBloc(database),
       setUp: () async {
         await database.into(database.sshKeys).insert(
-          SshKeysCompanion.insert(
-            name: const Value('To Delete'),
-            content: const Value('content'),
-            salt: const Value('salt'),
-            algorithm: const Value(1),
-            createdAt: Value(DateTime.now()),
-          ),
-        );
+              SshKeysCompanion.insert(
+                name: const Value('To Delete'),
+                content: const Value('content'),
+                salt: const Value('salt'),
+                algorithm: const Value(1),
+                createdAt: Value(DateTime.now()),
+              ),
+            );
       },
       act: (bloc) async {
         bloc.add(const SshKeyLoad());
@@ -248,11 +252,14 @@ void main() {
       'Multiple adds persist all keys to database',
       build: () => SshKeyBloc(database),
       act: (bloc) async {
-        bloc.add(const SshKeyAdd(name: 'Key1', content: 'c1', salt: 's1', algorithm: 1));
+        bloc.add(const SshKeyAdd(
+            name: 'Key1', content: 'c1', salt: 's1', algorithm: 1));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(const SshKeyAdd(name: 'Key2', content: 'c2', salt: 's2', algorithm: 2));
+        bloc.add(const SshKeyAdd(
+            name: 'Key2', content: 'c2', salt: 's2', algorithm: 2));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(const SshKeyAdd(name: 'Key3', content: 'c3', salt: 's3', algorithm: 3));
+        bloc.add(const SshKeyAdd(
+            name: 'Key3', content: 'c3', salt: 's3', algorithm: 3));
       },
       verify: (_) async {
         final keys = await database.select(database.sshKeys).get();
@@ -288,16 +295,19 @@ void main() {
       verify: (bloc) {
         final state = bloc.state as SshKeyLoaded;
         expect(state.sshKeys.length, 2);
-        expect(state.sshKeys.map((k) => k.name), containsAll(['Preloaded1', 'Preloaded2']));
+        expect(state.sshKeys.map((k) => k.name),
+            containsAll(['Preloaded1', 'Preloaded2']));
       },
     );
 
     test('Database auto-generates sequential IDs', () async {
       final bloc = SshKeyBloc(database);
 
-      bloc.add(const SshKeyAdd(name: 'First', content: 'c1', salt: 's1', algorithm: 1));
+      bloc.add(const SshKeyAdd(
+          name: 'First', content: 'c1', salt: 's1', algorithm: 1));
       await Future.delayed(const Duration(milliseconds: 50));
-      bloc.add(const SshKeyAdd(name: 'Second', content: 'c2', salt: 's2', algorithm: 1));
+      bloc.add(const SshKeyAdd(
+          name: 'Second', content: 'c2', salt: 's2', algorithm: 1));
       await Future.delayed(const Duration(milliseconds: 50));
 
       final state = bloc.state as SshKeyLoaded;
@@ -381,7 +391,8 @@ void main() {
       'Add and delete same key',
       build: () => SshKeyBloc(database),
       act: (bloc) async {
-        bloc.add(const SshKeyAdd(name: 'Temp', content: 'c', salt: 's', algorithm: 1));
+        bloc.add(const SshKeyAdd(
+            name: 'Temp', content: 'c', salt: 's', algorithm: 1));
         await Future.delayed(const Duration(milliseconds: 50));
         final state = bloc.state as SshKeyLoaded;
         bloc.add(SshKeyDelete(state.sshKeys.first));
@@ -397,14 +408,14 @@ void main() {
       build: () => SshKeyBloc(database),
       setUp: () async {
         await database.into(database.sshKeys).insert(
-          SshKeysCompanion.insert(
-            name: const Value('Consistent'),
-            content: const Value('c'),
-            salt: const Value('s'),
-            algorithm: const Value(1),
-            createdAt: Value(DateTime.now()),
-          ),
-        );
+              SshKeysCompanion.insert(
+                name: const Value('Consistent'),
+                content: const Value('c'),
+                salt: const Value('s'),
+                algorithm: const Value(1),
+                createdAt: Value(DateTime.now()),
+              ),
+            );
       },
       act: (bloc) async {
         bloc.add(const SshKeyLoad());
@@ -462,9 +473,11 @@ void main() {
       'Add keys with duplicate names (allowed)',
       build: () => SshKeyBloc(database),
       act: (bloc) async {
-        bloc.add(const SshKeyAdd(name: 'Duplicate', content: 'c1', salt: 's1', algorithm: 1));
+        bloc.add(const SshKeyAdd(
+            name: 'Duplicate', content: 'c1', salt: 's1', algorithm: 1));
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(const SshKeyAdd(name: 'Duplicate', content: 'c2', salt: 's2', algorithm: 1));
+        bloc.add(const SshKeyAdd(
+            name: 'Duplicate', content: 'c2', salt: 's2', algorithm: 1));
       },
       verify: (bloc) {
         final state = bloc.state as SshKeyLoaded;
@@ -745,14 +758,14 @@ void main() {
       build: () => SshKeyBloc(database),
       setUp: () async {
         await database.into(database.sshKeys).insert(
-          SshKeysCompanion.insert(
-            name: const Value('Test'),
-            content: const Value('c'),
-            salt: const Value('s'),
-            algorithm: const Value(1),
-            createdAt: Value(DateTime.now()),
-          ),
-        );
+              SshKeysCompanion.insert(
+                name: const Value('Test'),
+                content: const Value('c'),
+                salt: const Value('s'),
+                algorithm: const Value(1),
+                createdAt: Value(DateTime.now()),
+              ),
+            );
       },
       act: (bloc) async {
         bloc.add(const SshKeyLoad());
@@ -773,7 +786,8 @@ void main() {
       act: (bloc) async {
         bloc.add(const SshKeyLoad());
         await Future.delayed(const Duration(milliseconds: 50));
-        bloc.add(const SshKeyAdd(name: 'New', content: 'c', salt: 's', algorithm: 1));
+        bloc.add(const SshKeyAdd(
+            name: 'New', content: 'c', salt: 's', algorithm: 1));
         await Future.delayed(const Duration(milliseconds: 50));
         bloc.add(const SshKeyLoad());
       },
@@ -789,14 +803,14 @@ void main() {
       build: () => SshKeyBloc(database),
       setUp: () async {
         await database.into(database.sshKeys).insert(
-          SshKeysCompanion.insert(
-            name: const Value('ToDelete'),
-            content: const Value('c'),
-            salt: const Value('s'),
-            algorithm: const Value(1),
-            createdAt: Value(DateTime.now()),
-          ),
-        );
+              SshKeysCompanion.insert(
+                name: const Value('ToDelete'),
+                content: const Value('c'),
+                salt: const Value('s'),
+                algorithm: const Value(1),
+                createdAt: Value(DateTime.now()),
+              ),
+            );
       },
       act: (bloc) async {
         bloc.add(const SshKeyLoad());
@@ -1086,14 +1100,18 @@ sYU4huPrVyOUnVFWxC+SKwY2QtrNwrtp/5C1dhdsismX7EFZNGmd
     test('Keys created within 1 second have similar timestamps', () async {
       final bloc = SshKeyBloc(database);
 
-      bloc.add(const SshKeyAdd(name: 'Key1', content: 'c1', salt: 's1', algorithm: 1));
+      bloc.add(const SshKeyAdd(
+          name: 'Key1', content: 'c1', salt: 's1', algorithm: 1));
       await Future.delayed(const Duration(milliseconds: 100));
 
-      bloc.add(const SshKeyAdd(name: 'Key2', content: 'c2', salt: 's2', algorithm: 1));
+      bloc.add(const SshKeyAdd(
+          name: 'Key2', content: 'c2', salt: 's2', algorithm: 1));
       await Future.delayed(const Duration(milliseconds: 100));
 
       final state = bloc.state as SshKeyLoaded;
-      final timestamps = state.sshKeys.map((k) => k.createdAt!.millisecondsSinceEpoch).toList();
+      final timestamps = state.sshKeys
+          .map((k) => k.createdAt!.millisecondsSinceEpoch)
+          .toList();
       final diff = timestamps[1] - timestamps[0];
       expect(diff, lessThan(1000)); // Within 1 second
 
@@ -1104,15 +1122,18 @@ sYU4huPrVyOUnVFWxC+SKwY2QtrNwrtp/5C1dhdsismX7EFZNGmd
       final beforeAdd = DateTime.now();
       final bloc = SshKeyBloc(database);
 
-      bloc.add(const SshKeyAdd(name: 'Test', content: 'c', salt: 's', algorithm: 1));
+      bloc.add(
+          const SshKeyAdd(name: 'Test', content: 'c', salt: 's', algorithm: 1));
       await Future.delayed(const Duration(milliseconds: 100));
 
       final afterAdd = DateTime.now();
       final state = bloc.state as SshKeyLoaded;
       final createdAt = state.sshKeys.first.createdAt!;
 
-      expect(createdAt.isAfter(beforeAdd.subtract(const Duration(seconds: 1))), isTrue);
-      expect(createdAt.isBefore(afterAdd.add(const Duration(seconds: 1))), isTrue);
+      expect(createdAt.isAfter(beforeAdd.subtract(const Duration(seconds: 1))),
+          isTrue);
+      expect(
+          createdAt.isBefore(afterAdd.add(const Duration(seconds: 1))), isTrue);
 
       await bloc.close();
     });
@@ -1121,7 +1142,8 @@ sYU4huPrVyOUnVFWxC+SKwY2QtrNwrtp/5C1dhdsismX7EFZNGmd
       final bloc = SshKeyBloc(database);
 
       for (int i = 0; i < 10; i++) {
-        bloc.add(SshKeyAdd(name: 'Key$i', content: 'c$i', salt: 's$i', algorithm: 1));
+        bloc.add(SshKeyAdd(
+            name: 'Key$i', content: 'c$i', salt: 's$i', algorithm: 1));
         await Future.delayed(const Duration(milliseconds: 20));
       }
 

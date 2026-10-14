@@ -329,7 +329,13 @@ class OpenSSHRsaKeyPair with OpenSSHKeyPair {
   /// Creates a copy of this key with a different signature type.
   OpenSSHRsaKeyPair withSignatureType(String signatureType) {
     return OpenSSHRsaKeyPair(
-      n, e, d, iqmp, p, q, comment,
+      n,
+      e,
+      d,
+      iqmp,
+      p,
+      q,
+      comment,
       type: signatureType,
     );
   }
@@ -661,7 +667,15 @@ class RsaPrivateKey implements SSHKeyPair {
   /// Creates a copy of this key with a different signature type.
   RsaPrivateKey withSignatureType(String signatureType) {
     return RsaPrivateKey(
-      version, n, e, d, p, q, exponent1, exponent2, coefficient,
+      version,
+      n,
+      e,
+      d,
+      p,
+      q,
+      exponent1,
+      exponent2,
+      coefficient,
       type: signatureType,
     );
   }

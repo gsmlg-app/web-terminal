@@ -597,7 +597,8 @@ sYU4huPrVyOUnVFWxC+SKwY2QtrNwrtp/5C1dhdsismX7EFZNGmd
 
     test('SshKey with null salt handles gracefully', () {
       final aesHelper = AesHelper('Web Terminal');
-      final encryptedContent = aesHelper.encrypt64WithSalt(testRsaKey, 'original-salt');
+      final encryptedContent =
+          aesHelper.encrypt64WithSalt(testRsaKey, 'original-salt');
 
       final key = SshKey(
         id: 1,

@@ -28,7 +28,8 @@ void main() {
     test('DmSetTheme changes theme', () async {
       final bloc = DmThemeBloc(prefs: prefs);
       final themes = DmThemeData.themes;
-      final targetName = themes.length > 1 ? themes.last.name : themes.first.name;
+      final targetName =
+          themes.length > 1 ? themes.last.name : themes.first.name;
 
       bloc.add(DmSetTheme(targetName));
       await Future.delayed(const Duration(milliseconds: 50));
@@ -60,7 +61,8 @@ void main() {
     test('DmSetTheme persists to SharedPreferences', () async {
       final bloc = DmThemeBloc(prefs: prefs);
       final themes = DmThemeData.themes;
-      final targetName = themes.length > 1 ? themes.last.name : themes.first.name;
+      final targetName =
+          themes.length > 1 ? themes.last.name : themes.first.name;
 
       bloc.add(DmSetTheme(targetName));
       await Future.delayed(const Duration(milliseconds: 50));
@@ -81,7 +83,8 @@ void main() {
 
     test('restores persisted theme on creation', () async {
       final themes = DmThemeData.themes;
-      final targetName = themes.length > 1 ? themes.last.name : themes.first.name;
+      final targetName =
+          themes.length > 1 ? themes.last.name : themes.first.name;
 
       SharedPreferences.setMockInitialValues({
         'dm_theme_name': targetName,
@@ -99,7 +102,8 @@ void main() {
     test('preserves theme when changing mode', () async {
       final bloc = DmThemeBloc(prefs: prefs);
       final themes = DmThemeData.themes;
-      final targetName = themes.length > 1 ? themes.last.name : themes.first.name;
+      final targetName =
+          themes.length > 1 ? themes.last.name : themes.first.name;
 
       bloc.add(DmSetTheme(targetName));
       await Future.delayed(const Duration(milliseconds: 50));

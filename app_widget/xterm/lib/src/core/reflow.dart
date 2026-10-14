@@ -123,7 +123,9 @@ class _LineReflow {
       // Guard cellsToCopy > 0 to avoid negative index when the builder is
       // already full (bufferRemainingCells == 0). The buffer will be flushed
       // by the lineFilled branch below.
-      if (lineFilled && cellsToCopy > 0 && line.getWidth(from + cellsToCopy - 1) == 2) {
+      if (lineFilled &&
+          cellsToCopy > 0 &&
+          line.getWidth(from + cellsToCopy - 1) == 2) {
         cellsToCopy--;
       }
 

@@ -8,6 +8,12 @@ analyzer:
     - "**/_templates/**" # Common name for Mason template directories
     - "**/.mason/**" # Mason's internal directory
     - "third_party/**" # Exclude third-party packages from analysis
+    - build/**
+    - android/**
+    - ios/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   # The lint rules applied to this project can be customized in the

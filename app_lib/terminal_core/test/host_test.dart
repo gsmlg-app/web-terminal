@@ -13,11 +13,7 @@ class MockExecutionResult implements ExecutionResult {
   @override
   final String stderr;
 
-  MockExecutionResult({
-    this.exitCode = 0,
-    this.stdout = '',
-    this.stderr = '',
-  });
+  MockExecutionResult({this.exitCode = 0, this.stdout = '', this.stderr = ''});
 }
 
 class MockExecutionSession implements ExecutionSession {
@@ -103,11 +99,7 @@ class MockHost implements Host {
   }) async {
     executedCommands.add(executable);
     return mockExecutionResult ??
-        MockExecutionResult(
-          exitCode: 0,
-          stdout: 'mocked output',
-          stderr: '',
-        );
+        MockExecutionResult(exitCode: 0, stdout: 'mocked output', stderr: '');
   }
 
   @override

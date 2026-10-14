@@ -193,7 +193,8 @@ class SSHTransport {
       socket.sink.add(packet);
     } else if (_localMacType!.isETM) {
       // ETM: use ETM-specific padding where packetLength is block-aligned
-      final padding = SSHPacket.paddingLengthETM(data.length, align: packetAlign);
+      final padding =
+          SSHPacket.paddingLengthETM(data.length, align: packetAlign);
       final header = ByteData(5);
       header.setUint32(0, 1 + data.length + padding);
       header.setUint8(4, padding);
@@ -479,7 +480,8 @@ class SSHTransport {
     final payloadLength = packetLength - paddingLength - 1;
 
     // Verify padding using ETM alignment (packetLength must be block-aligned)
-    final expectedPacketAlign = max(SSHPacket.minAlign, _decryptCipher!.blockSize);
+    final expectedPacketAlign =
+        max(SSHPacket.minAlign, _decryptCipher!.blockSize);
     final minPaddingLength = SSHPacket.paddingLengthETM(
       payloadLength,
       align: expectedPacketAlign,

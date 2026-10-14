@@ -24,8 +24,8 @@ class LocalHostSpec implements HostSpec {
 
   @override
   HostConnector createConnector() => LocalConnector(
-        environment: environment,
-        initCommands: initCommands,
-        workingDirectory: workingDirectory,
-      );
+    environment: environment,
+    initCommands: initCommands,
+    workingDirectory: workingDirectory,
+  );
 }

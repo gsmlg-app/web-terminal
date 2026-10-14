@@ -26,46 +26,44 @@ void main() {
       expect(find.byType(Shortcuts), findsWidgets);
     });
 
-    testWidgets(
-      'maps openNewWindow shortcut to NewWindowIntent',
-      (tester) async {
-        Intent? receivedIntent;
+    testWidgets('maps openNewWindow shortcut to NewWindowIntent', (
+      tester,
+    ) async {
+      Intent? receivedIntent;
 
-        await tester.pumpWidget(
-          MaterialApp(
-            home: Actions(
-              actions: {
-                NewWindowIntent: CallbackAction<NewWindowIntent>(
-                  onInvoke: (intent) {
-                    receivedIntent = intent;
-                    return null;
-                  },
-                ),
-              },
-              child: GlobalShortcuts(
-                child: Focus(
-                  autofocus: true,
-                  child: Builder(builder: (context) => const Text('Test')),
-                ),
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Actions(
+            actions: {
+              NewWindowIntent: CallbackAction<NewWindowIntent>(
+                onInvoke: (intent) {
+                  receivedIntent = intent;
+                  return null;
+                },
+              ),
+            },
+            child: GlobalShortcuts(
+              child: Focus(
+                autofocus: true,
+                child: Builder(builder: (context) => const Text('Test')),
               ),
             ),
           ),
-        );
+        ),
+      );
 
-        await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-        // Simulate meta+N (works on macOS)
-        await tester.sendKeyDownEvent(LogicalKeyboardKey.meta);
-        await tester.sendKeyDownEvent(LogicalKeyboardKey.keyN);
-        await tester.sendKeyUpEvent(LogicalKeyboardKey.keyN);
-        await tester.sendKeyUpEvent(LogicalKeyboardKey.meta);
+      // Simulate meta+N (works on macOS)
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.meta);
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyN);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyN);
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.meta);
 
-        await tester.pumpAndSettle();
+      await tester.pumpAndSettle();
 
-        expect(receivedIntent, isA<NewWindowIntent>());
-      },
-      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-    );
+      expect(receivedIntent, isA<NewWindowIntent>());
+    }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
     testWidgets('maps toggleFullscreen shortcut to ToggleFullscreenIntent', (
       tester,

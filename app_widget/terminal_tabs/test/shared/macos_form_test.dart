@@ -21,18 +21,12 @@ void main() {
     });
 
     test('stores label property', () {
-      const row = MacosFormRow(
-        label: Text('Label'),
-        child: Text('Child'),
-      );
+      const row = MacosFormRow(label: Text('Label'), child: Text('Child'));
       expect(row.label, isNotNull);
     });
 
     test('stores spaceBetween property', () {
-      const row = MacosFormRow(
-        spaceBetween: 12.0,
-        child: Text('Child'),
-      );
+      const row = MacosFormRow(spaceBetween: 12.0, child: Text('Child'));
       expect(row.spaceBetween, equals(12.0));
     });
 
@@ -69,10 +63,7 @@ void main() {
       await tester.pumpWidget(
         const CupertinoApp(
           home: CupertinoPageScaffold(
-            child: MacosFormRow(
-              label: Text('Label'),
-              child: Text('Child'),
-            ),
+            child: MacosFormRow(label: Text('Label'), child: Text('Child')),
           ),
         ),
       );
@@ -111,10 +102,7 @@ void main() {
       await tester.pumpWidget(
         const CupertinoApp(
           home: CupertinoPageScaffold(
-            child: MacosFormRow(
-              label: Text('Label'),
-              child: Text('Child'),
-            ),
+            child: MacosFormRow(label: Text('Label'), child: Text('Child')),
           ),
         ),
       );
@@ -209,10 +197,7 @@ void main() {
       await tester.pumpWidget(
         const CupertinoApp(
           home: CupertinoPageScaffold(
-            child: MacosFormRow(
-              label: Text('Label'),
-              child: Text('Child'),
-            ),
+            child: MacosFormRow(label: Text('Label'), child: Text('Child')),
           ),
         ),
       );
@@ -227,10 +212,7 @@ void main() {
       await tester.pumpWidget(
         const CupertinoApp(
           home: CupertinoPageScaffold(
-            child: MacosFormRow(
-              label: Text('Label'),
-              child: Text('Child'),
-            ),
+            child: MacosFormRow(label: Text('Label'), child: Text('Child')),
           ),
         ),
       );

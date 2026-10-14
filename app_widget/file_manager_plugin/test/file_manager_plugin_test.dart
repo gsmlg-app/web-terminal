@@ -172,7 +172,8 @@ void main() {
       expect(find.byIcon(Icons.refresh), findsOneWidget);
     });
 
-    testWidgets('back button is disabled when canGoBack is false', (tester) async {
+    testWidgets('back button is disabled when canGoBack is false',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -192,7 +193,8 @@ void main() {
       expect(backButton.onPressed, isNull);
     });
 
-    testWidgets('forward button is disabled when canGoForward is false', (tester) async {
+    testWidgets('forward button is disabled when canGoForward is false',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -231,7 +233,8 @@ void main() {
       expect(upButton.onPressed, isNull);
     });
 
-    testWidgets('home button is disabled when homePath is null', (tester) async {
+    testWidgets('home button is disabled when homePath is null',
+        (tester) async {
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(

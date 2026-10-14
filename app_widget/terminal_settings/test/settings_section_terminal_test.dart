@@ -97,7 +97,8 @@ void main() {
         );
         expect(section1.envSettingsScreenName, 'env1');
         expect(section2.envSettingsScreenName, 'env2');
-        expect(section1.envSettingsScreenName != section2.envSettingsScreenName, isTrue);
+        expect(section1.envSettingsScreenName != section2.envSettingsScreenName,
+            isTrue);
       });
 
       test('callback functions are properly stored', () {

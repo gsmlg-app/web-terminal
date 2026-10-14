@@ -119,7 +119,8 @@ void main() {
 
   group('IV', () {
     test('creates from Uint8List', () {
-      final bytes = Uint8List.fromList([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
+      final bytes = Uint8List.fromList(
+          [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]);
       final iv = IV(bytes);
       expect(iv.bytes, bytes);
     });
@@ -174,12 +175,14 @@ void main() {
     });
 
     test('creates from base16', () {
-      final key = Key.fromBase16('0102030405060708091011121314151617181920212223242526272829303132');
+      final key = Key.fromBase16(
+          '0102030405060708091011121314151617181920212223242526272829303132');
       expect(key.bytes.length, 32);
     });
 
     test('creates from base64', () {
-      final key = Key.fromBase64('AQIDBAUGBwgJEBESExQVFhcYGSAhIiMkJSYnKCkwMTI=');
+      final key =
+          Key.fromBase64('AQIDBAUGBwgJEBESExQVFhcYGSAhIiMkJSYnKCkwMTI=');
       expect(key.bytes.length, 32);
     });
 
@@ -250,7 +253,8 @@ void main() {
     late Encrypter encrypter;
 
     setUp(() {
-      key = Key.fromUtf8('12345678901234567890123456789012'); // 32 bytes for AES-256
+      key = Key.fromUtf8(
+          '12345678901234567890123456789012'); // 32 bytes for AES-256
       iv = IV.fromUtf8('1234567890123456'); // 16 bytes for AES
       encrypter = Encrypter(AES(key));
     });

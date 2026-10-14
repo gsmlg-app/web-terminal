@@ -54,8 +54,10 @@ class MockFileSystem extends FileSystem {
   set isWatchSupported(bool value) => _isWatchSupported = value;
 
   @override
-  Future<FileSystemEntityType> type(String path,
-      {bool followLinks = true}) async {
+  Future<FileSystemEntityType> type(
+    String path, {
+    bool followLinks = true,
+  }) async {
     return _types[path] ?? FileSystemEntityType.unknown;
   }
 
@@ -561,14 +563,15 @@ void main() {
     test('stat returns custom stat when set', () async {
       final now = DateTime.now();
       fs.setStat(
-          '/test',
-          FileStat(
-            changed: now,
-            modified: now,
-            accessed: now,
-            type: FileSystemEntityType.file,
-            size: 1024,
-          ));
+        '/test',
+        FileStat(
+          changed: now,
+          modified: now,
+          accessed: now,
+          type: FileSystemEntityType.file,
+          size: 1024,
+        ),
+      );
 
       final stat = await fs.stat('/test');
       expect(stat.size, 1024);

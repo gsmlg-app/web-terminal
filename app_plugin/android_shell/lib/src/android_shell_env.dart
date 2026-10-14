@@ -160,10 +160,7 @@ class AndroidShellEnv {
     if (_usesSystemShell) {
       // When using system shell, start it directly in interactive mode
       // The system shell is more limited but at least it works
-      return (
-        shellPath,
-        ['-i'],
-      );
+      return (shellPath, ['-i']);
     }
 
     // Chain: cd to HOME, source profile for aliases/settings, exec interactive shell

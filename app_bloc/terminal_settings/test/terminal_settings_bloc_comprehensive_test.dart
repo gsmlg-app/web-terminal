@@ -55,23 +55,26 @@ void main() {
       expect(event1.hashCode, equals(event2.hashCode));
     });
 
-    test('TerminalSettingsUpdateEnvVar instances with same params are equal',
-        () {
-      const event1 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/bin');
-      const event2 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/bin');
-      expect(event1, equals(event2));
-      expect(event1.hashCode, equals(event2.hashCode));
-    });
+    test(
+      'TerminalSettingsUpdateEnvVar instances with same params are equal',
+      () {
+        const event1 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/bin');
+        const event2 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/bin');
+        expect(event1, equals(event2));
+        expect(event1.hashCode, equals(event2.hashCode));
+      },
+    );
 
     test(
-        'TerminalSettingsUpdateEnvVar instances with different params are not equal',
-        () {
-      const event1 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/bin');
-      const event2 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/usr');
-      const event3 = TerminalSettingsUpdateEnvVar(key: 'HOME', value: '/bin');
-      expect(event1, isNot(equals(event2)));
-      expect(event1, isNot(equals(event3)));
-    });
+      'TerminalSettingsUpdateEnvVar instances with different params are not equal',
+      () {
+        const event1 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/bin');
+        const event2 = TerminalSettingsUpdateEnvVar(key: 'PATH', value: '/usr');
+        const event3 = TerminalSettingsUpdateEnvVar(key: 'HOME', value: '/bin');
+        expect(event1, isNot(equals(event2)));
+        expect(event1, isNot(equals(event3)));
+      },
+    );
 
     test('TerminalSettingsRemoveEnvVar instances with same key are equal', () {
       const event1 = TerminalSettingsRemoveEnvVar(key: 'PATH');
@@ -88,14 +91,14 @@ void main() {
     });
 
     test(
-        'TerminalSettingsUpdateMaxOpenShells instances with same value are equal',
-        () {
-      const event1 = TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20);
-      const event2 = TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20);
-      expect(event1, equals(event2));
-      expect(event1.hashCode, equals(event2.hashCode));
-    });
-
+      'TerminalSettingsUpdateMaxOpenShells instances with same value are equal',
+      () {
+        const event1 = TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20);
+        const event2 = TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 20);
+        expect(event1, equals(event2));
+        expect(event1.hashCode, equals(event2.hashCode));
+      },
+    );
   });
 
   group('State Equatable Tests', () {
@@ -126,15 +129,18 @@ void main() {
       expect(state1.hashCode, equals(state2.hashCode));
     });
 
-    test('TerminalSettingsLoaded instances with different values are not equal',
-        () {
-      const state1 = TerminalSettingsLoaded(maxOpenShells: 10);
-      const state2 = TerminalSettingsLoaded(maxOpenShells: 20);
-      const state4 =
-          TerminalSettingsLoaded(environmentVariables: {'KEY': 'value'});
-      expect(state1, isNot(equals(state2)));
-      expect(state1, isNot(equals(state4)));
-    });
+    test(
+      'TerminalSettingsLoaded instances with different values are not equal',
+      () {
+        const state1 = TerminalSettingsLoaded(maxOpenShells: 10);
+        const state2 = TerminalSettingsLoaded(maxOpenShells: 20);
+        const state4 = TerminalSettingsLoaded(
+          environmentVariables: {'KEY': 'value'},
+        );
+        expect(state1, isNot(equals(state2)));
+        expect(state1, isNot(equals(state4)));
+      },
+    );
 
     test('TerminalSettingsLoaded copyWith preserves unchanged values', () {
       const original = TerminalSettingsLoaded(
@@ -145,7 +151,10 @@ void main() {
       final copied = original.copyWith(maxOpenShells: 30);
 
       expect(copied.maxOpenShells, equals(30));
-      expect(copied.environmentVariables, equals(original.environmentVariables));
+      expect(
+        copied.environmentVariables,
+        equals(original.environmentVariables),
+      );
     });
 
     test('TerminalSettingsError instances with same error are equal', () {
@@ -156,12 +165,14 @@ void main() {
       expect(state1.hashCode, equals(state2.hashCode));
     });
 
-    test('TerminalSettingsError instances with different errors are not equal',
-        () {
-      const state1 = TerminalSettingsError(error: 'Error 1');
-      const state2 = TerminalSettingsError(error: 'Error 2');
-      expect(state1, isNot(equals(state2)));
-    });
+    test(
+      'TerminalSettingsError instances with different errors are not equal',
+      () {
+        const state1 = TerminalSettingsError(error: 'Error 1');
+        const state2 = TerminalSettingsError(error: 'Error 2');
+        expect(state1, isNot(equals(state2)));
+      },
+    );
   });
 
   group('Vault Persistence Tests', () {
@@ -179,7 +190,10 @@ void main() {
         const TerminalSettingsUpdateEnvVar(key: 'API_KEY', value: 'secret'),
       ),
       verify: (_) {
-        expect(mockVault.getStorage()['terminal_env_API_KEY'], equals('secret'));
+        expect(
+          mockVault.getStorage()['terminal_env_API_KEY'],
+          equals('secret'),
+        );
       },
     );
 
@@ -192,9 +206,13 @@ void main() {
       seed: () => const TerminalSettingsLoaded(
         environmentVariables: {'OLD_VAR': 'value'},
       ),
-      act: (bloc) => bloc.add(const TerminalSettingsRemoveEnvVar(key: 'OLD_VAR')),
+      act: (bloc) =>
+          bloc.add(const TerminalSettingsRemoveEnvVar(key: 'OLD_VAR')),
       verify: (_) {
-        expect(mockVault.getStorage().containsKey('terminal_env_OLD_VAR'), isFalse);
+        expect(
+          mockVault.getStorage().containsKey('terminal_env_OLD_VAR'),
+          isFalse,
+        );
       },
     );
 
@@ -224,10 +242,14 @@ void main() {
       'UpdateMaxOpenShells persists to vault',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 30)),
+      act: (bloc) => bloc.add(
+        const TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 30),
+      ),
       verify: (_) {
-        expect(mockVault.getStorage()['terminal_max_open_shells'], equals('30'));
+        expect(
+          mockVault.getStorage()['terminal_max_open_shells'],
+          equals('30'),
+        );
       },
     );
 
@@ -247,11 +269,7 @@ void main() {
         isA<TerminalSettingsLoaded>().having(
           (s) => s.environmentVariables,
           'environmentVariables',
-          {
-            'PATH': '/usr/bin',
-            'HOME': '/home/user',
-            'LANG': 'en_US.UTF-8',
-          },
+          {'PATH': '/usr/bin', 'HOME': '/home/user', 'LANG': 'en_US.UTF-8'},
         ),
       ],
     );
@@ -269,11 +287,9 @@ void main() {
       expect: () => [
         isA<TerminalSettingsLoading>(),
         isA<TerminalSettingsLoaded>()
-            .having(
-              (s) => s.environmentVariables,
-              'environmentVariables',
-              {'API_KEY': 'secret'},
-            )
+            .having((s) => s.environmentVariables, 'environmentVariables', {
+              'API_KEY': 'secret',
+            })
             .having((s) => s.maxOpenShells, 'maxOpenShells', 35),
       ],
     );
@@ -323,11 +339,11 @@ void main() {
     blocTest<TerminalSettingsBloc, TerminalSettingsState>(
       'updating env var with same value still emits state (for Equatable)',
       build: () => TerminalSettingsBloc(vault: mockVault),
-      seed: () => const TerminalSettingsLoaded(
-        environmentVariables: {'KEY': 'value'},
+      seed: () =>
+          const TerminalSettingsLoaded(environmentVariables: {'KEY': 'value'}),
+      act: (bloc) => bloc.add(
+        const TerminalSettingsUpdateEnvVar(key: 'KEY', value: 'value'),
       ),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateEnvVar(key: 'KEY', value: 'value')),
       expect: () => [
         // Equatable on state prevents duplicate emission since env vars unchanged
       ],
@@ -446,9 +462,8 @@ void main() {
       seed: () => const TerminalSettingsLoaded(
         environmentVariables: {'EXISTING': 'value'},
       ),
-      act: (bloc) => bloc.add(
-        const TerminalSettingsRemoveEnvVar(key: 'NON_EXISTENT'),
-      ),
+      act: (bloc) =>
+          bloc.add(const TerminalSettingsRemoveEnvVar(key: 'NON_EXISTENT')),
       expect: () => [], // No state change if var doesn't exist
     );
 
@@ -479,8 +494,9 @@ void main() {
       'handles boundary value for maxOpenShells (50)',
       build: () => TerminalSettingsBloc(vault: mockVault),
       seed: () => const TerminalSettingsLoaded(),
-      act: (bloc) =>
-          bloc.add(const TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 50)),
+      act: (bloc) => bloc.add(
+        const TerminalSettingsUpdateMaxOpenShells(maxOpenShells: 50),
+      ),
       expect: () => [
         isA<TerminalSettingsLoaded>().having(
           (s) => s.maxOpenShells,
@@ -489,7 +505,6 @@ void main() {
         ),
       ],
     );
-
   });
 
   group('Load Event Edge Cases', () {
@@ -547,7 +562,6 @@ void main() {
         ),
       ],
     );
-
   });
 
   group('State Immutability', () {
@@ -564,26 +578,30 @@ void main() {
       expect(copied.maxOpenShells, equals(25));
     });
 
-    test('TerminalSettingsLoaded copyWith with no params returns equal state',
-        () {
-      const original = TerminalSettingsLoaded(
-        environmentVariables: {'KEY': 'value'},
-        maxOpenShells: 20,
-      );
+    test(
+      'TerminalSettingsLoaded copyWith with no params returns equal state',
+      () {
+        const original = TerminalSettingsLoaded(
+          environmentVariables: {'KEY': 'value'},
+          maxOpenShells: 20,
+        );
 
-      final copied = original.copyWith();
+        final copied = original.copyWith();
 
-      expect(original, equals(copied));
-      expect(identical(original, copied), isFalse);
-    });
+        expect(original, equals(copied));
+        expect(identical(original, copied), isFalse);
+      },
+    );
 
-    test('TerminalSettingsLoaded default const constructor has default values',
-        () {
-      const state = TerminalSettingsLoaded();
+    test(
+      'TerminalSettingsLoaded default const constructor has default values',
+      () {
+        const state = TerminalSettingsLoaded();
 
-      expect(state.environmentVariables, isEmpty);
-      expect(state.maxOpenShells, equals(kTerminalDefaultMaxOpenShells));
-    });
+        expect(state.environmentVariables, isEmpty);
+        expect(state.maxOpenShells, equals(kTerminalDefaultMaxOpenShells));
+      },
+    );
   });
 
   group('Constant Values', () {

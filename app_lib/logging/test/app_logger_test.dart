@@ -291,8 +291,11 @@ void main() {
 
         expect(capturedLogs.length, greaterThanOrEqualTo(1));
         final lastLog = capturedLogs.last;
-        expect(lastLog.time.isAfter(before.subtract(const Duration(seconds: 1))), isTrue);
-        expect(lastLog.time.isBefore(after.add(const Duration(seconds: 1))), isTrue);
+        expect(
+            lastLog.time.isAfter(before.subtract(const Duration(seconds: 1))),
+            isTrue);
+        expect(lastLog.time.isBefore(after.add(const Duration(seconds: 1))),
+            isTrue);
       });
     });
   });

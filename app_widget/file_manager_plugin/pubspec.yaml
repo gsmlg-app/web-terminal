@@ -13,7 +13,7 @@ dependencies:
     sdk: flutter
   flutter_bloc: ^9.1.1
   terminal_core: any
-  syncfusion_flutter_datagrid: ^35.1.39
+  syncfusion_flutter_datagrid: ^35.1.40+1
 
 dev_dependencies:
   flutter_test:

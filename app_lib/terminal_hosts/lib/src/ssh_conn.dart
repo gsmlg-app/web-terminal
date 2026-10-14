@@ -138,7 +138,10 @@ class SSHConnector extends HostConnector<SSHHost> {
         throw const SshKeyParseException('SSH key content is empty');
       }
       try {
-        final parsed = SSHKeyPair.fromPem(keyData!.content, keyData!.passphrase);
+        final parsed = SSHKeyPair.fromPem(
+          keyData!.content,
+          keyData!.passphrase,
+        );
         // Add SHA-1 fallback for RSA keys to support older SSH servers
         // (e.g. OpenSSH < 7.8 which doesn't support rsa-sha2-256).
         identities = <SSHKeyPair>[];

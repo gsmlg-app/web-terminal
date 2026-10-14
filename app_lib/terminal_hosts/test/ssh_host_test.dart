@@ -194,9 +194,7 @@ void main() {
 
     test('shell with environment', () async {
       final host = MockSSHHost();
-      final session = await host.shell(
-        environment: {'TERM': 'xterm-256color'},
-      );
+      final session = await host.shell(environment: {'TERM': 'xterm-256color'});
 
       expect(session, isA<ExecutionSession>());
     });

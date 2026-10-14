@@ -524,7 +524,15 @@ void main() {
 
       test('binary data in PTY output', () {
         final binaryData = Uint8List.fromList([
-          0, 1, 2, 3, 4, 5, 255, 254, 253,
+          0,
+          1,
+          2,
+          3,
+          4,
+          5,
+          255,
+          254,
+          253,
         ]);
 
         expect(binaryData, contains(0));

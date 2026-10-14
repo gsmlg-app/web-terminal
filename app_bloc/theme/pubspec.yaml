@@ -9,7 +9,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  duskmoon_ui: ^1.11.0
+  duskmoon_ui: ^1.11.1
 
 dev_dependencies:
   flutter_test:
