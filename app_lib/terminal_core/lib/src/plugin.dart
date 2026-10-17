@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:terminal_core/src/conn.dart';
 import 'package:terminal_core/src/host.dart';
@@ -89,6 +91,41 @@ class PluginManager with ChangeNotifier {
   /// Returns true if the manager is connected to a host.
   bool get isConnected => _host != null;
 
+  HostConnector? _connector;
+
+  /// Connects plugins independently of their widgets' mount state.
+  Future<void> connect() async {
+    if (_plugins.isEmpty || isConnected) return;
+
+    var connector = _connector;
+    if (connector == null) {
+      connector = hostSpec.createConnector();
+      _connector = connector;
+      connector.addListener(_onConnectorChanged);
+    }
+
+    await connector.connect();
+    if (_connector != connector || _plugins.isEmpty) return;
+
+    final host = connector.host;
+    if (host != null && !isConnected) {
+      didConnected(host);
+    } else if (connector.lastError != null) {
+      didConnectionError(connector.lastError!);
+    }
+  }
+
+  void _onConnectorChanged() {
+    final connector = _connector;
+    if (connector == null) return;
+    if (isConnected &&
+        (connector.status == HostConnectorStatus.disconnected ||
+            connector.status == HostConnectorStatus.aborted)) {
+      didDisconnected();
+    }
+    didConnectionStatusChanged(connector.status);
+  }
+
   void add(Plugin plugin) {
     if (plugin._manager != null) {
       throw Exception('Plugin is already mounted');
@@ -117,6 +154,19 @@ class PluginManager with ChangeNotifier {
     plugin._manager = null;
     plugin._hostSpec = null;
     plugin._host = null;
+
+    if (_plugins.isEmpty) {
+      final connector = _connector;
+      final host = _host;
+      _connector = null;
+      _host = null;
+      if (connector != null) {
+        connector.removeListener(_onConnectorChanged);
+        connector.dispose();
+      } else if (host != null) {
+        unawaited(host.disconnect());
+      }
+    }
 
     notifyListeners();
   }

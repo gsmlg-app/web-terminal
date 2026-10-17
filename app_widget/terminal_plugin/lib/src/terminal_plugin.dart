@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:context_menus/context_menus.dart';
@@ -41,6 +42,9 @@ class TerminalPlugin extends Plugin {
 
   ExecutionSession? session;
 
+  StreamSubscription<String>? _outputSubscription;
+  int _sessionGeneration = 0;
+
   void _updateTitle() {
     final nextTitle = (_workingDirectoryTitle ?? terminalTitle).trim();
     title.value = nextTitle.isEmpty ? 'Terminal' : nextTitle;
@@ -79,37 +83,71 @@ class TerminalPlugin extends Plugin {
 
   @override
   void didConnected() async {
+    final generation = ++_sessionGeneration;
+    final connectedHost = host;
     _workingDirectoryTitle = null;
     title.value = 'Terminal';
 
     try {
-      session = await host.shell(
+      final openedSession = await connectedHost.shell(
         width: terminal.viewWidth,
         height: terminal.viewHeight,
       );
+      if (!mounted || !connected || generation != _sessionGeneration) {
+        await openedSession.close();
+        return;
+      }
+      session = openedSession;
 
-      session!.output
-          .cast<List<int>>()
-          .transform(const Utf8Decoder())
-          .listen((data) {
-        terminal.write(data);
-        session?.ackRead(); // Acknowledge read for flow control
-      });
+      _outputSubscription = openedSession.output
+          .map<List<int>>((data) {
+            openedSession.ackRead();
+            return data;
+          })
+          .transform(const Utf8Decoder(allowMalformed: true))
+          .listen(terminal.write, onError: (Object error) {
+            if (mounted && identical(session, openedSession)) {
+              onConnectionError(error);
+            }
+          });
 
-      session!.exitCode.then((code) {
+      openedSession.exitCode.then((code) {
+        if (!identical(session, openedSession)) return;
         session = null;
+        unawaited(_outputSubscription?.cancel());
+        _outputSubscription = null;
         if (mounted) {
           manager.remove(this);
         }
+      }, onError: (Object error) {
+        if (mounted && identical(session, openedSession)) {
+          onConnectionError(error);
+        }
       });
     } catch (e) {
+      if (!mounted || generation != _sessionGeneration) return;
       terminal.write('\r\n\x1b[31mError: Failed to start shell: $e\x1b[0m\r\n');
     }
   }
 
+  void _closeSession() {
+    _sessionGeneration++;
+    final activeSession = session;
+    session = null;
+    unawaited(_outputSubscription?.cancel());
+    _outputSubscription = null;
+    unawaited(activeSession?.close());
+  }
+
+  @override
+  void didUnmounted() {
+    _closeSession();
+    terminal.dispose();
+  }
+
   @override
   void didDisconnected() {
-    session = null;
+    _closeSession();
     _workingDirectoryTitle = null;
     title.value = 'Disconnected';
   }
@@ -188,7 +226,6 @@ class _TerminalTabViewState extends State<TerminalTabView> {
   void dispose() {
     _focusNotifier?.removeListener(_onFocusRequested);
     _terminalFocusNode.dispose();
-    widget.plugin.terminal.dispose();
     super.dispose();
   }
 

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:terminal_core/src/host.dart';
 
@@ -26,6 +28,9 @@ abstract class HostConnector<T extends Host> extends ChangeNotifier {
 
   T? _host;
 
+  int _connectionGeneration = 0;
+  bool _disposed = false;
+
   /// The last connection error, if any.
   Object? _lastError;
 
@@ -51,29 +56,58 @@ abstract class HostConnector<T extends Host> extends ChangeNotifier {
   }
 
   Future<void> connect() async {
-    if (_status == HostConnectorStatus.connected ||
+    if (_disposed ||
+        _status == HostConnectorStatus.connected ||
         _status == HostConnectorStatus.connecting) {
       return;
     }
 
     _lastError = null;
+    final generation = ++_connectionGeneration;
     setStatus(HostConnectorStatus.connecting);
 
     try {
-      _host = await createHost();
-      _host!.done.then((_) => _onDone(), onError: _onError);
+      final host = await createHost();
+      if (_disposed || generation != _connectionGeneration) {
+        await host.disconnect();
+        return;
+      }
+      _host = host;
+      host.done.then(
+        (_) {
+          if (identical(_host, host)) _onDone();
+        },
+        onError: (Object error) {
+          if (identical(_host, host)) _onError(error);
+        },
+      );
 
       setStatus(HostConnectorStatus.connected);
     } catch (e) {
+      if (_disposed || generation != _connectionGeneration) return;
       _lastError = e;
       setStatus(HostConnectorStatus.disconnected);
     }
   }
 
   Future<void> disconnect() async {
-    await _host?.disconnect();
+    _connectionGeneration++;
+    final host = _host;
     _host = null;
-    setStatus(HostConnectorStatus.disconnected);
+    if (!_disposed) setStatus(HostConnectorStatus.disconnected);
+    await host?.disconnect();
+  }
+
+  @override
+  void dispose() {
+    if (_disposed) return;
+    unawaited(
+      disconnect().catchError((Object error) {
+        _lastError = error;
+      }),
+    );
+    _disposed = true;
+    super.dispose();
   }
 
   void _onDone() {

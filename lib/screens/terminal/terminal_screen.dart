@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:app_logging/app_logging.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:web_terminal/destinations.dart';
@@ -318,7 +318,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
       }
 
       final plugin = TerminalPlugin();
-      final manager = PluginManager(SSHHostSpec(host, keyData: keyData));
+      if (!mounted) return;
+      final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
       _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
 
@@ -336,6 +337,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   /// Loads SSH key data from the database by key ID.
   Future<SshKeyData> _loadSshKeyData(int keyId) async {
     final database = context.read<AppDatabase>();
+    final credentials = context.read<SshCredentialRepository>();
     final key = await (database.select(
       database.sshKeys,
     )..where((t) => t.id.equals(keyId))).getSingleOrNull();
@@ -344,15 +346,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
       throw Exception('SSH key not found');
     }
 
-    // Use the extension method to decrypt the key content
-    final pemContent = key.getPrivateKeyPem();
-
-    // The key.password is for the SSH key passphrase (if the key itself is encrypted)
-    // Note: This password is stored encrypted in the database and decrypted with AesHelper
     return SshKeyData(
-      content: pemContent,
-      passphrase:
-          key.password, // SSH key passphrase (null for unencrypted keys)
+      content: await credentials.readPrivateKey(key),
+      passphrase: await credentials.readKeyPassphrase(key),
     );
   }
 
@@ -437,10 +433,31 @@ class _TerminalScreenState extends State<TerminalScreen> {
     }
 
     final plugin = TerminalPlugin();
-    final manager = PluginManager(SSHHostSpec(host, keyData: keyData));
+    if (!mounted) return false;
+    final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
     final tabItem = PluginTab(plugin, manager);
     _terminalTabBloc.add(TerminalTabOpenTab(tabItem, activate: activate));
     return true;
+  }
+
+  SSHHostSpec _sshHostSpec(SshHost host, {SshKeyData? keyData}) {
+    final credentials = context.read<SshCredentialRepository>();
+    final keys = context.read<SshHostKeyStore>();
+    final navigator = Navigator.of(context, rootNavigator: true);
+    return SSHHostSpec(
+      host,
+      keyData: keyData,
+      passwordProvider: () => credentials.readHostPassword(host),
+      verifyHostKey: (type, fingerprint) => keys.verify(
+        host.hostname!,
+        host.port!,
+        type,
+        fingerprint,
+        onFirstUse: (key) => navigator.mounted
+            ? showSshHostKeyConfirmation(navigator.context, key)
+            : Future.value(false),
+      ),
+    );
   }
 
   Future<void> _saveOpenTabsToDisk() async {
@@ -755,9 +772,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
             const SizedBox(height: 16),
             Text(
               'No active session',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).colorScheme.outline,
-              ),
+              style: Theme.of(context).textTheme.titleMedium
+                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
