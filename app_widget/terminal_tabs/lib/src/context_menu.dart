@@ -40,6 +40,19 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
     });
   }
 
+  TerminalPlugin _createTerminalPlugin(ShellProfile? profile) {
+    return TerminalPlugin(
+      profileFontSize: profile?.fontSize ?? 14.0,
+      profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
+      profileCursorType:
+          TerminalCursorType.values[(profile?.cursorStyle ?? 0).clamp(
+            0,
+            TerminalCursorType.values.length - 1,
+          )],
+      scrollbackLines: profile?.scrollbackLines ?? 10000,
+    );
+  }
+
   void _openLocalTerminal(BuildContext context) {
     handlePressed(context, () {
       // Use default profile settings if available
@@ -49,16 +62,7 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
         profile = profileState.defaultProfile;
       }
 
-      final plugin = TerminalPlugin(
-        profileFontSize: profile?.fontSize ?? 14.0,
-        profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
-        profileCursorType:
-            TerminalCursorType.values[(profile?.cursorStyle ?? 0).clamp(
-              0,
-              TerminalCursorType.values.length - 1,
-            )],
-        scrollbackLines: profile?.scrollbackLines ?? 10000,
-      );
+      final plugin = _createTerminalPlugin(profile);
       String? inheritedWorkingDirectory;
       final tabState = context.read<TerminalTabBloc>().state;
       if (profile?.inheritCurrentState == true &&
@@ -67,15 +71,22 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
         inheritedWorkingDirectory =
             (tabState.activeTab as PluginTab).currentWorkingDirectory;
       }
+      final initCommands = profile?.generateInitCommands(
+        includeEnvExports: false,
+      );
       final manager = PluginManager(
         createDefaultHostSpec(
+          name: profile?.name,
           environment: profile?.parsedEnvironmentVariables,
-          initCommands: profile?.generateInitCommands(),
+          initCommands: (initCommands != null && initCommands.trim().isNotEmpty)
+              ? initCommands
+              : null,
           workingDirectory:
               inheritedWorkingDirectory ??
               ((profile?.workingDirectory.isNotEmpty ?? false)
                   ? profile!.workingDirectory
                   : null),
+          shellCommand: profile?.parsedShellType.name,
         ),
       );
       final tabItem = PluginTab(plugin, manager, shellProfileId: profile?.id);
@@ -87,6 +98,10 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
     // Capture context references before async gap
     final database = context.read<AppDatabase>();
     final terminalBloc = context.read<TerminalTabBloc>();
+    final profileState = context.read<ShellProfileBloc>().state;
+    final defaultProfile = profileState is ShellProfileLoaded
+        ? profileState.defaultProfile
+        : null;
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final theme = Theme.of(context);
     final credentials = context.read<SshCredentialRepository>();
@@ -117,7 +132,7 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
     if (!context.mounted) return;
 
     handlePressed(context, () {
-      final plugin = TerminalPlugin();
+      final plugin = _createTerminalPlugin(defaultProfile);
       final manager = PluginManager(
         SSHHostSpec(
           host,

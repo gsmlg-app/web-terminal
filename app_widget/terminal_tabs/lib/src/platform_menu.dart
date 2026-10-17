@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_tabs/src/shortcuts.dart' as shortcuts;
 
 /// Abstract class representing an active tab service.
@@ -126,12 +128,6 @@ class _GlobalPlatformMenuState extends State<GlobalPlatformMenu> {
                 ),
               ],
             ),
-            if (PlatformProvidedMenuItem.hasMenu(
-              PlatformProvidedMenuItemType.quit,
-            ))
-              const PlatformProvidedMenuItem(
-                type: PlatformProvidedMenuItemType.quit,
-              ),
           ],
         ),
         PlatformMenu(
@@ -143,11 +139,17 @@ class _GlobalPlatformMenuState extends State<GlobalPlatformMenu> {
                   label: 'Close Tab',
                   shortcut: shortcuts.tabClose,
                   onSelected: () {
-                    // TODO: Integrate with app's active tab service
-                    // return ref
-                    //     .read(activeTabServiceProvider)
-                    //     .getActiveTab()
-                    //     ?.detach();
+                    final bloc = context.read<TerminalTabBloc?>();
+                    final state = bloc?.state;
+                    if (bloc != null &&
+                        state is TerminalTabLoaded &&
+                        state.activeTab != null) {
+                      bloc.add(
+                        TerminalTabCloseSession(
+                          state.activeTab.hashCode.toString(),
+                        ),
+                      );
+                    }
                   },
                 ),
                 if (PlatformProvidedMenuItem.hasMenu(
@@ -157,14 +159,6 @@ class _GlobalPlatformMenuState extends State<GlobalPlatformMenu> {
                     type: PlatformProvidedMenuItemType.toggleFullScreen,
                   ),
               ],
-            ),
-            PlatformMenuItem(
-              label: 'DevTools',
-              shortcut: shortcuts.openDevTools,
-              onSelected: () {
-                // TODO: Integrate with app's tab service
-                // context.read<TabsService>().openTab(DevToolsTab());
-              },
             ),
           ],
         ),

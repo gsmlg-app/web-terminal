@@ -89,15 +89,23 @@ class TerminalPlugin extends Plugin {
     title.value = 'Terminal';
 
     try {
+      final initialWidth = terminal.viewWidth;
+      final initialHeight = terminal.viewHeight;
       final openedSession = await connectedHost.shell(
-        width: terminal.viewWidth,
-        height: terminal.viewHeight,
+        width: initialWidth,
+        height: initialHeight,
       );
       if (!mounted || !connected || generation != _sessionGeneration) {
         await openedSession.close();
         return;
       }
       session = openedSession;
+      if (terminal.viewWidth != initialWidth ||
+          terminal.viewHeight != initialHeight) {
+        unawaited(
+          openedSession.resize(terminal.viewWidth, terminal.viewHeight),
+        );
+      }
 
       _outputSubscription = openedSession.output
           .map<List<int>>((data) {
@@ -259,8 +267,14 @@ class _TerminalTabViewState extends State<TerminalTabView> {
                 if (error == null) return const SizedBox.shrink();
                 return _ConnectionErrorOverlay(
                   error: error,
+                  onDismiss: () {
+                    widget.plugin.connectionError.value = null;
+                  },
                   onRetry: () {
                     widget.plugin.connectionError.value = null;
+                    if (widget.plugin.mounted) {
+                      unawaited(widget.plugin.manager.connect());
+                    }
                   },
                 );
               },
@@ -280,10 +294,12 @@ class _TerminalTabViewState extends State<TerminalTabView> {
 class _ConnectionErrorOverlay extends StatelessWidget {
   const _ConnectionErrorOverlay({
     required this.error,
+    required this.onDismiss,
     required this.onRetry,
   });
 
   final String error;
+  final VoidCallback onDismiss;
   final VoidCallback onRetry;
 
   @override
@@ -322,12 +338,19 @@ class _ConnectionErrorOverlay extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: onRetry,
-                child: const Text('Dismiss'),
-              ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: onDismiss,
+                  child: const Text('Dismiss'),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: onRetry,
+                  child: const Text('Retry'),
+                ),
+              ],
             ),
           ],
         ),

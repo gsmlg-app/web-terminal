@@ -33,11 +33,11 @@ class PluginTab extends TabItem implements TerminalTabTitleRenamer {
 
   @override
   void didDispose() {
+    plugin.title.removeListener(_updateTitle);
+    manager.removeListener(_onPluginManagerChanged);
     if (plugin.mounted) {
       manager.remove(plugin);
     }
-    plugin.title.removeListener(_updateTitle);
-    manager.removeListener(_onPluginManagerChanged);
     super.didDispose();
   }
 

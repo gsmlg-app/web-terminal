@@ -20,7 +20,12 @@ ShellProfile createTestProfile({
   String fontFamily = 'monospace',
   double fontSize = 14.0,
   String colorTheme = 'default',
+  String workingDirectory = '',
+  String startupCommand = '',
+  int cursorStyle = 0,
+  int scrollbackLines = 10000,
   bool isDefault = false,
+  bool inheritCurrentState = false,
 }) {
   return ShellProfile(
     id: id,
@@ -31,7 +36,12 @@ ShellProfile createTestProfile({
     fontFamily: fontFamily,
     fontSize: fontSize,
     colorTheme: colorTheme,
+    workingDirectory: workingDirectory,
+    startupCommand: startupCommand,
+    cursorStyle: cursorStyle,
+    scrollbackLines: scrollbackLines,
     isDefault: isDefault,
+    inheritCurrentState: inheritCurrentState,
   );
 }
 

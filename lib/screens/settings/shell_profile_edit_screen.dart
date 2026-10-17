@@ -67,14 +67,22 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_initialized && _isEditing) {
-      _loadProfile();
+    if (!_initialized) {
+      if (_isEditing) {
+        _loadProfile();
+      } else {
+        _initialized = true;
+      }
     }
-    _initialized = true;
   }
 
   void _loadProfile() {
-    final state = context.read<ShellProfileBloc>().state;
+    final bloc = context.read<ShellProfileBloc>();
+    final state = bloc.state;
+    if (state is ShellProfileInitial) {
+      bloc.add(const LoadShellProfiles());
+      return;
+    }
     if (state is! ShellProfileLoaded) return;
 
     final profile = state.profiles
@@ -83,6 +91,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
     if (profile == null) return;
 
     _loadedProfile = profile;
+    _initialized = true;
     _nameController.text = profile.name;
     _workingDirController.text = profile.workingDirectory;
     _startupCmdController.text = profile.startupCommand;
@@ -353,6 +362,9 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
   }
 
   void _confirmDelete() {
+    final profile = _loadedProfile;
+    if (profile == null) return;
+
     showAdaptiveDialog(
       context: context,
       builder: (dialogContext) {
@@ -367,7 +379,7 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
             TextButton(
               onPressed: () {
                 context.read<ShellProfileBloc>().add(
-                  DeleteShellProfile(_loadedProfile!),
+                  DeleteShellProfile(profile),
                 );
                 Navigator.of(dialogContext).pop();
                 context.goNamed(ShellProfileScreen.name);
@@ -387,34 +399,41 @@ class _ShellProfileEditScreenState extends State<ShellProfileEditScreen> {
   Widget build(BuildContext context) {
     final title = _isEditing ? 'Edit Profile' : 'New Profile';
 
-    return AppAdaptiveScaffold(
-      selectedIndex: Destinations.indexOf(
-        const Key(SettingsScreen.name),
-        context,
-      ),
-      onSelectedIndexChange: (idx) => Destinations.changeHandler(idx, context),
-      destinations: Destinations.navs(context),
-      body: (context) => SafeArea(
-        child: CustomScrollView(
-          slivers: <Widget>[
-            SliverAppBar(title: Text(title), actions: _getActions()),
-            SliverFillRemaining(child: _buildForm()),
-          ],
+    return BlocListener<ShellProfileBloc, ShellProfileState>(
+      listener: (context, state) {
+        if (!_initialized && _isEditing && state is ShellProfileLoaded) {
+          setState(_loadProfile);
+        }
+      },
+      child: AppAdaptiveScaffold(
+        selectedIndex: Destinations.indexOf(
+          const Key(SettingsScreen.name),
+          context,
         ),
-      ),
-      largeBody: (context) =>
-          const SafeArea(child: RootSettingList(config: rootSettingListConfig)),
-      largeSecondaryBody: (_) => SafeArea(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: <Widget>[
-            SliverAppBar(
-              title: Text(title),
-              automaticallyImplyLeading: false,
-              actions: _getActions(),
-            ),
-            SliverFillRemaining(child: _buildForm()),
-          ],
+        onSelectedIndexChange: (idx) => Destinations.changeHandler(idx, context),
+        destinations: Destinations.navs(context),
+        body: (context) => SafeArea(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(title: Text(title), actions: _getActions()),
+              SliverFillRemaining(child: _buildForm()),
+            ],
+          ),
+        ),
+        largeBody: (context) =>
+            const SafeArea(child: RootSettingList(config: rootSettingListConfig)),
+        largeSecondaryBody: (_) => SafeArea(
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: <Widget>[
+              SliverAppBar(
+                title: Text(title),
+                automaticallyImplyLeading: false,
+                actions: _getActions(),
+              ),
+              SliverFillRemaining(child: _buildForm()),
+            ],
+          ),
         ),
       ),
     );

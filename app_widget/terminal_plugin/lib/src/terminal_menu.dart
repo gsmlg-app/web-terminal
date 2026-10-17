@@ -1,4 +1,5 @@
 import 'package:context_menus/context_menus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -56,6 +57,10 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
 
   @override
   Widget build(BuildContext context) {
+    final isApple = defaultTargetPlatform == TargetPlatform.macOS ||
+        defaultTargetPlatform == TargetPlatform.iOS;
+    final tabsService = context.read<TabsService?>();
+
     return cardBuilder(
       context,
       [
@@ -64,7 +69,7 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
           ContextMenuButtonConfig(
             'Copy',
             icon: const Icon(Icons.copy),
-            shortcutLabel: 'Ctrl+C',
+            shortcutLabel: isApple ? 'Cmd+C' : 'Ctrl+Shift+C',
             onPressed: terminalController.selection != null
                 ? () => handlePressed(context, _handleCopy)
                 : null,
@@ -75,7 +80,7 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
           ContextMenuButtonConfig(
             'Paste',
             icon: const Icon(Icons.paste),
-            shortcutLabel: 'Ctrl+V',
+            shortcutLabel: isApple ? 'Cmd+V' : 'Ctrl+Shift+V',
             onPressed: () => handlePressed(context, _handlePaste),
           ),
         ),
@@ -84,29 +89,30 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
           ContextMenuButtonConfig(
             'Select All',
             icon: const Icon(Icons.select_all),
-            shortcutLabel: 'Ctrl+A',
+            shortcutLabel: isApple ? 'Cmd+A' : 'Ctrl+Shift+A',
             onPressed: () => handlePressed(context, _handleSelectAll),
           ),
         ),
-        buildDivider(),
-        buttonBuilder(
-          context,
-          ContextMenuButtonConfig(
-            'File Manager',
-            icon: const Icon(Icons.folder_open),
-            shortcutLabel: 'Ctrl+Shift+F',
-            onPressed: () => handlePressed(context, _handleOpenFileManager),
+        if (tabsService != null) ...[
+          buildDivider(),
+          buttonBuilder(
+            context,
+            ContextMenuButtonConfig(
+              'File Manager',
+              icon: const Icon(Icons.folder_open),
+              shortcutLabel: 'Ctrl+Shift+F',
+              onPressed: () => handlePressed(context, _handleOpenFileManager),
+            ),
           ),
-        ),
-        buttonBuilder(
-          context,
-          ContextMenuButtonConfig(
-            'Uptime',
-            icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
-            // shortcutLabel: 'Ctrl+Shift+F',
-            onPressed: () => handlePressed(context, _handleStarterPlugin),
+          buttonBuilder(
+            context,
+            ContextMenuButtonConfig(
+              'Uptime',
+              icon: const Icon(Icons.keyboard_double_arrow_up_outlined),
+              onPressed: () => handlePressed(context, _handleStarterPlugin),
+            ),
           ),
-        ),
+        ],
       ],
     );
   }
@@ -140,21 +146,26 @@ class TerminalContextMenuState extends State<TerminalContextMenu>
   }
 
   Future<void> _handleSelectAll() async {
+    if (terminal.buffer.lines.length == 0) return;
     terminalController.setSelection(
-      CellAnchor(0),
-      CellAnchor(terminal.viewWidth),
+      terminal.buffer.createAnchor(0, 0),
+      terminal.buffer.createAnchor(
+        terminal.viewWidth,
+        terminal.buffer.lines.length - 1,
+      ),
+      mode: SelectionMode.line,
     );
   }
 
   Future<void> _handleOpenFileManager() async {
-    context.read<TabsService>().openPlugin(
+    context.read<TabsService?>()?.openPlugin(
           plugin.hostSpec,
           FileManagerPlugin(),
         );
   }
 
   Future<void> _handleStarterPlugin() async {
-    context.read<TabsService>().openPlugin(
+    context.read<TabsService?>()?.openPlugin(
           plugin.hostSpec,
           StarterPlugin(),
         );

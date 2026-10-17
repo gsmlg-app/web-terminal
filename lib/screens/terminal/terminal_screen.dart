@@ -116,6 +116,10 @@ class _TerminalScreenState extends State<TerminalScreen> {
         settingsState is! TerminalSettingsLoaded) {
       return;
     }
+    if (tabState.tabs.children.isNotEmpty) {
+      _initialTabsHandled = true;
+      return;
+    }
     final profileState = context.read<ShellProfileBloc>().state;
     if (settingsState.restoreTerminalTabs &&
         (profileState is ShellProfileInitial ||
@@ -197,6 +201,28 @@ class _TerminalScreenState extends State<TerminalScreen> {
     );
   }
 
+  ShellProfile? _getDefaultShellProfile() {
+    final profileState = context.read<ShellProfileBloc>().state;
+    if (profileState is ShellProfileLoaded) {
+      return profileState.defaultProfile;
+    }
+    return null;
+  }
+
+  TerminalPlugin _createTerminalPlugin([ShellProfile? profile]) {
+    final effectiveProfile = profile ?? _getDefaultShellProfile();
+    return TerminalPlugin(
+      profileFontSize: effectiveProfile?.fontSize ?? 14.0,
+      profileFontFamily: effectiveProfile?.fontFamily ?? 'Source Code Pro',
+      profileCursorType:
+          TerminalCursorType.values[(effectiveProfile?.cursorStyle ?? 0).clamp(
+            0,
+            TerminalCursorType.values.length - 1,
+          )],
+      scrollbackLines: effectiveProfile?.scrollbackLines ?? 10000,
+    );
+  }
+
   void _openLocalShellWithProfile(
     ShellProfile? profile, {
     String? workingDirectoryOverride,
@@ -204,34 +230,31 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }) {
     final inheritedWorkingDirectory =
         workingDirectoryOverride ?? _getInheritedWorkingDirectory(profile);
-    final plugin = TerminalPlugin(
-      profileFontSize: profile?.fontSize ?? 14.0,
-      profileFontFamily: profile?.fontFamily ?? 'Source Code Pro',
-      profileCursorType:
-          TerminalCursorType.values[(profile?.cursorStyle ?? 0).clamp(
-            0,
-            TerminalCursorType.values.length - 1,
-          )],
-      scrollbackLines: profile?.scrollbackLines ?? 10000,
+    final plugin = _createTerminalPlugin(profile);
+    final settingsState = _terminalSettingsBloc.state;
+    final globalEnv = settingsState is TerminalSettingsLoaded
+        ? settingsState.environmentVariables
+        : const <String, String>{};
+    final mergedEnv = <String, String>{
+      ...globalEnv,
+      ...?profile?.parsedEnvironmentVariables,
+    };
+    final initCommands = profile?.generateInitCommands(
+      includeEnvExports: false,
     );
-    HostSpec hostSpec;
-
-    if (profile != null) {
-      hostSpec = createDefaultHostSpec(
-        name: profile.name,
-        environment: profile.parsedEnvironmentVariables,
-        initCommands: profile.generateInitCommands(),
-        workingDirectory:
-            inheritedWorkingDirectory ??
-            (profile.workingDirectory.isNotEmpty
-                ? profile.workingDirectory
-                : null),
-      );
-    } else {
-      hostSpec = createDefaultHostSpec(
-        workingDirectory: inheritedWorkingDirectory,
-      );
-    }
+    final hostSpec = createDefaultHostSpec(
+      name: profile?.name,
+      environment: mergedEnv,
+      initCommands: (initCommands != null && initCommands.trim().isNotEmpty)
+          ? initCommands
+          : null,
+      workingDirectory:
+          inheritedWorkingDirectory ??
+          ((profile?.workingDirectory.isNotEmpty ?? false)
+              ? profile!.workingDirectory
+              : null),
+      shellCommand: profile?.parsedShellType.name,
+    );
 
     final manager = PluginManager(hostSpec);
     final tabItem = PluginTab(plugin, manager, shellProfileId: profile?.id);
@@ -317,7 +340,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
         }
       }
 
-      final plugin = TerminalPlugin();
+      final plugin = _createTerminalPlugin();
       if (!mounted) return;
       final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
@@ -418,26 +441,30 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   Future<bool> _restoreSshSession(int hostId, {required bool activate}) async {
-    final database = context.read<AppDatabase>();
-    final host = await (database.select(
-      database.sshHosts,
-    )..where((t) => t.id.equals(hostId))).getSingleOrNull();
-    if (host == null) return false;
+    try {
+      final database = context.read<AppDatabase>();
+      final host = await (database.select(
+        database.sshHosts,
+      )..where((t) => t.id.equals(hostId))).getSingleOrNull();
+      if (host == null) return false;
 
-    SshKeyData? keyData;
-    final identityType = SshIdentityType.fromValue(host.identityType);
-    if (identityType == SshIdentityType.key) {
-      final keyId = host.identityKeyId;
-      if (keyId == null) return false;
-      keyData = await _loadSshKeyData(keyId);
+      SshKeyData? keyData;
+      final identityType = SshIdentityType.fromValue(host.identityType);
+      if (identityType == SshIdentityType.key) {
+        final keyId = host.identityKeyId;
+        if (keyId == null) return false;
+        keyData = await _loadSshKeyData(keyId);
+      }
+
+      if (!mounted) return false;
+      final plugin = _createTerminalPlugin();
+      final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
+      final tabItem = PluginTab(plugin, manager);
+      _terminalTabBloc.add(TerminalTabOpenTab(tabItem, activate: activate));
+      return true;
+    } catch (_) {
+      return false;
     }
-
-    final plugin = TerminalPlugin();
-    if (!mounted) return false;
-    final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
-    final tabItem = PluginTab(plugin, manager);
-    _terminalTabBloc.add(TerminalTabOpenTab(tabItem, activate: activate));
-    return true;
   }
 
   SSHHostSpec _sshHostSpec(SshHost host, {SshKeyData? keyData}) {
@@ -553,9 +580,33 @@ class _TerminalScreenState extends State<TerminalScreen> {
     });
   }
 
+  void _openNewTabFromActiveSession() {
+    final tabState = _terminalTabBloc.state;
+    final activeTab = tabState is TerminalTabLoaded ? tabState.activeTab : null;
+    if (activeTab is PluginTab && activeTab.manager.hostSpec is SSHHostSpec) {
+      if (!_checkMaxShellsLimit()) return;
+      final sshHostSpec = activeTab.manager.hostSpec as SSHHostSpec;
+      final plugin = _createTerminalPlugin();
+      final tabItem = PluginTab(plugin, activeTab.manager);
+      _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+      _requestTerminalFocus();
+
+      _analytics.trackSessionCreated(
+        SessionType.ssh,
+        metadata: {
+          'host': sshHostSpec.record.hostname ?? 'unknown',
+          'auth_type': sshHostSpec.keyData != null ? 'key' : 'password',
+        },
+      );
+      return;
+    }
+
+    _openLocalShell();
+  }
+
   /// Handles tab management shortcuts at the TerminalView level.
-  /// This runs before the terminal processes the key, so Ctrl+Shift+T etc.
-  /// are intercepted without being sent to the shell.
+  /// This runs before the terminal processes the key, so Ctrl+T, Ctrl+Shift+T,
+  /// Cmd+T, etc. are intercepted without being sent to the shell.
   KeyEventResult _handleTerminalKeyEvent(FocusNode node, KeyEvent event) {
     if (event is! KeyDownEvent) return KeyEventResult.ignored;
 
@@ -566,17 +617,28 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final isApple =
         defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.iOS;
-    final mod = isApple ? meta : ctrl;
 
-    if (!mod) return KeyEventResult.ignored;
-
-    // New tab: Ctrl+Shift+T (Linux/Win) / Cmd+T (macOS)
-    if (key == LogicalKeyboardKey.keyT) {
-      if (isApple || shift) {
-        _openLocalShell();
-        return KeyEventResult.handled;
-      }
+    // New tab: Ctrl+T, Ctrl+Shift+T, or Cmd+T (macOS/iOS)
+    if (key == LogicalKeyboardKey.keyT && (ctrl || (isApple && meta))) {
+      _openNewTabFromActiveSession();
+      return KeyEventResult.handled;
     }
+
+    // Close active tab: Cmd+W (macOS/iOS) or Ctrl+Shift+W (Linux/Win)
+    if (key == LogicalKeyboardKey.keyW &&
+        ((isApple && meta && !shift) || (ctrl && shift))) {
+      final state = _terminalTabBloc.state;
+      if (state is TerminalTabLoaded && state.activeTab != null) {
+        _terminalTabBloc.add(
+          TerminalTabCloseSession(state.activeTab.hashCode.toString()),
+        );
+        _requestTerminalFocus();
+      }
+      return KeyEventResult.handled;
+    }
+
+    final mod = isApple ? meta : ctrl;
+    if (!mod) return KeyEventResult.ignored;
 
     // Tab switcher: Ctrl+Shift+P (Linux/Win) / Cmd+Shift+P (macOS)
     if (key == LogicalKeyboardKey.keyP && shift) {
@@ -724,7 +786,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
           },
         ),
       },
-      child: Focus(autofocus: true, child: widget),
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: _handleTerminalKeyEvent,
+        child: widget,
+      ),
     );
 
     return BlocBuilder<TerminalTabBloc, TerminalTabState>(

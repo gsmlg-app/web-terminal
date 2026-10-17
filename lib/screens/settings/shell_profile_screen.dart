@@ -22,7 +22,11 @@ class ShellProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<ShellProfileBloc>().add(const LoadShellProfiles());
+      if (!context.mounted) return;
+      final bloc = context.read<ShellProfileBloc>();
+      if (bloc.state is ShellProfileInitial) {
+        bloc.add(const LoadShellProfiles());
+      }
     });
 
     return AppAdaptiveScaffold(

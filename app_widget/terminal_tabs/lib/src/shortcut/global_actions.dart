@@ -14,7 +14,7 @@ class GlobalActions extends StatelessWidget {
       actions: {
         NewWindowIntent: CallbackAction<NewWindowIntent>(
           onInvoke: (NewWindowIntent intent) async {
-            await context.read<WindowService>().createWindow();
+            await context.read<WindowService?>()?.createWindow();
             return null;
           },
         ),
