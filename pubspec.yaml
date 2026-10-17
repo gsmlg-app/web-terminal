@@ -160,14 +160,22 @@ dev_dependencies:
   icons_launcher: ^3.1.0
   msix: ^3.18.0
 
-  melos: ^7.8.1
+  melos: ^8.9.0
   mason: ^0.1.3
-  mason_cli: ^0.1.3
+  mason_cli: ^0.1.4
   dependency_validator: ^5.1.0
+
+dependency_overrides:
+  cli_util: ^0.6.0
 
 flutter:
   generate: false
   uses-material-design: true
+  assets:
+    - web/terminal-client/dist/index.html
+    - web/terminal-client/dist/app.js
+    - web/terminal-client/dist/app.css
+    - web/terminal-client/dist/styles.css
 
 # generate icon with `dart run flutter_launcher_icons:main``
 flutter_launcher_icons:
@@ -199,8 +207,8 @@ melos:
         - melos run build-runner
 
     build-runner:
-      run: dart run build_runner build
       exec:
+        command: dart run build_runner build
         orderDependents: true
       packageFilters:
         dependsOn: build_runner
@@ -213,8 +221,8 @@ melos:
         - melos run analyze:flutter
 
     analyze:dart:
-      run: dart analyze --fatal-warnings
       exec:
+        command: dart analyze --fatal-warnings
         concurrency: 1
         orderDependents: true
       packageFilters:
@@ -222,8 +230,8 @@ melos:
       description: Run `dart analyze` for non-Flutter packages.
 
     analyze:flutter:
-      run: flutter analyze --fatal-warnings
       exec:
+        command: flutter analyze --fatal-warnings
         concurrency: 1
         orderDependents: true
       packageFilters:
@@ -231,38 +239,38 @@ melos:
       description: Run `flutter analyze` for Flutter packages.
 
     fix:
-      run: dart fix . --apply
       exec:
+        command: dart fix . --apply
         orderDependents: true
       description: Run `dart fix` for all packages.
 
     fix-dry-run:
-      run: dart fix . --dry-run
       exec:
+        command: dart fix . --dry-run
         orderDependents: true
       description: Run `dart fix` in dry-run mode for all packages.
 
     format:
-      run: dart format .
       exec:
+        command: dart format .
         orderDependents: true
       description: Run `dart format` for all packages.
 
     format-check:
-      run: dart format . --set-exit-if-changed
       exec:
+        command: dart format . --set-exit-if-changed
         orderDependents: true
       description: Run `dart format` checks for all packages.
 
     upgrade:
-      run: dart pub upgrade --major-versions
       exec:
+        command: dart pub upgrade --major-versions
         orderDependents: true
       description: Run `flutter pub upgrade` update dependencies in all packages.
 
     outdated:
-      run: dart pub outdated
       exec:
+        command: dart pub outdated
         orderDependents: true
       description: Run `flutter pub outdated` check outdated dependencies in all packages.
 
@@ -271,33 +279,32 @@ melos:
       description: Run `dart run dependency_validator` check dependencies usage.
 
     test:
-      run: melos exec --order-dependents --fail-fast flutter test || true
       description: Run Flutter tests for all packages (ignores packages without tests).
       steps:
         - melos run test:dart
         - melos run test:flutter
 
     test:dart:
-      run: dart test
       exec:
+        command: dart test
         orderDependents: true
-        fail-fast: true
+        failFast: true
       packageFilters:
         flutter: false
         dirExists: test
 
     test:flutter:
-      run: flutter test
       exec:
+        command: flutter test
         orderDependents: true
-        fail-fast: true
+        failFast: true
       packageFilters:
         flutter: true
         dirExists: test
 
     gen-l10n:
-      run: flutter gen-l10n
       exec:
+        command: flutter gen-l10n
         orderDependents: true
       packageFilters:
         flutter: true
