@@ -35,7 +35,13 @@ class PtySession {
   void _setupListeners() {
     // Listen to output stream
     _outputSubscription = executionSession.output.listen(
-      (data) => onOutput(id, data),
+      (data) {
+        try {
+          onOutput(id, data);
+        } finally {
+          executionSession.ackRead();
+        }
+      },
       onError: (error) {
         // Log error but continue
       },

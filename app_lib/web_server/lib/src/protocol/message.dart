@@ -16,6 +16,35 @@ sealed class WsMessage {
 // Session Status Messages
 // ============================================================================
 
+/// Existing PTY state replayed when a browser reconnects.
+class PtySnapshot {
+  final String id;
+  final int cols;
+  final int rows;
+  final String data;
+
+  const PtySnapshot({
+    required this.id,
+    required this.cols,
+    required this.rows,
+    required this.data,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'cols': cols,
+        'rows': rows,
+        'data': data,
+      };
+
+  factory PtySnapshot.fromJson(Map<String, dynamic> json) => PtySnapshot(
+        id: json['id'] as String,
+        cols: json['cols'] as int,
+        rows: json['rows'] as int,
+        data: json['data'] as String,
+      );
+}
+
 /// Server notifies client about session status.
 class SessionStatus extends WsMessage {
   @override
@@ -25,11 +54,13 @@ class SessionStatus extends WsMessage {
   final String status;
   final String? message;
   final String? approvalCode;
+  final List<PtySnapshot>? ptys;
 
   const SessionStatus({
     required this.status,
     this.message,
     this.approvalCode,
+    this.ptys,
   });
 
   @override
@@ -38,12 +69,16 @@ class SessionStatus extends WsMessage {
         'status': status,
         if (message != null) 'message': message,
         if (approvalCode != null) 'approvalCode': approvalCode,
+        if (ptys != null) 'ptys': ptys!.map((pty) => pty.toJson()).toList(),
       };
 
   factory SessionStatus.fromJson(Map<String, dynamic> json) => SessionStatus(
         status: json['status'] as String,
         message: json['message'] as String?,
         approvalCode: json['approvalCode'] as String?,
+        ptys: (json['ptys'] as List?)
+            ?.map((pty) => PtySnapshot.fromJson(pty as Map<String, dynamic>))
+            .toList(),
       );
 }
 

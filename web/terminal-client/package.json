@@ -4,6 +4,8 @@
   "description": "Web terminal client using xterm.js",
   "private": true,
   "scripts": {
+    "test": "node --test test/*.test.cjs",
+    "check": "tsc --noEmit",
     "build": "esbuild src/app.ts --bundle --outfile=dist/app.js --minify --sourcemap",
     "dev": "esbuild src/app.ts --bundle --outfile=dist/app.js --sourcemap --watch"
   },

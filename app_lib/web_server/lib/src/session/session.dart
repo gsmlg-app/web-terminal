@@ -72,6 +72,10 @@ class WebSession {
 
   /// Host instance for creating PTY sessions.
   Host? _host;
+  bool _wasApproved = false;
+  bool _closed = false;
+  Future<void>? _closeFuture;
+  final _pendingPtys = <String, Future<PtySession>>{};
 
   WebSession({
     required this.id,
@@ -97,8 +101,10 @@ class WebSession {
 
   /// Whether the session is approved (can connect WebSocket).
   bool get isApproved =>
-      status == WebSessionStatus.approved ||
-      status == WebSessionStatus.connected;
+      !_closed &&
+      (status == WebSessionStatus.approved ||
+          status == WebSessionStatus.connected ||
+          (status == WebSessionStatus.disconnected && _wasApproved));
 
   /// Whether the session is pending approval.
   bool get isPending => status == WebSessionStatus.pending;
@@ -166,19 +172,22 @@ class WebSession {
 
   /// Attach a WebSocket channel to this session.
   void attach(WebSocketChannel channel) {
-    _channel = channel;
-    if (status == WebSessionStatus.approved) {
+    if (_closed) return;
+    if (isApproved) {
+      _wasApproved = true;
       status = WebSessionStatus.connected;
     }
+    _channel = channel;
   }
 
   /// Detach the WebSocket channel.
-  void detach() {
+  void detach({bool preservePtys = false}) {
     _channel = null;
     if (status == WebSessionStatus.connected) {
+      _wasApproved = true;
       status = WebSessionStatus.disconnected;
     }
-    closeAllPtys();
+    if (!preservePtys) unawaited(closeAllPtys());
   }
 
   /// Initialize the host for PTY sessions.
@@ -192,30 +201,53 @@ class WebSession {
     required int cols,
     required int rows,
     Map<String, String>? environment,
-  }) async {
-    if (_host == null) {
-      await initializeHost();
+  }) {
+    final existing = ptySessions[ptyId];
+    if (existing != null) return Future.value(existing);
+    return _pendingPtys.putIfAbsent(
+      ptyId,
+      () => _createPty(ptyId, cols, rows, environment),
+    );
+  }
+
+  Future<PtySession> _createPty(
+    String ptyId,
+    int cols,
+    int rows,
+    Map<String, String>? environment,
+  ) async {
+    try {
+      if (_closed) throw StateError('Session is closed');
+      if (_host == null) {
+        await initializeHost();
+      }
+
+      final executionSession = await _host!.shell(
+        width: cols,
+        height: rows,
+        environment: environment,
+      );
+      if (_closed) {
+        await executionSession.close();
+        throw StateError('Session is closed');
+      }
+
+      final ptySession = PtySession(
+        id: ptyId,
+        executionSession: executionSession,
+        onOutput: _onPtyOutput,
+        onExit: _onPtyExit,
+      );
+
+      ptySessions[ptyId] = ptySession;
+      ptySizes[ptyId] = PtySize(cols: cols, rows: rows);
+      ptyBuffers[ptyId] = '';
+      _eventController.add(WsPtyCreatedEvent(ptyId));
+
+      return ptySession;
+    } finally {
+      _pendingPtys.remove(ptyId);
     }
-
-    final executionSession = await _host!.shell(
-      width: cols,
-      height: rows,
-      environment: environment,
-    );
-
-    final ptySession = PtySession(
-      id: ptyId,
-      executionSession: executionSession,
-      onOutput: _onPtyOutput,
-      onExit: _onPtyExit,
-    );
-
-    ptySessions[ptyId] = ptySession;
-    ptySizes[ptyId] = PtySize(cols: cols, rows: rows);
-    ptyBuffers[ptyId] = '';
-    _eventController.add(WsPtyCreatedEvent(ptyId));
-
-    return ptySession;
   }
 
   /// Close a specific PTY session.
@@ -230,13 +262,12 @@ class WebSession {
   }
 
   /// Close all PTY sessions.
-  void closeAllPtys() {
-    for (final pty in ptySessions.values) {
-      pty.close();
-    }
+  Future<void> closeAllPtys() async {
+    final ptys = ptySessions.values.toList();
     ptySessions.clear();
     ptySizes.clear();
     ptyBuffers.clear();
+    await Future.wait(ptys.map((pty) => pty.close()));
   }
 
   /// Update PTY size and notify listeners.
@@ -270,21 +301,29 @@ class WebSession {
 
   /// Handle PTY output data.
   void _onPtyOutput(String ptyId, Uint8List data) {
+    if (_closed) return;
     appendPtyBuffer(ptyId, String.fromCharCodes(data));
     _eventController.add(WsPtyOutputEvent(ptyId, data));
   }
 
   /// Handle PTY exit.
   void _onPtyExit(String ptyId, int exitCode) {
+    if (_closed) return;
     ptySessions.remove(ptyId);
     ptySizes.remove(ptyId);
     _eventController.add(WsPtyClosedEvent(ptyId, exitCode));
   }
 
   /// Close the session and cleanup.
-  Future<void> close() async {
-    closeAllPtys();
-    await _channel?.sink.close();
+  Future<void> close() => _closeFuture ??= _close();
+
+  Future<void> _close() async {
+    _closed = true;
+    _wasApproved = false;
+    final channel = _channel;
+    _channel = null;
+    await closeAllPtys();
+    await channel?.sink.close();
     await _eventController.close();
     _host = null;
   }

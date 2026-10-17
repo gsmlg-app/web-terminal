@@ -24,7 +24,7 @@ import { TerminalManager } from './terminal-manager';
 interface SessionData {
   id: string;
   approvalCode: string;
-  status: 'pending' | 'approved' | 'connected' | 'rejected' | 'expired';
+  status: 'pending' | 'approved' | 'connected' | 'rejected' | 'expired' | 'disconnected';
 }
 
 declare global {
@@ -116,6 +116,7 @@ class TerminalApp {
         break;
       case 'approved':
       case 'connected':
+      case 'disconnected':
         this.stopStatusPolling();
         this.state = 'connecting';
         this.setStatus('Connecting...');
@@ -163,12 +164,19 @@ class TerminalApp {
 
       onClose: (code, reason) => {
         console.log(`WebSocket closed: ${code} ${reason}`);
-        if (this.state === 'connected') {
+        if (code === 4001) {
+          this.state = 'error';
+          this.showError(reason);
+          return;
+        }
+        if (this.state === 'connected' || this.state === 'connecting' ||
+            this.state === 'disconnected') {
           this.state = 'disconnected';
           this.showError('Connection lost. Reconnecting...');
           // Try to reconnect after 3 seconds
           setTimeout(() => {
             if (this.state === 'disconnected') {
+              this.state = 'connecting';
               this.wsClient.connect();
             }
           }, 3000);
@@ -218,6 +226,7 @@ class TerminalApp {
         this.state = 'connected';
         this.clearError();
         this.showScreen('terminal');
+        if (status.ptys) this.terminalManager?.syncPtys(status.ptys);
         // Create first terminal tab if none exist
         if (this.terminalManager?.getTabCount() === 0) {
           this.terminalManager.createTab();
@@ -257,6 +266,10 @@ class TerminalApp {
 
   private handleError(error: ErrorMessage): void {
     console.error('Server error:', error.code, error.message);
+    if (error.code === 'no_session' || error.code === 'invalid_session') {
+      this.state = 'error';
+      this.wsClient.disconnect();
+    }
     this.showError(error.message);
   }
 

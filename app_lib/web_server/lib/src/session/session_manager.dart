@@ -126,8 +126,8 @@ class SessionManager {
     String? userAgent,
   }) {
     if (existingSessionId != null) {
-      final session = _sessions[existingSessionId];
-      if (session != null && !_isExpired(session)) {
+      final session = getSession(existingSessionId);
+      if (session != null) {
         return session;
       }
     }
@@ -150,7 +150,7 @@ class SessionManager {
 
   /// Approve a pending session by its session ID.
   bool approveSession(String sessionId) {
-    final session = _sessions[sessionId];
+    final session = getSession(sessionId);
     if (session != null && session.status == WebSessionStatus.pending) {
       session.status = WebSessionStatus.approved;
       _eventController.add(SessionApprovedEvent(session));
@@ -214,7 +214,15 @@ class SessionManager {
   }
 
   /// Get a session by ID.
-  WebSession? getSession(String sessionId) => _sessions[sessionId];
+  WebSession? getSession(String sessionId) {
+    final session = _sessions[sessionId];
+    if (session != null && _isExpired(session)) {
+      session.status = WebSessionStatus.expired;
+      _removeSession(session);
+      return null;
+    }
+    return session;
+  }
 
   /// Get a session by approval code.
   WebSession? getSessionByApprovalCode(String approvalCode) {

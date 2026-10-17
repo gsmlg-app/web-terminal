@@ -7,7 +7,7 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import { WebLinksAddon } from '@xterm/addon-web-links';
 import { WebglAddon } from '@xterm/addon-webgl';
-import { WsClient } from './ws-client';
+import { PtySnapshot, WsClient } from './ws-client';
 
 export interface TerminalTab {
   id: string;
@@ -16,6 +16,7 @@ export interface TerminalTab {
   element: HTMLElement;
   title: string;
   buffer: string;
+  decoder: TextDecoder;
 }
 
 const maxBufferSize = 100000;
@@ -41,8 +42,12 @@ export class TerminalManager {
     window.addEventListener('resize', () => this.handleResize());
   }
 
-  createTab(ptyId?: string): string {
+  createTab(ptyId?: string, requestPty = true): string {
     const id = ptyId || `pty-${++this.tabCounter}`;
+    const restoredCounter = /^pty-(\d+)$/.exec(id);
+    if (restoredCounter) {
+      this.tabCounter = Math.max(this.tabCounter, Number(restoredCounter[1]));
+    }
     const title = `Terminal ${this.tabCounter}`;
 
     // Create terminal element
@@ -117,6 +122,7 @@ export class TerminalManager {
       element,
       title,
       buffer: '',
+      decoder: new TextDecoder(),
     };
     this.tabs.set(id, tab);
 
@@ -124,7 +130,9 @@ export class TerminalManager {
     const dims = fitAddon.proposeDimensions();
     const cols = dims?.cols ?? 80;
     const rows = dims?.rows ?? 24;
-    this.wsClient.createPty(id, cols, rows);
+    if (requestPty) {
+      this.wsClient.createPty(id, cols, rows);
+    }
 
     // Activate this tab
     this.activateTab(id);
@@ -188,12 +196,14 @@ export class TerminalManager {
     }, 0);
   }
 
-  closeTab(id: string): void {
+  closeTab(id: string, notifyServer = true): void {
     const tab = this.tabs.get(id);
     if (!tab) return;
 
     // Close PTY on server
-    this.wsClient.closePty(id);
+    if (notifyServer) {
+      this.wsClient.closePty(id);
+    }
 
     // Clean up
     tab.terminal.dispose();
@@ -214,11 +224,28 @@ export class TerminalManager {
   writeToTerminal(ptyId: string, data: Uint8Array): void {
     const tab = this.tabs.get(ptyId);
     if (tab) {
-      const decoder = new TextDecoder();
-      const decoded = decoder.decode(data);
+      const decoded = tab.decoder.decode(data, { stream: true });
       tab.terminal.write(decoded);
       tab.buffer = this.appendToBuffer(tab.buffer, decoded);
     }
+  }
+
+  syncPtys(ptys: PtySnapshot[]): void {
+    const ids = new Set(ptys.map((pty) => pty.id));
+    const activeTabId = this.activeTabId;
+    for (const id of this.tabs.keys()) {
+      if (!ids.has(id)) this.closeTab(id, false);
+    }
+    for (const pty of ptys) {
+      if (!this.tabs.has(pty.id)) this.createTab(pty.id, false);
+      const tab = this.tabs.get(pty.id)!;
+      tab.terminal.reset();
+      tab.terminal.resize(pty.cols, pty.rows);
+      tab.buffer = '';
+      tab.decoder = new TextDecoder();
+      this.writeToTerminal(pty.id, Uint8Array.from(atob(pty.data), (c) => c.charCodeAt(0)));
+    }
+    if (activeTabId && this.tabs.has(activeTabId)) this.activateTab(activeTabId);
   }
 
   handlePtyCreated(ptyId: string, success: boolean, message?: string): void {

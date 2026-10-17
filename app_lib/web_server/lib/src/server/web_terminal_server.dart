@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -34,6 +35,8 @@ class WebTerminalServer {
 
   HttpServer? _server;
   final _connections = <String, _WebSocketConnection>{};
+  StreamSubscription<SessionManagerEvent>? _sessionSubscription;
+  Future<void>? _stopFuture;
 
   WebTerminalServer({
     required this.config,
@@ -454,16 +457,27 @@ class WebTerminalServer {
   }
 
   /// Stop the server.
-  Future<void> stop() async {
-    // Close all WebSocket connections
-    for (final conn in _connections.values) {
-      await conn.close();
-    }
-    _connections.clear();
+  Future<void> stop() => _stopFuture ??= _stop();
 
-    // Close server
-    await _server?.close();
-    _server = null;
+  Future<void> _stop() async {
+    try {
+      final server = _server;
+      _server = null;
+      await server?.close(force: true);
+      // Close all WebSocket connections
+      final connections = _connections.values.toList();
+      await Future.wait(connections.map((conn) => conn.close()));
+      _connections.clear();
+      final sessions = sessionManager.sessions;
+      for (final session in sessions) {
+        sessionManager.disconnectSession(session.id);
+      }
+      await Future.wait(sessions.map((session) => session.close()));
+      await _sessionSubscription?.cancel();
+      _sessionSubscription = null;
+    } finally {
+      _stopFuture = null;
+    }
   }
 
   /// CORS middleware.
@@ -498,6 +512,7 @@ class WebTerminalServer {
   /// WebSocket handler.
   Handler _webSocketHandler() {
     return (Request request) {
+      if (_stopFuture != null) return Response(503);
       // Get session ID from cookie
       final sessionId = _getSessionIdFromCookie(request);
 
@@ -519,7 +534,7 @@ class WebTerminalServer {
 
   /// Subscribe to session manager events.
   void _subscribeToSessionEvents() {
-    sessionManager.events.listen((event) {
+    _sessionSubscription = sessionManager.events.listen((event) {
       switch (event) {
         case SessionApprovedEvent(:final session):
           _notifySessionApproved(session);
@@ -536,10 +551,7 @@ class WebTerminalServer {
     final conn = _connections[session.id];
     if (conn != null) {
       sessionManager.markConnected(session.id);
-      conn.sendMessage(const SessionStatus(
-        status: 'approved',
-        message: 'Session approved',
-      ));
+      conn._sendConnectedStatus();
     }
   }
 
@@ -557,12 +569,21 @@ class WebTerminalServer {
 
   /// Register a connection.
   void _registerConnection(String sessionId, _WebSocketConnection conn) {
+    final previous = _connections[sessionId];
     _connections[sessionId] = conn;
+    if (previous != null) {
+      unawaited(previous.close(
+        code: 4001,
+        reason: 'Session opened in another tab',
+      ));
+    }
   }
 
   /// Unregister a connection.
-  void _unregisterConnection(String sessionId) {
+  bool _unregisterConnection(String sessionId, _WebSocketConnection conn) {
+    if (_connections[sessionId] != conn) return false;
     _connections.remove(sessionId);
+    return true;
   }
 }
 
@@ -576,6 +597,8 @@ class _WebSocketConnection {
   StreamSubscription? _channelSubscription;
   StreamSubscription? _sessionEventSubscription;
   Timer? _pingTimer;
+  Future<void>? _closeFuture;
+  bool _closed = false;
 
   _WebSocketConnection({
     required this.channel,
@@ -624,10 +647,7 @@ class _WebSocketConnection {
     // Send current status
     if (session.isApproved) {
       sessionManager.markConnected(session.id);
-      sendMessage(const SessionStatus(
-        status: 'connected',
-        message: 'Session connected',
-      ));
+      _sendConnectedStatus();
     } else if (session.isPending) {
       sendMessage(SessionStatus(
         status: 'pending',
@@ -645,6 +665,7 @@ class _WebSocketConnection {
 
   /// Handle incoming message.
   void _onMessage(dynamic data) {
+    if (_closed) return;
     if (data is String) {
       _recordIncomingBytes(data.length);
       _handleJsonMessage(data);
@@ -704,7 +725,8 @@ class _WebSocketConnection {
     int rows,
     Map<String, String>? env,
   ) async {
-    if (_session == null || _session!.status != WebSessionStatus.connected) {
+    final session = _session;
+    if (session == null || session.status != WebSessionStatus.connected) {
       sendMessage(CreatePtyResponse(
         ptyId: ptyId,
         success: false,
@@ -713,7 +735,11 @@ class _WebSocketConnection {
       return;
     }
 
-    if (_session!.ptyCount >= server.config.maxPtySessions) {
+    if (session.ptySessions.containsKey(ptyId)) {
+      sendMessage(CreatePtyResponse(ptyId: ptyId, success: true));
+      return;
+    }
+    if (session.ptyCount >= server.config.maxPtySessions) {
       sendMessage(CreatePtyResponse(
         ptyId: ptyId,
         success: false,
@@ -723,14 +749,14 @@ class _WebSocketConnection {
     }
 
     try {
-      await _session!.createPty(
+      await session.createPty(
         ptyId: ptyId,
         cols: cols,
         rows: rows,
         environment: env,
       );
       sendMessage(CreatePtyResponse(ptyId: ptyId, success: true));
-      _session!.updatePtySize(ptyId, cols, rows);
+      session.updatePtySize(ptyId, cols, rows);
       _notifySessionUpdated();
     } catch (e) {
       sendMessage(CreatePtyResponse(
@@ -750,14 +776,16 @@ class _WebSocketConnection {
 
   /// Handle PTY resize request.
   void _handleResizePty(String ptyId, int cols, int rows) async {
-    if (_session == null) return;
-    final pty = _session!.ptySessions[ptyId];
+    final session = _session;
+    if (session == null) return;
+    final pty = session.ptySessions[ptyId];
     await pty?.resize(cols, rows);
-    _session!.updatePtySize(ptyId, cols, rows);
+    session.updatePtySize(ptyId, cols, rows);
   }
 
   /// Handle session events.
   void _onSessionEvent(WsSessionInternalEvent event) {
+    if (_closed) return;
     switch (event) {
       case WsPtyCreatedEvent():
         _notifySessionUpdated();
@@ -825,6 +853,7 @@ class _WebSocketConnection {
 
   /// Send a JSON message.
   void sendMessage(WsMessage message) {
+    if (_closed) return;
     final payload = message.toJsonString();
     _recordOutgoingBytes(payload.length);
     channel.sink.add(payload);
@@ -840,20 +869,48 @@ class _WebSocketConnection {
     close();
   }
 
+  /// Replay retained PTYs when an approved session reconnects.
+  void _sendConnectedStatus() {
+    final session = _session;
+    if (session == null || !session.isApproved) return;
+    sendMessage(SessionStatus(
+      status: 'connected',
+      message: 'Session connected',
+      ptys: session.ptySessions.keys.map((id) {
+        final size = session.ptySizes[id];
+        final bytes = session.getPtyBuffer(id).codeUnits;
+        var start = 0;
+        while (start < bytes.length && (bytes[start] & 0xc0) == 0x80) {
+          start++;
+        }
+        return PtySnapshot(
+          id: id,
+          cols: size?.cols ?? 80,
+          rows: size?.rows ?? 24,
+          data: base64Encode(bytes.sublist(start)),
+        );
+      }).toList(),
+    ));
+  }
+
   /// Close the connection.
-  Future<void> close() async {
+  Future<void> close({int? code, String? reason}) =>
+      _closeFuture ??= _close(code, reason);
+
+  Future<void> _close(int? code, String? reason) async {
+    _closed = true;
     _stopPing();
+    final session = _session;
+    _session = null;
     await _channelSubscription?.cancel();
     await _sessionEventSubscription?.cancel();
 
-    if (_session != null) {
-      server._unregisterConnection(_session!.id);
-      _session!.detach();
-      sessionManager.markDisconnected(_session!.id);
-      // Don't disconnect the session - it can reconnect
-      _session = null;
+    if (session != null && server._unregisterConnection(session.id, this)) {
+      final approved = session.isApproved;
+      session.detach(preservePtys: approved);
+      if (approved) sessionManager.markDisconnected(session.id);
     }
 
-    await channel.sink.close();
+    await channel.sink.close(code, reason);
   }
 }

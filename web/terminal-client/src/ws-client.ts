@@ -23,9 +23,17 @@ export interface WsMessage {
 
 export interface SessionStatusMessage extends WsMessage {
   type: 'session_status';
-  status: 'pending' | 'approved' | 'connected' | 'rejected' | 'expired';
+  status: 'pending' | 'approved' | 'connected' | 'rejected' | 'expired' | 'disconnected';
   message?: string;
   approvalCode?: string;
+  ptys?: PtySnapshot[];
+}
+
+export interface PtySnapshot {
+  id: string;
+  cols: number;
+  rows: number;
+  data: string;
 }
 
 export interface PingMessage extends WsMessage {
@@ -80,28 +88,35 @@ export class WsClient {
   }
 
   connect(): void {
-    if (this.ws?.readyState === WebSocket.OPEN) {
+    if (this.ws?.readyState === WebSocket.OPEN ||
+        this.ws?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
-    this.ws = new WebSocket(this.url);
-    this.ws.binaryType = 'arraybuffer';
+    const socket = new WebSocket(this.url);
+    this.ws = socket;
+    socket.binaryType = 'arraybuffer';
 
-    this.ws.onopen = () => {
+    socket.onopen = () => {
+      if (this.ws !== socket) return;
       this.startPing();
       this.handlers.onOpen?.();
     };
 
-    this.ws.onclose = (event) => {
+    socket.onclose = (event) => {
+      if (this.ws !== socket) return;
+      this.ws = null;
       this.stopPing();
       this.handlers.onClose?.(event.code, event.reason);
     };
 
-    this.ws.onerror = (error) => {
+    socket.onerror = (error) => {
+      if (this.ws !== socket) return;
       this.handlers.onError?.(error);
     };
 
-    this.ws.onmessage = (event) => {
+    socket.onmessage = (event) => {
+      if (this.ws !== socket) return;
       if (event.data instanceof ArrayBuffer) {
         // Binary frame: terminal data
         const frame = new Uint8Array(event.data);
