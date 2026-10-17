@@ -105,5 +105,8 @@
             }
         }
     },
+    "sshHostKeyTitle": "信任 SSH 主机密钥？",
+    "sshHostKeyTrust": "信任并连接",
+    "sshHostKeyPrompt": "尚未信任 {hostname}:{port} 的身份。\n\n{type}\n{fingerprint}\n\n请先与服务器管理员核对指纹，再确认信任。",
     "@@description": "Ansible Semaphore 客户端工具"
 }

@@ -48,5 +48,25 @@
     "undo": "Undo",
     "success": "Success",
     "error": "Error",
+    "sshHostKeyTitle": "Trust SSH host key?",
+    "sshHostKeyTrust": "Trust and connect",
+    "sshHostKeyPrompt": "The identity of {hostname}:{port} is not yet trusted.\n\n{type}\n{fingerprint}\n\nCompare this fingerprint with the server administrator before trusting it.",
+    "@sshHostKeyPrompt": {
+        "description": "First connection requires explicitly accepting the server host key.",
+        "placeholders": {
+            "hostname": {
+                "type": "String"
+            },
+            "port": {
+                "type": "int"
+            },
+            "type": {
+                "type": "String"
+            },
+            "fingerprint": {
+                "type": "String"
+            }
+        }
+    },
     "@@description": "Web Terminal Client Tools"
 }

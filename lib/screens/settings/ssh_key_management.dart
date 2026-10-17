@@ -10,6 +10,8 @@ import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_settings/terminal_settings.dart';
 import 'package:web_terminal/destinations.dart';
 import 'package:app_locale/app_locale.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
+import 'package:app_security/app_security.dart';
 
 class SettingsSSHKey extends StatefulWidget {
   static const name = SettingsScreenNames.sshKeyManagement;
@@ -158,43 +160,47 @@ class _SettingsSSHKeyState extends State<SettingsSSHKey> {
                       actions: [
                         BottomSheetAction(
                           title: Text(context.l10n.showPublicKey),
-                          onTap: () {
+                          onTap: () async {
+                            String content;
+                            try {
+                              final pem = await context
+                                  .read<SshCredentialRepository>()
+                                  .readPrivateKey(sshKey);
+                              content = RsaKeyHelper().getSshPublicKey(pem);
+                            } catch (error) {
+                              content = error.toString();
+                            }
+                            if (!context.mounted) return;
                             showAdaptiveDialog(
-                                context: context,
-                                builder: (_) {
-                                  String content = '';
-                                  try {
-                                    content = sshKey.getPublicKeyPem();
-                                  } catch (e) {
-                                    content = e.toString();
-                                  }
-                                  return AlertDialog.adaptive(
-                                    title: Text(context.l10n.publicKey),
-                                    content: SingleChildScrollView(
-                                      child: SelectionArea(
-                                        child: Text(content),
-                                      ),
+                              context: context,
+                              builder: (_) {
+                                return AlertDialog.adaptive(
+                                  title: Text(context.l10n.publicKey),
+                                  content: SingleChildScrollView(
+                                    child: SelectionArea(child: Text(content)),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(context).pop();
+                                      },
+                                      child: Text(context.l10n.close),
                                     ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
+                                    TextButton(
+                                      onPressed: () async {
+                                        await Clipboard.setData(
+                                          ClipboardData(text: content),
+                                        );
+                                        if (context.mounted) {
                                           Navigator.of(context).pop();
-                                        },
-                                        child: Text(context.l10n.close),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          await Clipboard.setData(
-                                              ClipboardData(text: content));
-                                          if (context.mounted) {
-                                            Navigator.of(context).pop();
-                                          }
-                                        },
-                                        child: Text(context.l10n.copy),
-                                      ),
-                                    ],
-                                  );
-                                });
+                                        }
+                                      },
+                                      child: Text(context.l10n.copy),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                         ),
                         BottomSheetAction(

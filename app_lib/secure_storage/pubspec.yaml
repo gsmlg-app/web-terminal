@@ -11,6 +11,9 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_secure_storage: ^10.3.4
+  app_database: any
+  app_security: any
+  drift: ^2.35.2
 
 dev_dependencies:
   flutter_test:

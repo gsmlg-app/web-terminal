@@ -12,6 +12,7 @@ class SshKeyLoad extends SshKeyEvent {
 }
 
 class SshKeyAdd extends SshKeyEvent {
+  final Completer<void>? completion;
   final String? name;
   final String? content;
   final String? password;
@@ -19,6 +20,7 @@ class SshKeyAdd extends SshKeyEvent {
   final int? algorithm;
 
   const SshKeyAdd({
+    this.completion,
     this.name,
     this.content,
     this.password,

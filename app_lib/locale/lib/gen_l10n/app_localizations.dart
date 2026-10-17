@@ -407,6 +407,25 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error'**
   String get error;
+
+  /// No description provided for @sshHostKeyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust SSH host key?'**
+  String get sshHostKeyTitle;
+
+  /// No description provided for @sshHostKeyTrust.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust and connect'**
+  String get sshHostKeyTrust;
+
+  /// First connection requires explicitly accepting the server host key.
+  ///
+  /// In en, this message translates to:
+  /// **'The identity of {hostname}:{port} is not yet trusted.\n\n{type}\n{fingerprint}\n\nCompare this fingerprint with the server administrator before trusting it.'**
+  String sshHostKeyPrompt(
+      String hostname, int port, String type, String fingerprint);
 }
 
 class _AppLocalizationsDelegate

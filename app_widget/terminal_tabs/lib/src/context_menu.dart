@@ -1,16 +1,17 @@
 import 'package:app_database/app_database.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:context_menus/context_menus.dart';
 import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
-import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_plugin/terminal_plugin.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_tabs/src/plugin_tab.dart';
+import 'package:terminal_tabs/src/ssh_host_key_dialog.dart';
 import 'package:xterm/xterm.dart' show TerminalCursorType;
 
 class DropdownContextMenu extends StatefulWidget {
@@ -88,13 +89,20 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
     final terminalBloc = context.read<TerminalTabBloc>();
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final theme = Theme.of(context);
+    final credentials = context.read<SshCredentialRepository>();
+    final hostKeys = context.read<SshHostKeyStore>();
+    final navigator = Navigator.of(context, rootNavigator: true);
 
     // Load SSH key if using key authentication
     SshKeyData? keyData;
     final identityType = SshIdentityType.fromValue(host.identityType);
     if (identityType == SshIdentityType.key && host.identityKeyId != null) {
       try {
-        keyData = await _loadSshKeyDataWithDb(database, host.identityKeyId!);
+        keyData = await _loadSshKeyDataWithDb(
+          database,
+          host.identityKeyId!,
+          credentials,
+        );
       } catch (e) {
         scaffoldMessenger.showSnackBar(
           SnackBar(
@@ -110,7 +118,22 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
 
     handlePressed(context, () {
       final plugin = TerminalPlugin();
-      final manager = PluginManager(SSHHostSpec(host, keyData: keyData));
+      final manager = PluginManager(
+        SSHHostSpec(
+          host,
+          keyData: keyData,
+          passwordProvider: () => credentials.readHostPassword(host),
+          verifyHostKey: (type, fingerprint) => hostKeys.verify(
+            host.hostname!,
+            host.port!,
+            type,
+            fingerprint,
+            onFirstUse: (key) => navigator.mounted
+                ? showSshHostKeyConfirmation(navigator.context, key)
+                : Future.value(false),
+          ),
+        ),
+      );
       final tabItem = PluginTab(plugin, manager);
       terminalBloc.add(TerminalTabOpenTab(tabItem));
     });
@@ -120,6 +143,7 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
   Future<SshKeyData> _loadSshKeyDataWithDb(
     AppDatabase database,
     int keyId,
+    SshCredentialRepository credentials,
   ) async {
     final key = await (database.select(
       database.sshKeys,
@@ -129,13 +153,9 @@ class DropdownContextMenuState extends State<DropdownContextMenu>
       throw Exception('SSH key not found');
     }
 
-    // Use the extension method to decrypt the key content
-    final pemContent = key.getPrivateKeyPem();
-
     return SshKeyData(
-      content: pemContent,
-      passphrase:
-          key.password, // SSH key passphrase (null for unencrypted keys)
+      content: await credentials.readPrivateKey(key),
+      passphrase: await credentials.readKeyPassphrase(key),
     );
   }
 

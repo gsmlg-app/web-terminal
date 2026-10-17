@@ -18,6 +18,7 @@ export 'src/ios_spec.dart';
 export 'src/ssh_conn.dart';
 export 'src/ssh_fs.dart';
 export 'src/ssh_host.dart';
+export 'src/ssh_host_key_store.dart';
 export 'src/ssh_spec.dart';
 
 // Factory

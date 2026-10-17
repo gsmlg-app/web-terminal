@@ -27,6 +27,7 @@ export 'src/shortcut/global_actions.dart';
 // Menu components
 export 'src/platform_menu.dart';
 export 'src/context_menu.dart';
+export 'src/ssh_host_key_dialog.dart';
 export 'src/shortcuts.dart';
 
 // Utilities

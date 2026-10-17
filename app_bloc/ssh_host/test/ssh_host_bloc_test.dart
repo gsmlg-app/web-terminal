@@ -2,9 +2,12 @@ import 'package:app_database/app_database.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   group('SshIdentityType', () {
     test('has correct values', () {
       expect(SshIdentityType.password.value, 1);
@@ -228,15 +231,16 @@ void main() {
         salt: 'pepper',
         identityType: 1,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshHostLoaded;
         final host = state.sshHosts.first;
         expect(host.host, 'My Host');
         expect(host.hostname, 'myhost.com');
         expect(host.port, 443);
         expect(host.username, 'admin');
-        expect(host.password, 'secret');
-        expect(host.salt, 'pepper');
+        expect(host.password, startsWith('vault:ssh:'));
+        expect(await bloc.credentials.readHostPassword(host), 'secret');
+        expect(host.salt, isNull);
         expect(host.identityType, 1);
       },
     );

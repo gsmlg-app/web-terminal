@@ -62,9 +62,11 @@ Future<_SSHExecutionResult> _collectResult(SSHSession session) async {
     (data) => stderr.write(String.fromCharCodes(data)),
   );
 
-  await session.done;
-  await stdoutStream.asFuture();
-  await stderrStream.asFuture();
+  await Future.wait<void>([
+    session.done,
+    stdoutStream.asFuture<void>(),
+    stderrStream.asFuture<void>(),
+  ]);
 
   return _SSHExecutionResult(
     exitCode: session.exitCode ?? 0,

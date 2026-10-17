@@ -192,9 +192,18 @@ void main() {
     });
 
     group('createHost method', () {
-      test('returns a Future', () {
+      test('rejects connections without host key verification', () async {
         final connector = SSHConnector(testRecord);
-        expect(connector.createHost(), isA<Future<SSHHost>>());
+        await expectLater(
+          connector.createHost(),
+          throwsA(
+            isA<SshHostKeyVerificationException>().having(
+              (error) => error.message,
+              'message',
+              'SSH host key verification is required',
+            ),
+          ),
+        );
       });
     });
   });

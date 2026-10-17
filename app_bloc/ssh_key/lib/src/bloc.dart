@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:app_database/app_database.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:bloc/bloc.dart';
 import 'package:drift/drift.dart';
 import 'package:equatable/equatable.dart';
@@ -14,15 +17,23 @@ part 'state.dart';
 
 class SshKeyBloc extends Bloc<SshKeyEvent, SshKeyState> {
   final AppDatabase database;
+  final SshCredentialRepository credentials;
 
-  SshKeyBloc(this.database) : super(const SshKeyInitial()) {
+  SshKeyBloc(this.database, {SshCredentialRepository? credentials})
+      : credentials = credentials ?? SshCredentialRepository(database),
+        super(const SshKeyInitial()) {
     on<SshKeyLoad>((event, emit) async {
-      final data = await database.select(database.sshKeys).get();
-      emit(SshKeyLoaded(data));
+      try {
+        await this.credentials.migrateKeys();
+        final data = await database.select(database.sshKeys).get();
+        emit(SshKeyLoaded(data));
+      } catch (error) {
+        emit(SshKeyError(error));
+      }
     });
     on<SshKeyAdd>((event, emit) async {
       try {
-        await database.into(database.sshKeys).insert(
+        await this.credentials.addKey(
               SshKeysCompanion.insert(
                 name: Value(event.name),
                 content: Value(event.content),
@@ -34,18 +45,15 @@ class SshKeyBloc extends Bloc<SshKeyEvent, SshKeyState> {
             );
         final data = await database.select(database.sshKeys).get();
         emit(SshKeyLoaded(data));
-      } catch (e) {
+        event.completion?.complete();
+      } catch (e, stackTrace) {
         emit(SshKeyError(e));
+        event.completion?.completeError(e, stackTrace);
       }
     });
     on<SshKeyDelete>((event, emit) async {
       try {
-        final rowsAffected = await (database.delete(database.sshKeys)
-              ..where((t) => t.id.equals(event.sshKey.id)))
-            .go();
-        if (rowsAffected == 0) {
-          throw Exception('Failed to delete ssh key');
-        }
+        await this.credentials.deleteKey(event.sshKey);
         final data = await database.select(database.sshKeys).get();
         emit(SshKeyLoaded(data));
       } catch (e) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:duskmoon_ui/duskmoon_ui.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 
@@ -99,8 +101,10 @@ class SshHostFormBloc extends FormBloc<String, String> {
   @override
   void onSubmitting() async {
     try {
+      final completion = Completer<void>();
       if (_editingHostId != null) {
         sshHostBloc.add(SshHostUpdate(
+          completion: completion,
           id: _editingHostId!,
           host: host.value,
           hostname: hostname.value,
@@ -114,9 +118,9 @@ class SshHostFormBloc extends FormBloc<String, String> {
               ? identityKeyId.value?.id
               : null,
         ));
-        emitSuccess(successResponse: 'Host updated');
       } else {
         sshHostBloc.add(SshHostAdd(
+          completion: completion,
           host: host.value,
           hostname: hostname.value,
           port: int.parse(port.value),
@@ -129,9 +133,15 @@ class SshHostFormBloc extends FormBloc<String, String> {
               ? identityKeyId.value?.id
               : null,
         ));
-        emitSuccess(successResponse: 'Host created');
       }
+      await completion.future;
+      if (isClosed) return;
+      emitSuccess(
+        successResponse:
+            _editingHostId != null ? 'Host updated' : 'Host created',
+      );
     } catch (e) {
+      if (isClosed) return;
       emitFailure(
         failureResponse: e.toString(),
       );

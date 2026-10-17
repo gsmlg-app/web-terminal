@@ -156,48 +156,13 @@ class PluginTabView extends StatefulWidget {
 class _PluginTabViewState extends State<PluginTabView> {
   Plugin get plugin => widget.plugin;
 
-  HostConnector? connector;
-
   @override
   void initState() {
     super.initState();
-    SchedulerBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-
-      // Guard: plugin may have been detached if tab was closed during build.
-      if (!widget.plugin.mounted) return;
-
-      // Skip if already connected (e.g., during hot reload)
-      if (widget.plugin.manager.isConnected) {
-        return;
-      }
-
-      setState(() {
-        connector = widget.plugin.hostSpec.createConnector();
-        connector?.addListener(_onConnectionChanged);
-        connector?.connect().then((_) {
-          if (!mounted) return;
-          if (connector?.host != null) {
-            widget.plugin.manager.didConnected(connector!.host!);
-          } else if (connector?.lastError != null) {
-            widget.plugin.manager.didConnectionError(connector!.lastError!);
-          }
-        });
-      });
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !plugin.mounted) return;
+      plugin.manager.connect();
     });
-  }
-
-  void _onConnectionChanged() {
-    if (connector != null && plugin.mounted) {
-      plugin.manager.didConnectionStatusChanged(connector!.status);
-    }
-  }
-
-  @override
-  void dispose() {
-    connector?.removeListener(_onConnectionChanged);
-    connector?.dispose();
-    super.dispose();
   }
 
   @override

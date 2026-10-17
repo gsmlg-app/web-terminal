@@ -1,10 +1,12 @@
+import 'dart:async';
+
 import 'package:duskmoon_ui/duskmoon_ui.dart';
-import 'package:app_security/app_security.dart';
 
 import 'bloc.dart';
 
 class SshKeyFormBloc extends FormBloc<String, String> {
   final SshKeyBloc sshKeyBloc;
+  int _keyLoadGeneration = 0;
 
   final name = TextFieldBloc<String>(
     validators: [
@@ -24,27 +26,43 @@ class SshKeyFormBloc extends FormBloc<String, String> {
     );
   }
 
-  void setSshKey(SshKey? sshKey) {
+  Future<void> setSshKey(SshKey? sshKey) async {
+    final generation = ++_keyLoadGeneration;
     name.updateValue(sshKey?.name ?? '');
-    content.updateValue(sshKey?.content ?? '');
+    content.updateValue('');
+    if (sshKey == null) return;
+    try {
+      final privateKey = await sshKeyBloc.credentials.readPrivateKey(sshKey);
+      if (!isClosed &&
+          generation == _keyLoadGeneration &&
+          content.value.isEmpty) {
+        content.updateValue(privateKey);
+      }
+    } catch (error) {
+      if (!isClosed && generation == _keyLoadGeneration) {
+        content.addFieldError('Unable to load SSH private key');
+        emitFailure(failureResponse: error.toString());
+      }
+    }
   }
 
   @override
   void onSubmitting() async {
     try {
-      final salt = StringHelper.randomString(16);
-      final aes = AesHelper(appName);
-      final encryptedContent = aes.encrypt64WithSalt(content.value, salt);
+      final completion = Completer<void>();
       sshKeyBloc.add(SshKeyAdd(
+        completion: completion,
         name: name.value,
-        content: encryptedContent,
-        salt: salt,
+        content: content.value,
         algorithm: SshKeyAlgorithm.rsa.value,
       ));
+      await completion.future;
+      if (isClosed) return;
       emitSuccess(
         successResponse: 'SSH Key saved',
       );
     } catch (e) {
+      if (isClosed) return;
       emitFailure(
         failureResponse: e.toString(),
       );

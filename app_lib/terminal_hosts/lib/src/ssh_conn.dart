@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_host.dart';
+import 'package:terminal_hosts/src/ssh_host_key_store.dart';
 
 /// Default timeout for SSH socket connection.
 const Duration kSshConnectionTimeout = Duration(seconds: 30);
@@ -75,6 +76,9 @@ class SSHConnector extends HostConnector<SSHHost> {
   /// instead of password authentication.
   final SshKeyData? keyData;
 
+  final SSHHostkeyVerifyHandler? verifyHostKey;
+  final FutureOr<String?> Function()? passwordProvider;
+
   /// Timeout for establishing the socket connection.
   final Duration connectionTimeout;
 
@@ -84,6 +88,8 @@ class SSHConnector extends HostConnector<SSHHost> {
   SSHConnector(
     this.record, {
     this.keyData,
+    this.verifyHostKey,
+    this.passwordProvider,
     this.connectionTimeout = kSshConnectionTimeout,
     this.authenticationTimeout = kSshAuthenticationTimeout,
   });
@@ -103,6 +109,11 @@ class SSHConnector extends HostConnector<SSHHost> {
     }
     if (username == null || username.isEmpty) {
       throw const SshAuthenticationException('Username is required');
+    }
+    if (verifyHostKey == null) {
+      throw const SshHostKeyVerificationException(
+        'SSH host key verification is required',
+      );
     }
 
     // Establish socket connection with timeout
@@ -166,11 +177,8 @@ class SSHConnector extends HostConnector<SSHHost> {
     final client = SSHClient(
       socket,
       username: username,
-      // Always provide password callback as fallback, even with key auth.
-      // If key auth fails, the server may still accept password auth.
-      onPasswordRequest: record.password != null && record.password!.isNotEmpty
-          ? () => record.password
-          : null,
+      onPasswordRequest: passwordProvider,
+      onVerifyHostKeySha256: verifyHostKey,
       identities: identities,
       printDebug: debugPrint,
     );
@@ -189,6 +197,9 @@ class SSHConnector extends HostConnector<SSHHost> {
       );
     } on SshTimeoutException {
       rethrow;
+    } on SSHHostkeyError catch (error) {
+      client.close();
+      throw SshHostKeyVerificationException(error.toString());
     } catch (error) {
       client.close();
       throw SshAuthenticationException(

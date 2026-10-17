@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:app_ssh/app_ssh.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_conn.dart';
@@ -15,11 +18,19 @@ class SSHHostSpec implements HostSpec {
   /// Must be provided when [record.identityType] is [SshIdentityType.key].
   final SshKeyData? keyData;
 
+  final SSHHostkeyVerifyHandler? verifyHostKey;
+  final FutureOr<String?> Function()? passwordProvider;
+
   /// Creates an SSH host specification.
   ///
   /// Throws [ArgumentError] if [keyData] is null when the host's identity type
   /// is set to key-based authentication.
-  SSHHostSpec(this.record, {this.keyData}) {
+  SSHHostSpec(
+    this.record, {
+    this.keyData,
+    this.verifyHostKey,
+    this.passwordProvider,
+  }) {
     final identityType = SshIdentityType.fromValue(record.identityType);
     if (identityType == SshIdentityType.key && keyData == null) {
       throw ArgumentError(
@@ -32,5 +43,10 @@ class SSHHostSpec implements HostSpec {
   String get name => record.host ?? record.hostname ?? 'SSH Host';
 
   @override
-  HostConnector createConnector() => SSHConnector(record, keyData: keyData);
+  HostConnector createConnector() => SSHConnector(
+    record,
+    keyData: keyData,
+    verifyHostKey: verifyHostKey,
+    passwordProvider: passwordProvider,
+  );
 }

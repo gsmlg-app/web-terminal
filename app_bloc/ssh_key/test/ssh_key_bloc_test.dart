@@ -3,9 +3,12 @@ import 'package:app_security/app_security.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   group('SshKeyAlgorithm', () {
     test('has correct values', () {
       expect(SshKeyAlgorithm.rsa.value, 1);
@@ -207,13 +210,15 @@ void main() {
         salt: 'test_salt',
         algorithm: SshKeyAlgorithm.ecdsa.value,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshKeyLoaded;
         final key = state.sshKeys.first;
         expect(key.name, 'Test Key');
-        expect(key.content, 'test_content');
-        expect(key.password, 'test_pwd');
-        expect(key.salt, 'test_salt');
+        expect(key.content, startsWith('vault:ssh:'));
+        expect(await bloc.credentials.readPrivateKey(key), 'test_content');
+        expect(key.password, startsWith('vault:ssh:'));
+        expect(await bloc.credentials.readKeyPassphrase(key), 'test_pwd');
+        expect(key.salt, isNull);
         expect(key.algorithm, SshKeyAlgorithm.ecdsa.value);
       },
     );

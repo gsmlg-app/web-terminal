@@ -66,6 +66,9 @@ class SSHTransport {
   /// hostkey is valid, false to reject key and disconnect.
   final SSHHostkeyVerifyHandler? onVerifyHostKey;
 
+  /// Optional SHA-256 verification callback, preferred over the MD5 callback.
+  final SSHHostkeyVerifyHandler? onVerifyHostKeySha256;
+
   /// Function called when the transport is ready to send data.
   final SSHTransportReadyHandler? onReady;
 
@@ -92,6 +95,7 @@ class SSHTransport {
     this.printTrace,
     this.algorithms = const SSHAlgorithms(),
     this.onVerifyHostKey,
+    this.onVerifyHostKeySha256,
     this.onReady,
     this.onPacket,
   }) {
@@ -925,20 +929,27 @@ class SSHTransport {
     _sessionId ??= exchangeHash;
     _sharedSecret = sharedSecret;
 
-    final fingerprint = MD5Digest().process(hostkey);
-
     if (_hostkeyVerified) {
       _sendNewKeys();
       _applyLocalKeys();
       return;
     }
 
-    final userVerified = onVerifyHostKey != null
-        ? onVerifyHostKey!(_hostkeyType!.name, fingerprint)
-        : true;
-
-    Future.value(userVerified).then(
+    Future.sync(() {
+      if (onVerifyHostKeySha256 != null) {
+        return onVerifyHostKeySha256!(
+          _hostkeyType!.name,
+          SHA256Digest().process(hostkey),
+        );
+      }
+      return onVerifyHostKey?.call(
+            _hostkeyType!.name,
+            MD5Digest().process(hostkey),
+          ) ??
+          true;
+    }).then(
       (verified) {
+        if (isClosed) return;
         if (!verified) {
           closeWithError(SSHHostkeyError('Hostkey verification failed'));
         } else {
@@ -948,8 +959,11 @@ class SSHTransport {
           onReady?.call();
         }
       },
-      onError: (error) {
-        closeWithError(error);
+      onError: (Object error, StackTrace stackTrace) {
+        closeWithError(
+          error is SSHError ? error : SSHHostkeyError(error.toString()),
+          stackTrace,
+        );
       },
     );
   }

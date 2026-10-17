@@ -153,4 +153,16 @@ class AppLocalizationsJa extends AppLocalizations {
 
   @override
   String get error => 'Error';
+
+  @override
+  String get sshHostKeyTitle => 'Trust SSH host key?';
+
+  @override
+  String get sshHostKeyTrust => 'Trust and connect';
+
+  @override
+  String sshHostKeyPrompt(
+      String hostname, int port, String type, String fingerprint) {
+    return 'The identity of $hostname:$port is not yet trusted.\n\n$type\n$fingerprint\n\nCompare this fingerprint with the server administrator before trusting it.';
+  }
 }

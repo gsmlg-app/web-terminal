@@ -13,6 +13,7 @@ class SshHostLoad extends SshHostEvent {
 }
 
 class SshHostAdd extends SshHostEvent {
+  final Completer<void>? completion;
   final String? host;
   final String? hostname;
   final int? port;
@@ -23,6 +24,7 @@ class SshHostAdd extends SshHostEvent {
   final int? identityKeyId;
 
   const SshHostAdd({
+    this.completion,
     this.host,
     this.hostname,
     this.port,
@@ -47,6 +49,7 @@ class SshHostAdd extends SshHostEvent {
 }
 
 class SshHostUpdate extends SshHostEvent {
+  final Completer<void>? completion;
   final int id;
   final String? host;
   final String? hostname;
@@ -58,6 +61,7 @@ class SshHostUpdate extends SshHostEvent {
   final int? identityKeyId;
 
   const SshHostUpdate({
+    this.completion,
     required this.id,
     this.host,
     this.hostname,

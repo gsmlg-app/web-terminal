@@ -94,6 +94,10 @@ class SSHClient {
   /// null, the host key is accepted automatically.
   final SSHHostkeyVerifyHandler? onVerifyHostKey;
 
+  /// Verifies the SHA-256 host-key digest. Takes precedence over the legacy
+  /// MD5 callback when supplied.
+  final SSHHostkeyVerifyHandler? onVerifyHostKeySha256;
+
   /// List of key pairs to use for authentication. Set this field to enable
   /// authentication with public key.
   final List<SSHKeyPair>? identities;
@@ -145,6 +149,7 @@ class SSHClient {
     this.printTrace,
     this.algorithms = const SSHAlgorithms(),
     this.onVerifyHostKey,
+    this.onVerifyHostKeySha256,
     this.identities,
     this.onPasswordRequest,
     this.onChangePasswordRequest,
@@ -160,13 +165,16 @@ class SSHClient {
       printTrace: printTrace,
       algorithms: algorithms,
       onVerifyHostKey: onVerifyHostKey,
+      onVerifyHostKeySha256: onVerifyHostKeySha256,
       onReady: _handleTransportReady,
       onPacket: _handlePacket,
     );
 
     _transport.done.then(
       (_) => _handleTransportClosed(),
-      onError: (_) => _handleTransportClosed(),
+      onError: (Object error) => _handleTransportClosed(
+        error is SSHHostkeyError ? error : null,
+      ),
     );
 
     _authenticated.future.catchError(
@@ -468,11 +476,12 @@ class SSHClient {
     _requestAuthentication();
   }
 
-  void _handleTransportClosed() {
+  void _handleTransportClosed([SSHHostkeyError? hostKeyError]) {
     printDebug?.call('SSHClient._onTransportClosed');
     if (!_authenticated.isCompleted) {
       _authenticated.completeError(
-        SSHAuthAbortError('Connection closed before authentication'),
+        hostKeyError ??
+            SSHAuthAbortError('Connection closed before authentication'),
       );
     }
     _keepAlive?.stop();

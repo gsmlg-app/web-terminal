@@ -1,7 +1,9 @@
 import 'package:app_database/app_database.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 
 /// Comprehensive test suite for SshHostBloc covering:
@@ -14,6 +16,8 @@ import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 /// - State immutability
 /// - Constants verification
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   group('SshHostEvent Equatable Tests', () {
     test('SshHostLoad events are equal', () {
       const event1 = SshHostLoad();
@@ -248,8 +252,12 @@ void main() {
         expect(hosts.first.hostname, 'persist.com');
         expect(hosts.first.port, 2222);
         expect(hosts.first.username, 'persistuser');
-        expect(hosts.first.password, 'encrypted');
-        expect(hosts.first.salt, 'salty');
+        expect(hosts.first.password, startsWith('vault:ssh:'));
+        expect(
+            await SshCredentialRepository(database)
+                .readHostPassword(hosts.first),
+            'encrypted');
+        expect(hosts.first.salt, isNull);
         expect(hosts.first.identityType, 1);
       },
     );
@@ -620,9 +628,12 @@ void main() {
         salt: 'salt',
         identityType: 1,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshHostLoaded;
-        expect(state.sshHosts.first.password?.length, 1000);
+        expect(
+            (await bloc.credentials.readHostPassword(state.sshHosts.first))
+                ?.length,
+            1000);
       },
     );
 
@@ -675,7 +686,7 @@ void main() {
     );
 
     blocTest<SshHostBloc, SshHostState>(
-      'Empty password string is handled (null after encryption)',
+      'Empty password string is stored securely',
       build: () => SshHostBloc(database),
       act: (bloc) => bloc.add(const SshHostAdd(
         host: 'EmptyPasswordHost',
@@ -686,9 +697,11 @@ void main() {
         salt: 'salt',
         identityType: 1,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshHostLoaded;
-        expect(state.sshHosts.first.password, '');
+        expect(state.sshHosts.first.password, startsWith('vault:ssh:'));
+        expect(
+            await bloc.credentials.readHostPassword(state.sshHosts.first), '');
       },
     );
 

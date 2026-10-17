@@ -17,14 +17,20 @@
 //
 // Total: 54 additional comprehensive tests
 
+import 'dart:async';
+
 import 'package:app_database/app_database.dart';
+import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:app_security/app_security.dart';
 import 'package:bloc_test/bloc_test.dart';
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() => FlutterSecureStorage.setMockInitialValues({}));
   group('Event Equatable Tests', () {
     test('SshKeyLoad instances are equal', () {
       const event1 = SshKeyLoad();
@@ -215,9 +221,16 @@ void main() {
         final keys = await database.select(database.sshKeys).get();
         expect(keys.length, 1);
         expect(keys.first.name, 'Persist Test');
-        expect(keys.first.content, 'persisted_content');
-        expect(keys.first.password, 'persisted_pwd');
-        expect(keys.first.salt, 'persisted_salt');
+        expect(keys.first.content, startsWith('vault:ssh:'));
+        expect(
+            await SshCredentialRepository(database).readPrivateKey(keys.first),
+            'persisted_content');
+        expect(keys.first.password, startsWith('vault:ssh:'));
+        expect(
+            await SshCredentialRepository(database)
+                .readKeyPassphrase(keys.first),
+            'persisted_pwd');
+        expect(keys.first.salt, isNull);
         expect(keys.first.algorithm, 1);
       },
     );
@@ -350,7 +363,9 @@ void main() {
       await Future.delayed(const Duration(milliseconds: 50));
 
       final keys = await database.select(database.sshKeys).get();
-      expect(keys.first.password, 'encrypted_password');
+      expect(keys.first.password, startsWith('vault:ssh:'));
+      expect(await bloc.credentials.readKeyPassphrase(keys.first),
+          'encrypted_password');
 
       await bloc.close();
     });
@@ -569,9 +584,11 @@ void main() {
         salt: 'salt',
         algorithm: 1,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshKeyLoaded;
-        expect(state.sshKeys.first.content?.length, 10000);
+        expect(
+            (await bloc.credentials.readPrivateKey(state.sshKeys.first)).length,
+            10000);
       },
     );
 
@@ -586,7 +603,7 @@ void main() {
       )),
       verify: (bloc) {
         final state = bloc.state as SshKeyLoaded;
-        expect(state.sshKeys.first.salt, 'salt!@#\$%^&*()');
+        expect(state.sshKeys.first.salt, isNull);
       },
     );
 
@@ -600,9 +617,10 @@ void main() {
         salt: 'salt',
         algorithm: 1,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshKeyLoaded;
-        expect(state.sshKeys.first.password, '密码🔒пароль');
+        expect(await bloc.credentials.readKeyPassphrase(state.sshKeys.first),
+            '密码🔒пароль');
       },
     );
 
@@ -726,9 +744,10 @@ void main() {
         salt: 'salt',
         algorithm: 1,
       )),
-      verify: (bloc) {
+      verify: (bloc) async {
         final state = bloc.state as SshKeyLoaded;
-        expect(state.sshKeys.first.content, 'content\twith\ttabs');
+        expect(await bloc.credentials.readPrivateKey(state.sshKeys.first),
+            'content\twith\ttabs');
       },
     );
   });
@@ -1097,25 +1116,39 @@ sYU4huPrVyOUnVFWxC+SKwY2QtrNwrtp/5C1dhdsismX7EFZNGmd
       await database.close();
     });
 
-    test('Keys created within 1 second have similar timestamps', () async {
+    test('Key timestamps match their insertion intervals', () async {
       final bloc = SshKeyBloc(database);
+      addTearDown(bloc.close);
+      final insertionWindows = <String, (int, int)>{};
 
-      bloc.add(const SshKeyAdd(
-          name: 'Key1', content: 'c1', salt: 's1', algorithm: 1));
-      await Future.delayed(const Duration(milliseconds: 100));
-
-      bloc.add(const SshKeyAdd(
-          name: 'Key2', content: 'c2', salt: 's2', algorithm: 1));
-      await Future.delayed(const Duration(milliseconds: 100));
+      for (final name in const ['Key1', 'Key2']) {
+        final completion = Completer<void>();
+        final startedAt = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        bloc.add(SshKeyAdd(
+          completion: completion,
+          name: name,
+          content: 'content-$name',
+          salt: 'salt-$name',
+          algorithm: 1,
+        ));
+        await completion.future;
+        final completedAt = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        insertionWindows[name] = (startedAt, completedAt);
+      }
 
       final state = bloc.state as SshKeyLoaded;
-      final timestamps = state.sshKeys
-          .map((k) => k.createdAt!.millisecondsSinceEpoch)
-          .toList();
-      final diff = timestamps[1] - timestamps[0];
-      expect(diff, lessThan(1000)); // Within 1 second
-
-      await bloc.close();
+      expect(state.sshKeys, hasLength(2));
+      expect(state.sshKeys.map((key) => key.name),
+          unorderedEquals(['Key1', 'Key2']));
+      final timestamps = <int>[];
+      for (final entry in insertionWindows.entries) {
+        final key = state.sshKeys.singleWhere((key) => key.name == entry.key);
+        expect(key.createdAt, isNotNull);
+        final timestamp = key.createdAt!.millisecondsSinceEpoch ~/ 1000;
+        expect(timestamp, inInclusiveRange(entry.value.$1, entry.value.$2));
+        timestamps.add(timestamp);
+      }
+      expect(timestamps[1], greaterThanOrEqualTo(timestamps[0]));
     });
 
     test('CreatedAt is set automatically', () async {

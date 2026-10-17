@@ -153,6 +153,18 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get error => 'Error';
+
+  @override
+  String get sshHostKeyTitle => '信任 SSH 主机密钥？';
+
+  @override
+  String get sshHostKeyTrust => '信任并连接';
+
+  @override
+  String sshHostKeyPrompt(
+      String hostname, int port, String type, String fingerprint) {
+    return '尚未信任 $hostname:$port 的身份。\n\n$type\n$fingerprint\n\n请先与服务器管理员核对指纹，再确认信任。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -194,6 +206,18 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get undo => '撤销';
+
+  @override
+  String get sshHostKeyTitle => '信任 SSH 主机密钥？';
+
+  @override
+  String get sshHostKeyTrust => '信任并连接';
+
+  @override
+  String sshHostKeyPrompt(
+      String hostname, int port, String type, String fingerprint) {
+    return '尚未信任 $hostname:$port 的身份。\n\n$type\n$fingerprint\n\n请先与服务器管理员核对指纹，再确认信任。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -235,4 +259,16 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get undo => '復原';
+
+  @override
+  String get sshHostKeyTitle => '信任 SSH 主機金鑰？';
+
+  @override
+  String get sshHostKeyTrust => '信任並連線';
+
+  @override
+  String sshHostKeyPrompt(
+      String hostname, int port, String type, String fingerprint) {
+    return '尚未信任 $hostname:$port 的身分。\n\n$type\n$fingerprint\n\n請先與伺服器管理員核對指紋，再確認信任。';
+  }
 }
