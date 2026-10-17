@@ -15,11 +15,15 @@ class LocalHostSpec implements HostSpec {
   /// Optional working directory to start the shell in.
   final String? workingDirectory;
 
+  /// Optional shell executable name/path from shell profile.
+  final String? shellCommand;
+
   LocalHostSpec({
     this.name = 'Local',
     this.environment = const {},
     this.initCommands,
     this.workingDirectory,
+    this.shellCommand,
   });
 
   @override
@@ -27,5 +31,6 @@ class LocalHostSpec implements HostSpec {
     environment: environment,
     initCommands: initCommands,
     workingDirectory: workingDirectory,
+    shellCommand: shellCommand,
   );
 }

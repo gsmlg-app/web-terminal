@@ -92,42 +92,32 @@ void main() {
       expect(host, isA<LocalHost>());
     });
 
-    test('startup commands install cwd reporter', () {
-      final commands = buildLocalShellStartupCommands();
+    test(
+      'startup commands are empty by default (no noisy script injection)',
+      () {
+        final commands = buildLocalShellStartupCommands();
 
-      expect(commands, contains('__web_terminal_update_cwd'));
-      expect(commands, contains(r']7;file://%s%s'));
-      expect(commands, contains('PROMPT_COMMAND'));
-      expect(commands, contains('add-zsh-hook precmd'));
-    });
+        expect(commands, isEmpty);
+      },
+    );
 
-    test('startup commands run silently and clear login noise', () {
-      final commands = buildLocalShellStartupCommands();
+    test(
+      'startup commands are empty when only workingDirectory is provided',
+      () {
+        final commands = buildLocalShellStartupCommands(
+          workingDirectory: '/Users/test/Projects/web-terminal',
+        );
 
-      expect(commands, startsWith('stty -echo'));
-      expect(commands, contains(r"printf '\033[H\033[2J\033[3J'"));
-      expect(commands.trimRight(), endsWith('stty echo'));
-    });
+        expect(commands, isEmpty);
+      },
+    );
 
-    test('startup commands cd to restored working directory', () {
+    test('startup commands return trimmed profile init commands when set', () {
       final commands = buildLocalShellStartupCommands(
-        workingDirectory: '/Users/test/Projects/web-terminal',
+        initCommands: '  alias ll="ls -la"  \n',
       );
 
-      expect(commands, contains("cd '/Users/test/Projects/web-terminal'"));
-      expect(commands, contains('__web_terminal_update_cwd'));
-    });
-
-    test('startup commands append profile init commands', () {
-      final commands = buildLocalShellStartupCommands(
-        initCommands: 'alias ll="ls -la"',
-      );
-
-      expect(commands, contains('alias ll="ls -la"'));
-      expect(
-        commands.indexOf('alias ll="ls -la"'),
-        lessThan(commands.indexOf(r"printf '\033[H\033[2J\033[3J'")),
-      );
+      expect(commands, equals('alias ll="ls -la"'));
     });
 
     test('connectFileSystem returns LocalFileSystem', () async {

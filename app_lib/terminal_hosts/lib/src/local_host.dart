@@ -17,13 +17,18 @@ class LocalHost implements Host {
   /// Optional working directory to start the shell in.
   final String? _workingDirectory;
 
+  /// Optional shell executable name/path from shell profile (e.g. zsh, bash, fish, sh).
+  final String? _shellCommand;
+
   LocalHost({
     Map<String, String> environment = const {},
     String? initCommands,
     String? workingDirectory,
+    String? shellCommand,
   }) : _profileEnvironment = environment,
        _initCommands = initCommands,
-       _workingDirectory = workingDirectory;
+       _workingDirectory = workingDirectory,
+       _shellCommand = shellCommand;
 
   @override
   Future<ExecutionResult> execute(
@@ -51,8 +56,9 @@ class LocalHost implements Host {
     int height = 25,
     Map<String, String>? environment,
   }) async {
-    final shell = _platformShell;
-    final mergedEnv = {
+    final shell = _resolveShell(_shellCommand);
+    final mergedEnv = <String, String>{
+      if (Platform.isMacOS) 'TERM_PROGRAM': 'Apple_Terminal',
       ...Platform.environment,
       ..._profileEnvironment,
       ...environment ?? {},
@@ -61,23 +67,24 @@ class LocalHost implements Host {
       shell.command,
       arguments: shell.args,
       environment: mergedEnv,
-      workingDirectory: _workingDirectory,
+      workingDirectory:
+          (_workingDirectory != null && _workingDirectory.isNotEmpty)
+          ? _workingDirectory
+          : null,
       rows: height,
       columns: width,
       ackRead: true, // Enable backpressure to prevent message queue flooding
     );
 
-    // Wait briefly for shell prompt before installing cwd tracking hooks.
-    Future.delayed(const Duration(milliseconds: 100), () {
-      final startupCommands = Platform.isWindows
-          ? _initCommands ?? ''
-          : buildLocalShellStartupCommands(
-              workingDirectory: _workingDirectory,
-              initCommands: _initCommands,
-            );
-      if (startupCommands.isEmpty) return;
-      pty.write(utf8.encode('$startupCommands\n'));
-    });
+    final startupCommands = buildLocalShellStartupCommands(
+      workingDirectory: _workingDirectory,
+      initCommands: _initCommands,
+    );
+    if (startupCommands.isNotEmpty) {
+      Future.delayed(const Duration(milliseconds: 100), () {
+        pty.write(utf8.encode('$startupCommands\n'));
+      });
+    }
 
     return LocalExecutionSession(pty);
   }
@@ -86,7 +93,9 @@ class LocalHost implements Host {
 
   @override
   Future<void> disconnect() async {
-    _doneCompleter.complete();
+    if (!_doneCompleter.isCompleted) {
+      _doneCompleter.complete();
+    }
   }
 
   @override
@@ -148,14 +157,33 @@ class _ShellCommand {
   _ShellCommand(this.command, this.args);
 }
 
-_ShellCommand get _platformShell {
-  if (Platform.isMacOS) {
-    final user = Platform.environment['USER'];
-    return _ShellCommand('login', ['-fp', user!]);
-  }
-
+_ShellCommand _resolveShell(String? customShell) {
   if (Platform.isWindows) {
     return _ShellCommand('powershell.exe', []);
+  }
+
+  final requested = customShell?.trim();
+  if (requested != null && requested.isNotEmpty) {
+    final defaultShell = Platform.environment['SHELL'] ?? '';
+    final defaultBase = defaultShell.split('/').last;
+    if (Platform.isMacOS && requested == defaultBase) {
+      final user = Platform.environment['USER'];
+      if (user != null && user.isNotEmpty) {
+        return _ShellCommand('login', ['-fpl', user]);
+      }
+    }
+    return _ShellCommand(
+      requested,
+      requested == 'sh' ? const [] : const ['-l'],
+    );
+  }
+
+  if (Platform.isMacOS) {
+    final user = Platform.environment['USER'];
+    if (user != null && user.isNotEmpty) {
+      // -l prevents login from chdir'ing to $HOME so Pty.start workingDirectory is preserved.
+      return _ShellCommand('login', ['-fpl', user]);
+    }
   }
 
   final shell = Platform.environment['SHELL'] ?? 'sh';
@@ -166,45 +194,9 @@ String buildLocalShellStartupCommands({
   String? workingDirectory,
   String? initCommands,
 }) {
-  final commands = <String>[
-    'stty -echo',
-    r'''
-__web_terminal_update_cwd() {
-  printf '\033]7;file://%s%s\007' "${HOSTNAME:-localhost}" "$PWD"
-}
-if [ -n "${ZSH_VERSION-}" ]; then
-  autoload -Uz add-zsh-hook 2>/dev/null
-  if command -v add-zsh-hook >/dev/null 2>&1; then
-    add-zsh-hook precmd __web_terminal_update_cwd
-  else
-    eval 'precmd_functions+=(__web_terminal_update_cwd)'
-  fi
-fi
-if [ -n "${BASH_VERSION-}" ]; then
-  PROMPT_COMMAND="__web_terminal_update_cwd${PROMPT_COMMAND:+;$PROMPT_COMMAND}"
-fi
-'''
-        .trim(),
-  ];
-
-  final directory = workingDirectory;
-  if (directory != null && directory.isNotEmpty) {
-    commands.add('cd ${_quotePosixShellArgument(directory)}');
+  final profileCommands = initCommands?.trim();
+  if (profileCommands == null || profileCommands.isEmpty) {
+    return '';
   }
-
-  commands.add('__web_terminal_update_cwd');
-
-  final profileCommands = initCommands;
-  if (profileCommands != null && profileCommands.isNotEmpty) {
-    commands.add(profileCommands);
-  }
-
-  commands.add(r"printf '\033[H\033[2J\033[3J'");
-  commands.add('stty echo');
-
-  return commands.join('\n');
-}
-
-String _quotePosixShellArgument(String value) {
-  return "'${value.replaceAll("'", r"'\''")}'";
+  return profileCommands;
 }

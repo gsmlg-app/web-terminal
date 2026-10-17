@@ -39,15 +39,18 @@ extension ShellProfileParsing on ShellProfile {
   /// Generate shell initialization commands from profile settings.
   ///
   /// This produces commands to:
-  /// 1. Export environment variables
+  /// 1. Export environment variables (when [includeEnvExports] is true)
   /// 2. Define aliases
-  String generateInitCommands() {
+  /// 3. Run startup command
+  String generateInitCommands({bool includeEnvExports = true}) {
     final buffer = StringBuffer();
 
     // Export environment variables
-    for (final entry in parsedEnvironmentVariables.entries) {
-      final escapedValue = entry.value.replaceAll("'", "'\\''");
-      buffer.writeln("export ${entry.key}='$escapedValue'");
+    if (includeEnvExports) {
+      for (final entry in parsedEnvironmentVariables.entries) {
+        final escapedValue = entry.value.replaceAll("'", "'\\''");
+        buffer.writeln("export ${entry.key}='$escapedValue'");
+      }
     }
 
     // Define aliases
