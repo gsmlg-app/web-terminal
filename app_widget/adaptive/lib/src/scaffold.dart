@@ -197,12 +197,50 @@ class AppAdaptiveScaffold extends StatelessWidget {
   /// [Breakpoint].
   final double extendedNavigationRailWidth;
 
+  /// Shared across routes; null retains breakpoint-driven defaults.
+  static final ValueNotifier<bool?> navigationRailExtendedNotifier =
+      ValueNotifier<bool?>(null);
+
   /// Used to map NavigationDestination to NavigationRailDestination.
   final NavigationRailDestinationBuilder? navigationRailDestinationBuilder;
 
   /// When true, hides all navigation UI (NavigationRail, BottomNavigationBar)
   /// and displays only the body content in fullscreen mode.
   final bool hideNavigation;
+
+  /// Whether the navigation rail shows its footer collapse/expand toggle button.
+  final bool showCollapseToggle;
+
+  /// Explicit rail extension preference; null uses the scaffold's preference
+  /// or [navigationRailExtendedNotifier].
+  final bool? isExtendedOverride;
+
+  /// Called when the rail footer requests an extension change.
+  final void Function(bool isExtended)? onExtendedChange;
+
+  /// Icon displayed by the footer when the rail is extended.
+  final IconData collapseIcon;
+
+  /// Icon displayed by the footer when the rail is collapsed.
+  final IconData expandIcon;
+
+  /// Whether rail, drawer, and bottom navigation are visible.
+  final bool navigationVisible;
+
+  /// Adds reusable top-right hide controls to the rail/drawer.
+  final bool showNavigationToggle;
+
+  /// Requests a change to caller-controlled navigation visibility.
+  final ValueChanged<bool>? onNavigationVisibleChange;
+
+  /// Suppresses the overlay fallback when the page adopts header restoration.
+  final bool navigationRestoreInHeader;
+
+  /// How slots are distributed across a foldable or companion display.
+  final DuoScreenPolicy duoScreenPolicy;
+
+  /// View role after a companion display has connected successfully.
+  final DuoScreenRole duoScreenRole;
 
   const AppAdaptiveScaffold({
     super.key,
@@ -242,6 +280,17 @@ class AppAdaptiveScaffold extends StatelessWidget {
     this.navigationRailDestinationBuilder,
     this.groupAlignment,
     this.hideNavigation = false,
+    this.showCollapseToggle = true,
+    this.isExtendedOverride,
+    this.onExtendedChange,
+    this.collapseIcon = Icons.chevron_left,
+    this.expandIcon = Icons.chevron_right,
+    this.navigationVisible = true,
+    this.showNavigationToggle = false,
+    this.onNavigationVisibleChange,
+    this.navigationRestoreInHeader = false,
+    this.duoScreenPolicy = DuoScreenPolicy.splitBody,
+    this.duoScreenRole = DuoScreenRole.single,
   });
 
   @override
@@ -251,41 +300,66 @@ class AppAdaptiveScaffold extends StatelessWidget {
       return body?.call(context) ?? const SizedBox.shrink();
     }
 
-    return DmAdaptiveScaffold(
-      destinations: destinations,
-      selectedIndex: selectedIndex,
-      leadingUnextendedNavRail: leadingUnextendedNavRail,
-      leadingExtendedNavRail: leadingExtendedNavRail,
-      trailingNavRail: trailingNavRail,
-      navigationRailPadding: navigationRailPadding,
-      smallBody: smallBody,
-      body: body,
-      mediumLargeBody: mediumLargeBody,
-      largeBody: largeBody,
-      extraLargeBody: extraLargeBody,
-      smallSecondaryBody: smallSecondaryBody,
-      secondaryBody: secondaryBody,
-      mediumLargeSecondaryBody: mediumLargeSecondaryBody,
-      largeSecondaryBody: largeSecondaryBody,
-      extraLargeSecondaryBody: extraLargeSecondaryBody,
-      bodyRatio: bodyRatio,
-      smallBreakpoint: smallBreakpoint,
-      mediumBreakpoint: mediumBreakpoint,
-      mediumLargeBreakpoint: mediumLargeBreakpoint,
-      largeBreakpoint: largeBreakpoint,
-      extraLargeBreakpoint: extraLargeBreakpoint,
-      drawerBreakpoint: drawerBreakpoint,
-      internalAnimations: internalAnimations,
-      transitionDuration: transitionDuration,
-      bodyOrientation: bodyOrientation,
-      onSelectedIndexChange: onSelectedIndexChange,
-      useDrawer: useDrawer,
-      appBar: appBar,
-      navigationRailWidth: navigationRailWidth,
-      extendedNavigationRailWidth: extendedNavigationRailWidth,
-      appBarBreakpoint: appBarBreakpoint,
-      navigationRailDestinationBuilder: navigationRailDestinationBuilder,
-      groupAlignment: groupAlignment,
+    return ValueListenableBuilder<bool?>(
+      valueListenable: navigationRailExtendedNotifier,
+      builder: (context, sharedExtended, _) {
+        final effectiveExtended = isExtendedOverride ?? sharedExtended;
+        void effectiveOnExtendedChange(bool val) {
+          if (onExtendedChange != null) {
+            onExtendedChange!(val);
+          } else {
+            navigationRailExtendedNotifier.value = val;
+          }
+        }
+
+        return DmAdaptiveScaffold(
+          destinations: destinations,
+          selectedIndex: selectedIndex,
+          leadingUnextendedNavRail: leadingUnextendedNavRail,
+          leadingExtendedNavRail: leadingExtendedNavRail,
+          trailingNavRail: trailingNavRail,
+          navigationRailPadding: navigationRailPadding,
+          smallBody: smallBody,
+          body: body,
+          mediumLargeBody: mediumLargeBody,
+          largeBody: largeBody,
+          extraLargeBody: extraLargeBody,
+          smallSecondaryBody: smallSecondaryBody,
+          secondaryBody: secondaryBody,
+          mediumLargeSecondaryBody: mediumLargeSecondaryBody,
+          largeSecondaryBody: largeSecondaryBody,
+          extraLargeSecondaryBody: extraLargeSecondaryBody,
+          bodyRatio: bodyRatio,
+          smallBreakpoint: smallBreakpoint,
+          mediumBreakpoint: mediumBreakpoint,
+          mediumLargeBreakpoint: mediumLargeBreakpoint,
+          largeBreakpoint: largeBreakpoint,
+          extraLargeBreakpoint: extraLargeBreakpoint,
+          drawerBreakpoint: drawerBreakpoint,
+          internalAnimations: internalAnimations,
+          transitionDuration: transitionDuration,
+          bodyOrientation: bodyOrientation,
+          onSelectedIndexChange: onSelectedIndexChange,
+          useDrawer: useDrawer,
+          appBar: appBar,
+          navigationRailWidth: navigationRailWidth,
+          extendedNavigationRailWidth: extendedNavigationRailWidth,
+          appBarBreakpoint: appBarBreakpoint,
+          navigationRailDestinationBuilder: navigationRailDestinationBuilder,
+          groupAlignment: groupAlignment,
+          showCollapseToggle: showCollapseToggle,
+          isExtendedOverride: effectiveExtended,
+          onExtendedChange: effectiveOnExtendedChange,
+          collapseIcon: collapseIcon,
+          expandIcon: expandIcon,
+          navigationVisible: navigationVisible,
+          showNavigationToggle: showNavigationToggle,
+          onNavigationVisibleChange: onNavigationVisibleChange,
+          navigationRestoreInHeader: navigationRestoreInHeader,
+          duoScreenPolicy: duoScreenPolicy,
+          duoScreenRole: duoScreenRole,
+        );
+      },
     );
   }
 }

@@ -11,15 +11,18 @@ import 'package:app_utils/app_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_terminal/app.dart';
 import 'package:web_terminal/constant.dart';
+import 'package:web_terminal/web_client_assets.dart';
 import 'package:app_database/app_database.dart';
 import 'package:ssh_host_bloc/ssh_host_bloc.dart';
 import 'package:ssh_key_bloc/ssh_key_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
+import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:web_session_bloc/web_session_bloc.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
+import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
 
@@ -31,7 +34,19 @@ Future<void> main() async {
   }
 
   final sharedPrefs = await SharedPreferences.getInstance();
+  final savedRailExtended = sharedPrefs.getBool('app_navigation_rail_extended');
+  if (savedRailExtended != null) {
+    AppAdaptiveScaffold.navigationRailExtendedNotifier.value = savedRailExtended;
+  }
+  AppAdaptiveScaffold.navigationRailExtendedNotifier.addListener(() {
+    final val = AppAdaptiveScaffold.navigationRailExtendedNotifier.value;
+    if (val != null) {
+      sharedPrefs.setBool('app_navigation_rail_extended', val);
+    }
+  });
+
   final database = AppDatabase();
+  final credentials = SshCredentialRepository(database);
 
   // Get static files path for web server
   // In debug mode, use the source directory directly for hot reload
@@ -47,7 +62,7 @@ Future<void> main() async {
   } else {
     // In release mode, use the app's data directory
     final appDir = await getApplicationSupportDirectory();
-    staticFilesPath = path.join(appDir.path, 'web-terminal-client');
+    staticFilesPath = (await materializeWebClientAssets(appDir)).path;
   }
 
   runApp(
@@ -62,6 +77,10 @@ Future<void> main() async {
         RepositoryProvider<AppDatabase>(
           create: (BuildContext context) => database,
         ),
+        RepositoryProvider<SshCredentialRepository>.value(value: credentials),
+        RepositoryProvider<SshHostKeyStore>(
+          create: (BuildContext context) => SshHostKeyStore(),
+        ),
         RepositoryProvider<AesHelper>(
           create: (BuildContext context) => AesHelper(Constant.appName),
         ),
@@ -69,18 +88,23 @@ Future<void> main() async {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<DmThemeBloc>(
-            create: (BuildContext context) =>
-                DmThemeBloc(prefs: sharedPrefs),
+            create: (BuildContext context) => DmThemeBloc(prefs: sharedPrefs),
           ),
           BlocProvider<SshKeyBloc>(
-            create: (BuildContext context) => SshKeyBloc(database),
+            lazy: false,
+            create: (BuildContext context) =>
+                SshKeyBloc(database, credentials: credentials)
+                  ..add(SshKeyLoad()),
           ),
           BlocProvider<SshKeyFormBloc>(
             create: (BuildContext context) =>
                 SshKeyFormBloc(context.read<SshKeyBloc>()),
           ),
           BlocProvider<SshHostBloc>(
-            create: (BuildContext context) => SshHostBloc(database),
+            lazy: false,
+            create: (BuildContext context) =>
+                SshHostBloc(database, credentials: credentials)
+                  ..add(SshHostLoad()),
           ),
           BlocProvider<SshHostFormBloc>(
             create: (BuildContext context) =>

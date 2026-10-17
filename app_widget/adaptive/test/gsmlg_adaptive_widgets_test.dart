@@ -648,6 +648,46 @@ void main() {
         expect(
             scaffold.drawerBreakpoint, AppAdaptiveScaffold.appDrawerBreakpoint);
       });
+      test('showCollapseToggle defaults to true', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.showCollapseToggle, true);
+      });
+
+      test('isExtendedOverride defaults to null', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.isExtendedOverride, isNull);
+      });
+
+      test('collapseIcon and expandIcon default to chevron icons', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.collapseIcon, Icons.chevron_left);
+        expect(scaffold.expandIcon, Icons.chevron_right);
+      });
+
+      test('navigationVisible defaults to true', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.navigationVisible, true);
+      });
+
+      test('showNavigationToggle defaults to false', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.showNavigationToggle, false);
+      });
+
+      test('navigationRestoreInHeader defaults to false', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.navigationRestoreInHeader, false);
+      });
+
+      test('duoScreenPolicy defaults to DuoScreenPolicy.splitBody', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.duoScreenPolicy, DuoScreenPolicy.splitBody);
+      });
+
+      test('duoScreenRole defaults to DuoScreenRole.single', () {
+        final scaffold = AppAdaptiveScaffold(destinations: testDestinations);
+        expect(scaffold.duoScreenRole, DuoScreenRole.single);
+      });
     });
 
     testWidgets('passes selectedIndex to AdaptiveScaffold', (tester) async {
@@ -766,6 +806,101 @@ void main() {
       final adaptiveScaffold =
           tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
       expect(adaptiveScaffold.bodyRatio, 0.3);
+    });
+
+    testWidgets('passes showCollapseToggle and icons to AdaptiveScaffold',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppAdaptiveScaffold(
+            destinations: testDestinations,
+            showCollapseToggle: true,
+            collapseIcon: Icons.arrow_back,
+            expandIcon: Icons.arrow_forward,
+            body: (context) => const Text('Body'),
+          ),
+        ),
+      );
+
+      final adaptiveScaffold =
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
+      expect(adaptiveScaffold.showCollapseToggle, isTrue);
+      expect(adaptiveScaffold.collapseIcon, Icons.arrow_back);
+      expect(adaptiveScaffold.expandIcon, Icons.arrow_forward);
+    });
+
+    testWidgets('passes explicit isExtendedOverride to AdaptiveScaffold',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppAdaptiveScaffold(
+            destinations: testDestinations,
+            isExtendedOverride: false,
+            body: (context) => const Text('Body'),
+          ),
+        ),
+      );
+
+      final adaptiveScaffold =
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
+      expect(adaptiveScaffold.isExtendedOverride, isFalse);
+    });
+
+    testWidgets('synchronizes with navigationRailExtendedNotifier by default',
+        (tester) async {
+      AppAdaptiveScaffold.navigationRailExtendedNotifier.value = true;
+      addTearDown(() {
+        AppAdaptiveScaffold.navigationRailExtendedNotifier.value = null;
+      });
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppAdaptiveScaffold(
+            destinations: testDestinations,
+            body: (context) => const Text('Body'),
+          ),
+        ),
+      );
+
+      var adaptiveScaffold =
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
+      expect(adaptiveScaffold.isExtendedOverride, isTrue);
+
+      // Simulate extension change callback without custom onExtendedChange
+      adaptiveScaffold.onExtendedChange?.call(false);
+      await tester.pump();
+
+      expect(AppAdaptiveScaffold.navigationRailExtendedNotifier.value, isFalse);
+      adaptiveScaffold =
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
+      expect(adaptiveScaffold.isExtendedOverride, isFalse);
+    });
+
+    testWidgets('passes navigation visibility parameters to AdaptiveScaffold',
+        (tester) async {
+      bool? requestedVisibility;
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: AppAdaptiveScaffold(
+            destinations: testDestinations,
+            navigationVisible: false,
+            showNavigationToggle: true,
+            navigationRestoreInHeader: true,
+            onNavigationVisibleChange: (val) => requestedVisibility = val,
+            body: (context) => const Text('Body'),
+          ),
+        ),
+      );
+
+      final adaptiveScaffold =
+          tester.widget<DmAdaptiveScaffold>(find.byType(DmAdaptiveScaffold));
+      expect(adaptiveScaffold.navigationVisible, isFalse);
+      expect(adaptiveScaffold.showNavigationToggle, isTrue);
+      expect(adaptiveScaffold.navigationRestoreInHeader, isTrue);
+
+      adaptiveScaffold.onNavigationVisibleChange?.call(true);
+      expect(requestedVisibility, isTrue);
     });
   });
 }
