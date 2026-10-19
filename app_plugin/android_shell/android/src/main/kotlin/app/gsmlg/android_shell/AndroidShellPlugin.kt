@@ -103,7 +103,7 @@ class AndroidShellPlugin : FlutterPlugin, MethodCallHandler {
                 tmpDir.mkdirs()
 
                 // Extract Alpine Linux minirootfs from assets
-                val assetPath = "shell/$arch/rootfs.tar.gz"
+                val assetPath = "shell/$arch/rootfs.tgz"
                 Log.d(TAG, "Extracting rootfs from asset: $assetPath")
 
                 context.assets.open(assetPath).use { assetStream ->

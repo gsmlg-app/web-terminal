@@ -46,6 +46,17 @@ def needed_libraries(path):
 
 
 class AndroidArtifactsTest(unittest.TestCase):
+    def test_runtime_rootfs_asset_avoids_android_gzip_expansion(self):
+        source = (MAIN / 'kotlin/app/gsmlg/android_shell/AndroidShellPlugin.kt').read_text()
+        match = re.search(r'val assetPath = "shell/\$arch/([^"]+)"', source)
+        self.assertIsNotNone(match)
+        # AGP removes .gz and gunzips assets before AAPT sees them.
+        self.assertEqual(match.group(1), 'rootfs.tgz')
+        for abi in setup_alpine_proot.ARCH_CONFIG:
+            with self.subTest(abi=abi):
+                content = (MAIN / 'assets/shell' / abi / match.group(1)).read_bytes()
+                self.assertTrue(content.startswith(b'\x1f\x8b'))
+
     def test_download_rejects_content_with_wrong_checksum(self):
         with mock.patch.object(setup_alpine_proot.urllib.request, 'urlopen',
                                return_value=io.BytesIO(b'tampered artifact')):
@@ -56,7 +67,7 @@ class AndroidArtifactsTest(unittest.TestCase):
         lock = json.loads((PLUGIN / 'scripts/android_artifacts.lock.json').read_text())
         for abi, (_, alpine_arch, _) in setup_alpine_proot.ARCH_CONFIG.items():
             with self.subTest(abi=abi):
-                content = (MAIN / 'assets/shell' / abi / 'rootfs.tar.gz').read_bytes()
+                content = (MAIN / 'assets/shell' / abi / 'rootfs.tgz').read_bytes()
                 self.assertEqual(hashlib.sha256(content).hexdigest(),
                                  lock['alpine']['sha256'][alpine_arch])
 

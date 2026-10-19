@@ -105,7 +105,7 @@ def download_and_setup(archs=None):
         rootfs = verified_download(rootfs_url, LOCK["alpine"]["sha256"][alpine_arch])
         for name, data in binaries.items():
             write_asset(JNILIBS_DIR / arch / name, data, executable=True)
-        write_asset(ASSETS_DIR / arch / "rootfs.tar.gz", rootfs)
+        write_asset(ASSETS_DIR / arch / "rootfs.tgz", rootfs)
 
 
 if __name__ == "__main__":
