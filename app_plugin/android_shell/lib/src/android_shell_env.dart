@@ -7,10 +7,10 @@ import 'android_shell_plugin.dart';
 /// Callback for reporting initialization progress.
 typedef ProgressCallback = void Function(String message, double progress);
 
-/// Singleton managing the Android sandboxed shell environment.
+/// Singleton managing the Android sandboxed Linux shell environment.
 ///
-/// Provides paths and environment variables for the self-contained shell.
-/// Uses native Android code to extract and manage busybox binaries.
+/// Uses PRoot and a minimal Alpine Linux rootfs to provide a true Termux-like
+/// Linux userland without requiring root privileges.
 class AndroidShellEnv {
   AndroidShellEnv._();
 
@@ -26,6 +26,13 @@ class AndroidShellEnv {
 
   bool _initialized = false;
   late String _filesDir;
+  late String _rootfsPath;
+  late String _nativeLibDir;
+  late String _prootPath;
+  late String _loaderPath;
+  late String _loader32Path;
+  late String _tmpPath;
+  late String _homePath;
   late String _arch;
   late String _shellPath;
   bool _usesSystemShell = false;
@@ -37,80 +44,82 @@ class AndroidShellEnv {
   /// e.g., /data/data/app.gsmlg.webterminal/files
   String get filesDir => _filesDir;
 
-  /// The usr prefix directory.
-  /// e.g., /data/data/app.gsmlg.webterminal/files/usr
-  String get prefix => p.join(_filesDir, 'usr');
+  /// The rootfs directory containing the Linux distribution.
+  /// e.g., /data/data/app.gsmlg.webterminal/files/rootfs
+  String get rootfsPath => _rootfsPath;
+
+  /// The native library directory containing executable ELF binaries (.so).
+  String get nativeLibDir => _nativeLibDir;
+
+  /// Path to the proot executable.
+  String get prootPath => _prootPath;
+
+  /// Path to the 64-bit proot loader.
+  String get loaderPath => _loaderPath;
+
+  /// Path to the 32-bit proot loader (if available).
+  String get loader32Path => _loader32Path;
+
+  /// The usr prefix directory inside rootfs.
+  /// e.g., /data/data/app.gsmlg.webterminal/files/rootfs/usr
+  String get prefix => p.join(_rootfsPath, 'usr');
 
   /// The bin directory containing shell binaries.
-  /// e.g., /data/data/app.gsmlg.webterminal/files/usr/bin
   String get binPath => p.join(prefix, 'bin');
 
   /// The etc directory containing configuration files.
-  /// e.g., /data/data/app.gsmlg.webterminal/files/usr/etc
-  String get etcPath => p.join(prefix, 'etc');
+  String get etcPath => p.join(_rootfsPath, 'etc');
 
-  /// The user's home directory.
-  /// e.g., /data/data/app.gsmlg.webterminal/files/home
-  String get homePath => p.join(_filesDir, 'home');
+  /// The user's home directory on the host filesystem.
+  /// e.g., /data/data/app.gsmlg.webterminal/files/rootfs/root
+  String get homePath => _homePath;
 
-  /// The temporary files directory.
+  /// The temporary files directory on the host filesystem.
   /// e.g., /data/data/app.gsmlg.webterminal/files/tmp
-  String get tmpPath => p.join(_filesDir, 'tmp');
+  String get tmpPath => _tmpPath;
 
-  /// The default shell executable path.
-  /// This may be /system/bin/sh if busybox isn't available.
+  /// The executable path for starting the shell session.
   String get shellPath => _shellPath;
 
-  /// Whether we're using the system shell instead of busybox.
+  /// Whether we're falling back to the system shell instead of PRoot.
   bool get usesSystemShell => _usesSystemShell;
 
   /// The detected CPU architecture.
   String get arch => _arch;
 
+  /// Path to the shell profile.
+  String get profilePath => p.join(etcPath, 'profile');
+
   /// Initializes the shell environment.
   ///
-  /// This extracts busybox and creates necessary directories on first run.
+  /// Extracts the Alpine Linux rootfs and sets up PRoot on first run.
   /// Subsequent calls are no-ops if already initialized.
   ///
   /// [onProgress] - Optional callback for progress updates during extraction.
   Future<void> initialize({ProgressCallback? onProgress}) async {
     if (_initialized) return;
 
-    onProgress?.call('Initializing shell environment...', 0.1);
+    onProgress?.call('Initializing Linux environment...', 0.1);
 
-    // Call native plugin to initialize
+    // Call native plugin to extract rootfs and configure PRoot
     final paths = await AndroidShellPlugin.initialize();
 
     _filesDir = paths['filesDir'] ?? '';
+    _rootfsPath = paths['rootfsPath'] ?? p.join(_filesDir, 'rootfs');
+    _nativeLibDir = paths['nativeLibDir'] ?? '';
+    _prootPath = paths['prootPath'] ?? '';
+    _loaderPath = paths['loaderPath'] ?? '';
+    _loader32Path = paths['loader32Path'] ?? '';
+    _tmpPath = paths['tmpPath'] ?? p.join(_filesDir, 'tmp');
+    _homePath = paths['homePath'] ?? p.join(_rootfsPath, 'root');
     _arch = paths['arch'] ?? 'arm64-v8a';
 
-    // Get the shell path from the plugin, which may be /system/bin/sh if busybox isn't available
-    // ignore: unused_local_variable
-    final reportedShellPath = paths['shellPath'] ?? '';
-
-    // Check if we're using busybox or system shell
-    // The plugin creates a wrapper script at binPath/sh that calls the actual shell
-    final wrapperShPath = p.join(binPath, 'sh');
-    if (await File(wrapperShPath).exists()) {
-      // Check the content of the wrapper to see if it's a busybox wrapper or system shell
-      try {
-        final content = await File(wrapperShPath).readAsString();
-        if (content.contains('/system/bin/sh')) {
-          // Wrapper calls system shell, use it directly
-          _usesSystemShell = true;
-          _shellPath = '/system/bin/sh';
-        } else {
-          // Using busybox
-          _usesSystemShell = false;
-          _shellPath = wrapperShPath;
-        }
-      } catch (e) {
-        // Can't read wrapper, fall back to system shell
-        _usesSystemShell = true;
-        _shellPath = '/system/bin/sh';
-      }
+    // Verify if PRoot binary exists and can be used
+    if (_prootPath.isNotEmpty && await File(_prootPath).exists()) {
+      _usesSystemShell = false;
+      _shellPath = _prootPath;
     } else {
-      // No wrapper, use system shell directly
+      // Fallback to system shell if PRoot binary is missing
       _usesSystemShell = true;
       _shellPath = '/system/bin/sh';
     }
@@ -119,56 +128,101 @@ class AndroidShellEnv {
     await Directory(homePath).create(recursive: true);
     await Directory(tmpPath).create(recursive: true);
 
-    onProgress?.call('Shell environment ready', 1.0);
+    onProgress?.call('Linux environment ready', 1.0);
     _initialized = true;
   }
 
-  /// Path to the shell profile.
-  String get profilePath => p.join(etcPath, 'profile');
-
-  /// Returns environment variables for the sandboxed shell.
+  /// Returns environment variables for the sandboxed Linux shell.
   ///
   /// These should be passed to the PTY when starting a shell session.
   Map<String, String> getEnvironment() {
-    return {
+    if (_usesSystemShell) {
+      return {
+        'PREFIX': prefix,
+        'HOME': homePath,
+        'PATH': '/system/bin:/system/xbin',
+        'SHELL': shellPath,
+        'TERM': 'xterm-256color',
+        'LANG': 'C.UTF-8',
+        'TMPDIR': tmpPath,
+        'ANDROID_DATA': '/data',
+        'ANDROID_ROOT': '/system',
+      };
+    }
+
+    final env = <String, String>{
       'PREFIX': prefix,
-      'HOME': homePath,
-      'PATH': '$binPath:/system/bin:/system/xbin',
-      'SHELL': shellPath,
+      'HOME': '/root',
+      'USER': 'root',
+      'LOGNAME': 'root',
+      'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
+      'SHELL': '/bin/sh',
       'TERM': 'xterm-256color',
-      'LANG': 'en_US.UTF-8',
-      'TMPDIR': tmpPath,
+      'LANG': 'C.UTF-8',
+      'TMPDIR': '/tmp',
       'ANDROID_DATA': '/data',
       'ANDROID_ROOT': '/system',
-      // ENV tells busybox sh where to find the profile for interactive shells
-      'ENV': profilePath,
+      'ENV': '/etc/profile',
     };
+
+    if (!_usesSystemShell && _prootPath.isNotEmpty) {
+      env['LD_LIBRARY_PATH'] = nativeLibDir;
+      env['PROOT_TMP_DIR'] = tmpPath;
+      env['PROOT_IGNORE_MISSING_BINDINGS'] = '1';
+      if (_loaderPath.isNotEmpty) {
+        env['PROOT_LOADER'] = _loaderPath;
+      }
+      if (_loader32Path.isNotEmpty && File(_loader32Path).existsSync()) {
+        env['PROOT_LOADER_32'] = _loader32Path;
+      }
+    }
+
+    return env;
   }
 
   /// Returns the shell command and arguments for starting a login shell.
   ///
-  /// Uses busybox sh with explicit HOME navigation. The PTY workingDirectory
-  /// parameter doesn't work reliably on Android, and the -l flag for login
-  /// shells only reads /etc/profile (hardcoded), not our custom profile path.
-  /// The ENV variable is only read for interactive non-login shells.
-  ///
-  /// Solution: Use -c to run a command that:
-  /// 1. Changes to HOME directory
-  /// 2. Sources our custom profile
-  /// 3. Execs an interactive shell (replaces current process)
+  /// When PRoot is available, starts an isolated Linux container with fake root (uid 0),
+  /// mounting essential system endpoints (/dev, /proc, /sys) and setting up /root.
   (String, List<String>) getShellCommand() {
-    if (_usesSystemShell) {
-      // When using system shell, start it directly in interactive mode
-      // The system shell is more limited but at least it works
+    if (_usesSystemShell || _prootPath.isEmpty) {
       return (shellPath, ['-i']);
     }
 
-    // Chain: cd to HOME, source profile for aliases/settings, exec interactive shell
-    // The exec ensures we don't have nested shell processes
-    return (
-      shellPath,
-      ['-c', 'cd "\$HOME" 2>/dev/null; . "\$ENV" 2>/dev/null; exec sh -i'],
-    );
+    final args = [
+      '-r',
+      rootfsPath,
+      '-0',
+      '--link2symlink',
+      '--sysvipc',
+      '--kill-on-exit',
+      '-b',
+      '/dev',
+      '-b',
+      '/proc',
+      '-b',
+      '/sys',
+      '-b',
+      '/dev/urandom:/dev/random',
+      '-b',
+      '/proc/self/fd:/dev/fd',
+      '-b',
+      '/proc/self/fd/0:/dev/stdin',
+      '-b',
+      '/proc/self/fd/1:/dev/stdout',
+      '-b',
+      '/proc/self/fd/2:/dev/stderr',
+      '-b',
+      '$tmpPath:/tmp',
+      '-b',
+      '$tmpPath:/dev/shm',
+      '-w',
+      '/root',
+      '/bin/sh',
+      '-l',
+    ];
+
+    return (_prootPath, args);
   }
 
   /// Resets the singleton instance (useful for testing).

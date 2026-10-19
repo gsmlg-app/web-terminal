@@ -18,11 +18,6 @@ alias l='ls -CF'
 # Make sure we have a sane umask
 umask 022
 
-# Source user's profile if it exists
-if [ -f "$HOME/.profile" ]; then
-    . "$HOME/.profile"
-fi
-
 # Source user's bashrc if running bash and it exists
 if [ -f "$HOME/.bashrc" ]; then
     . "$HOME/.bashrc"

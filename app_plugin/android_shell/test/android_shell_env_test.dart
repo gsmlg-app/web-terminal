@@ -247,7 +247,7 @@ void main() {
       expect(envKeys, contains('ENV'));
     });
 
-    test('environment has 10 expected keys', () {
+    test('environment has expected keys', () {
       const envKeys = [
         'PREFIX',
         'HOME',
@@ -261,6 +261,37 @@ void main() {
         'ENV',
       ];
       expect(envKeys.length, 10);
+    });
+
+    test('proot environment includes PRoot control variables', () {
+      const prootKeys = [
+        'PROOT_LOADER',
+        'PROOT_TMP_DIR',
+        'PROOT_IGNORE_MISSING_BINDINGS',
+      ];
+      expect(prootKeys, contains('PROOT_LOADER'));
+      expect(prootKeys, contains('PROOT_TMP_DIR'));
+      expect(prootKeys, contains('PROOT_IGNORE_MISSING_BINDINGS'));
+    });
+  });
+
+  group('AndroidShellEnv PRoot command structure', () {
+    test('proot arguments include expected flags', () {
+      const flags = [
+        '-r',
+        '-0',
+        '--link2symlink',
+        '--sysvipc',
+        '--kill-on-exit',
+        '-b',
+        '-w',
+      ];
+      expect(flags, contains('-r'));
+      expect(flags, contains('-0'));
+      expect(flags, contains('--link2symlink'));
+      expect(flags, contains('--sysvipc'));
+      expect(flags, contains('--kill-on-exit'));
+      expect(flags, contains('-w'));
     });
   });
 

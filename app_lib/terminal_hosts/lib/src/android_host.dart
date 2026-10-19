@@ -32,13 +32,42 @@ class AndroidHost implements Host {
     bool root = false,
     Map<String, String>? environment,
   }) async {
+    final mergedEnv = {
+      ..._env.getEnvironment(),
+      ..._profileEnvironment,
+      ...environment ?? {},
+    };
+
+    if (!_env.usesSystemShell && _env.prootPath.isNotEmpty) {
+      final (prootBin, prootArgs) = _env.getShellCommand();
+      final baseArgs = prootArgs.length >= 2
+          ? prootArgs.sublist(0, prootArgs.length - 2)
+          : prootArgs;
+      final execArgs = [
+        ...baseArgs,
+        '/bin/sh',
+        '-c',
+        r'$0 "$@"',
+        executable,
+        ...args,
+      ];
+
+      final result = await io.Process.run(
+        prootBin,
+        execArgs,
+        environment: mergedEnv,
+        workingDirectory: _env.tmpPath,
+      );
+      return AndroidExecutionResult(result);
+    }
+
     // Resolve executable path in sandboxed bin directory
     final execPath = _resolveExecutable(executable);
 
     final result = await io.Process.run(
       execPath,
       args,
-      environment: {..._env.getEnvironment(), ...environment ?? {}},
+      environment: mergedEnv,
       workingDirectory: _env.homePath,
     );
     return AndroidExecutionResult(result);
