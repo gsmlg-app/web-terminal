@@ -16,24 +16,79 @@ on:
           - 'all'
       build-name:
         required: true
-        description: 'Version number (x.y.z)'
-        default: '0.1.0'
+        description: 'Version number (x.y.z), matching pubspec.yaml'
+        default: '1.0.1'
       release-notes:
         required: false
         description: 'Release notes (leave empty to auto-generate from commits)'
         default: ''
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.build-name }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RELEASE_VERSION: ${{ inputs.build-name }}
+  RELEASE_PLATFORM: ${{ inputs.platform }}
 
 jobs:
-  test:
-    name: Run Tests
+  preflight:
+    name: Validate Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+
+      - name: Validate version and reject existing tag or release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_VERSION" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo 'Version must use x.y.z without a prefix or suffix.' >&2
+            exit 1
+          fi
+          manifest_version="$(sed -n 's/^version: *//p' pubspec.yaml)"
+          if [[ "${manifest_version%+*}" != "$RELEASE_VERSION" || ! "${manifest_version##*+}" =~ ^[1-9][0-9]*$ ]]; then
+            echo "pubspec.yaml version must be $RELEASE_VERSION with a positive build number." >&2
+            exit 1
+          fi
+          tag="v$RELEASE_VERSION"
+          existing_tag="$(git ls-remote --tags origin "refs/tags/$tag")"
+          if [[ -n "$existing_tag" ]]; then
+            echo "Tag $tag already exists; existing releases are immutable." >&2
+            exit 1
+          fi
+          status="$(curl --silent --show-error \
+            --output "$RUNNER_TEMP/existing-release.json" --write-out '%{http_code}' \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/releases/tags/$tag")"
+          case "$status" in
+            404) ;;
+            200) echo "Release $tag already exists." >&2; exit 1 ;;
+            *) echo "Release lookup failed with HTTP $status." >&2; exit 1 ;;
+          esac
+
+  test:
+    name: Run Tests
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
 
       - uses: flutter-actions/setup-flutter@v4
+        with:
+          version: '3.47.7'
 
       - name: Cache dependencies
         uses: actions/cache@v6
@@ -50,75 +105,29 @@ jobs:
       - name: Prepare project
         run: melos run prepare
 
+      - name: Verify Android shell artifacts offline
+        run: python3 -m unittest discover -s app_plugin/android_shell/scripts -p test_android_artifacts.py -v
+
       - name: Run analyze
         run: melos run analyze
 
       - name: Run tests
         run: melos run test
 
-  create-release:
-    name: Create Release
-    needs: test
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      release_id: ${{ steps.create_release.outputs.id }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          fetch-depth: 0
-
-      - name: Create tag
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git tag -a "v${{ inputs.build-name }}" -m "Release v${{ inputs.build-name }}"
-          git push origin "v${{ inputs.build-name }}"
-
-      - name: Generate release notes
-        id: release_notes
-        run: |
-          if [ -n "${{ inputs.release-notes }}" ]; then
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            echo "${{ inputs.release-notes }}" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          else
-            # Auto-generate from recent commits
-            PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-            if [ -n "$PREV_TAG" ]; then
-              COMMITS=$(git log ${PREV_TAG}..HEAD --pretty=format:"- %s" --no-merges)
-            else
-              COMMITS=$(git log --pretty=format:"- %s" --no-merges -10)
-            fi
-            echo "notes<<EOF" >> $GITHUB_OUTPUT
-            echo "## What's Changed" >> $GITHUB_OUTPUT
-            echo "" >> $GITHUB_OUTPUT
-            echo "$COMMITS" >> $GITHUB_OUTPUT
-            echo "EOF" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Create GitHub Release
-        id: create_release
-        uses: softprops/action-gh-release@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          tag_name: v${{ inputs.build-name }}
-          name: Release v${{ inputs.build-name }}
-          body: ${{ steps.release_notes.outputs.notes }}
-          draft: false
-          prerelease: false
-
   build-android:
     if: inputs.platform == 'android' || inputs.platform == 'all'
     name: Build Android
-    needs: create-release
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: v${{ inputs.build-name }}
+          ref: ${{ github.sha }}
+          lfs: true
 
       - uses: flutter-actions/setup-flutter@v4
+        with:
+          version: '3.47.7'
 
       - name: Setup Java
         uses: actions/setup-java@v6
@@ -141,29 +150,35 @@ jobs:
       - name: Prepare project
         run: melos run prepare
 
-      - name: Build APK
-        run: flutter build apk --build-name=${{ inputs.build-name }} --release
+      - name: Build Android
+        run: flutter build apk --release
 
-      - name: Upload APK to Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Package Android
+        run: |
+          mkdir -p release-assets
+          cp build/app/outputs/flutter-apk/app-release.apk "release-assets/web-terminal-$RELEASE_VERSION-android-debug-signed.apk"
+
+      - name: Upload Android artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ inputs.build-name }}
-          file: build/app/outputs/flutter-apk/app-release.apk
-          asset_name: flutter-app-${{ inputs.build-name }}-android.apk
-          overwrite: true
+          name: release-android
+          path: release-assets/web-terminal-${{ inputs.build-name }}-android-debug-signed.apk
+          if-no-files-found: error
 
   build-ios:
     if: inputs.platform == 'ios' || inputs.platform == 'all'
     name: Build iOS
-    needs: create-release
+    needs: test
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: v${{ inputs.build-name }}
+          ref: ${{ github.sha }}
+          lfs: true
 
       - uses: flutter-actions/setup-flutter@v4
+        with:
+          version: '3.47.7'
 
       - name: Cache dependencies
         uses: actions/cache@v6
@@ -180,42 +195,42 @@ jobs:
       - name: Prepare project
         run: melos run prepare
 
-      - name: Build iOS (no codesign)
-        run: flutter build ios --build-name=${{ inputs.build-name }} --release --no-codesign
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign
 
-      - name: Create IPA
+      - name: Package iOS
         run: |
-          mkdir -p build/ios/ipa
-          cd build/ios/iphoneos
-          mkdir Payload
-          cp -r Runner.app Payload/
-          zip -r ../ipa/flutter-app-${{ inputs.build-name }}-ios.ipa Payload
+          mkdir -p release-assets build/ios/ipa/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/ipa/Payload/
+          cd build/ios/ipa
+          zip -r "$GITHUB_WORKSPACE/release-assets/web-terminal-$RELEASE_VERSION-ios-unsigned.ipa" Payload
 
-      - name: Upload IPA to Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload iOS artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ inputs.build-name }}
-          file: build/ios/ipa/flutter-app-${{ inputs.build-name }}-ios.ipa
-          asset_name: flutter-app-${{ inputs.build-name }}-ios.ipa
-          overwrite: true
+          name: release-ios
+          path: release-assets/web-terminal-${{ inputs.build-name }}-ios-unsigned.ipa
+          if-no-files-found: error
 
   build-linux:
     if: inputs.platform == 'linux' || inputs.platform == 'all'
     name: Build Linux
-    needs: create-release
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: v${{ inputs.build-name }}
+          ref: ${{ github.sha }}
+          lfs: true
 
       - uses: flutter-actions/setup-flutter@v4
+        with:
+          version: '3.47.7'
 
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libstdc++-12-dev libsecret-1-dev
 
       - name: Cache dependencies
         uses: actions/cache@v6
@@ -233,33 +248,34 @@ jobs:
         run: melos run prepare
 
       - name: Build Linux
-        run: flutter build linux --build-name=${{ inputs.build-name }} --release
+        run: flutter build linux --release
 
-      - name: Package Linux build
+      - name: Package Linux
         run: |
-          cd build/linux/x64/release/bundle
-          tar -czvf ../../../../../flutter-app-${{ inputs.build-name }}-linux.tar.gz .
+          mkdir -p release-assets
+          tar -czf "release-assets/web-terminal-$RELEASE_VERSION-linux-x64.tar.gz" -C build/linux/x64/release/bundle .
 
-      - name: Upload Linux to Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ inputs.build-name }}
-          file: flutter-app-${{ inputs.build-name }}-linux.tar.gz
-          asset_name: flutter-app-${{ inputs.build-name }}-linux.tar.gz
-          overwrite: true
+          name: release-linux
+          path: release-assets/web-terminal-${{ inputs.build-name }}-linux-x64.tar.gz
+          if-no-files-found: error
 
   build-macos:
     if: inputs.platform == 'macos' || inputs.platform == 'all'
     name: Build macOS
-    needs: create-release
+    needs: test
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
         with:
-          ref: v${{ inputs.build-name }}
+          ref: ${{ github.sha }}
+          lfs: true
 
       - uses: flutter-actions/setup-flutter@v4
+        with:
+          version: '3.47.7'
 
       - name: Cache dependencies
         uses: actions/cache@v6
@@ -277,18 +293,113 @@ jobs:
         run: melos run prepare
 
       - name: Build macOS
-        run: flutter build macos --build-name=${{ inputs.build-name }} --release
+        env:
+          FLUTTER_XCODE_CODE_SIGNING_ALLOWED: 'NO'
+        run: flutter build macos --release
 
-      - name: Package macOS build
+      - name: Package macOS
         run: |
-          cd build/macos/Build/Products/Release
-          zip -r ../../../../../flutter-app-${{ inputs.build-name }}-macos.zip "Flutter App Template.app"
+          mkdir -p release-assets
+          ditto -c -k --sequesterRsrc --keepParent build/macos/Build/Products/Release/WebTerminal.app "release-assets/web-terminal-$RELEASE_VERSION-macos-unsigned.zip"
 
-      - name: Upload macOS to Release
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: v${{ inputs.build-name }}
-          file: flutter-app-${{ inputs.build-name }}-macos.zip
-          asset_name: flutter-app-${{ inputs.build-name }}-macos.zip
-          overwrite: true
+          name: release-macos
+          path: release-assets/web-terminal-${{ inputs.build-name }}-macos-unsigned.zip
+          if-no-files-found: error
+
+  publish:
+    name: Publish Release
+    needs: [test, build-android, build-ios, build-linux, build-macos]
+    if: >-
+      always() && needs.test.result == 'success' &&
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Download release artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Verify selected artifacts
+        run: |
+          set -euo pipefail
+          expected=()
+          for platform in android ios linux macos; do
+            if [[ "$RELEASE_PLATFORM" != all && "$RELEASE_PLATFORM" != "$platform" ]]; then
+              continue
+            fi
+            case "$platform" in
+              android) suffix=android-debug-signed.apk ;;
+              ios) suffix=ios-unsigned.ipa ;;
+              linux) suffix=linux-x64.tar.gz ;;
+              macos) suffix=macos-unsigned.zip ;;
+            esac
+            asset="release-assets/web-terminal-$RELEASE_VERSION-$suffix"
+            test -s "$asset"
+            expected+=("$asset")
+          done
+          shopt -s nullglob
+          actual=(release-assets/*)
+          test "${#actual[@]}" -eq "${#expected[@]}"
+          (cd release-assets && sha256sum "${expected[@]#release-assets/}") > release-assets/SHA256SUMS
+
+      - name: Generate release notes
+        env:
+          RELEASE_NOTES: ${{ inputs.release-notes }}
+        run: |
+          set -euo pipefail
+          if [[ -n "$RELEASE_NOTES" ]]; then
+            printf '%s\n' "$RELEASE_NOTES" > "$RUNNER_TEMP/release-notes.md"
+          else
+            printf "## What's Changed\n\n" > "$RUNNER_TEMP/release-notes.md"
+            previous_tag="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || true)"
+            if [[ -n "$previous_tag" ]]; then
+              git log "$previous_tag..HEAD" --pretty=format:'- %s' --no-merges >> "$RUNNER_TEMP/release-notes.md"
+            else
+              git log -10 --pretty=format:'- %s' --no-merges >> "$RUNNER_TEMP/release-notes.md"
+            fi
+          fi
+          {
+            printf '\n\n## Artifacts\n\n'
+            printf 'Built from commit `%s` with version `%s`.\n\n' "$GITHUB_SHA" "$RELEASE_VERSION"
+            if [[ "$RELEASE_PLATFORM" == all || "$RELEASE_PLATFORM" == android ]]; then
+              printf '%s\n' '- Android APK uses a debug signing certificate; it is not a Play Store distribution build.'
+            fi
+            if [[ "$RELEASE_PLATFORM" == all || "$RELEASE_PLATFORM" == ios ]]; then
+              printf '%s\n' '- iOS IPA is unsigned and requires signing and provisioning before installation.'
+            fi
+            if [[ "$RELEASE_PLATFORM" == all || "$RELEASE_PLATFORM" == macos ]]; then
+              printf '%s\n' '- macOS app is unsigned and not notarized.'
+            fi
+            printf '%s\n' '- SHA256SUMS lists the checksums of the attached platform archives.'
+          } >> "$RUNNER_TEMP/release-notes.md"
+
+      - name: Tag exact commit and publish assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="v$RELEASE_VERSION"
+          existing_tag="$(git ls-remote --tags origin "refs/tags/$tag")"
+          if [[ -n "$existing_tag" ]]; then
+            echo "Tag $tag already exists; refusing to overwrite it." >&2
+            exit 1
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git tag -a "$tag" "$GITHUB_SHA" -m "Release $tag"
+          git push origin "refs/tags/$tag"
+          gh release create "$tag" --verify-tag --title "WebTerminal $tag" \
+            --notes-file "$RUNNER_TEMP/release-notes.md" release-assets/*
