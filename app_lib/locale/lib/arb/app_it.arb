@@ -105,5 +105,7 @@
             }
         }
     },
+    "sshKeyImport": "Importa da file",
+    "sshKeyImportError": "Impossibile leggere il file della chiave privata. Scegli un file di testo UTF-8 non vuoto.",
     "@@description": "Strumenti client di Semaforo Ansible"
 }

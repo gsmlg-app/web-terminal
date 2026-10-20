@@ -105,5 +105,7 @@
             }
         }
     },
+    "sshKeyImport": "ファイルからインポート",
+    "sshKeyImportError": "秘密鍵ファイルを読み込めません。空でない UTF-8 テキストファイルを選択してください。",
     "@@description": "Ansible Semaphore クライアントツール"
 }

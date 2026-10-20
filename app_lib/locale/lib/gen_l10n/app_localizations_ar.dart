@@ -105,6 +105,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get sshKeyGenerate => 'Generate SSH Key';
 
   @override
+  String get sshKeyImport => 'استيراد من ملف';
+
+  @override
+  String get sshKeyImportError =>
+      'تعذرت قراءة ملف المفتاح الخاص. اختر ملفًا نصيًا غير فارغ بترميز UTF-8.';
+
+  @override
   String get deleteSshKeyMessage =>
       'Are you sure you want to delete this SSH Key?';
 

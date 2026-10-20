@@ -105,6 +105,13 @@ class AppLocalizationsKo extends AppLocalizations {
   String get sshKeyGenerate => 'Generate SSH Key';
 
   @override
+  String get sshKeyImport => '파일에서 가져오기';
+
+  @override
+  String get sshKeyImportError =>
+      '개인 키 파일을 읽을 수 없습니다. 비어 있지 않은 UTF-8 텍스트 파일을 선택하세요.';
+
+  @override
   String get deleteSshKeyMessage =>
       'Are you sure you want to delete this SSH Key?';
 

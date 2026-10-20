@@ -105,5 +105,7 @@
             }
         }
     },
+    "sshKeyImport": "Importovat ze souboru",
+    "sshKeyImportError": "Soubor soukromého klíče nelze přečíst. Vyberte neprázdný textový soubor v kódování UTF-8.",
     "@@description": "Nástroje klienta Ansible Semaphore"
 }

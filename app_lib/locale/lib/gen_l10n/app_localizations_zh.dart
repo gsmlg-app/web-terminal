@@ -105,6 +105,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get sshKeyGenerate => 'Generate SSH Key';
 
   @override
+  String get sshKeyImport => '从文件导入';
+
+  @override
+  String get sshKeyImportError => '无法读取私钥文件。请选择非空的 UTF-8 文本文件。';
+
+  @override
   String get deleteSshKeyMessage =>
       'Are you sure you want to delete this SSH Key?';
 
@@ -205,6 +211,12 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   String get titleSelectColorTheme => '选择强调色';
 
   @override
+  String get sshKeyImport => '从文件导入';
+
+  @override
+  String get sshKeyImportError => '无法读取私钥文件。请选择非空的 UTF-8 文本文件。';
+
+  @override
   String get undo => '撤销';
 
   @override
@@ -256,6 +268,12 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get titleSelectColorTheme => '選擇強調顏色';
+
+  @override
+  String get sshKeyImport => '從檔案匯入';
+
+  @override
+  String get sshKeyImportError => '無法讀取私鑰檔案。請選擇非空白的 UTF-8 文字檔案。';
 
   @override
   String get undo => '復原';

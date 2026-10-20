@@ -105,6 +105,13 @@ class AppLocalizationsCs extends AppLocalizations {
   String get sshKeyGenerate => 'Generate SSH Key';
 
   @override
+  String get sshKeyImport => 'Importovat ze souboru';
+
+  @override
+  String get sshKeyImportError =>
+      'Soubor soukromého klíče nelze přečíst. Vyberte neprázdný textový soubor v kódování UTF-8.';
+
+  @override
   String get deleteSshKeyMessage =>
       'Are you sure you want to delete this SSH Key?';
 

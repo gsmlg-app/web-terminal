@@ -105,6 +105,13 @@ class AppLocalizationsRu extends AppLocalizations {
   String get sshKeyGenerate => 'Generate SSH Key';
 
   @override
+  String get sshKeyImport => 'Импортировать из файла';
+
+  @override
+  String get sshKeyImportError =>
+      'Не удалось прочитать файл закрытого ключа. Выберите непустой текстовый файл в кодировке UTF-8.';
+
+  @override
   String get deleteSshKeyMessage =>
       'Are you sure you want to delete this SSH Key?';
 

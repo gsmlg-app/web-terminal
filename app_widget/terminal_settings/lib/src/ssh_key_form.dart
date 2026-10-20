@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app_feedback/app_feedback.dart';
@@ -55,6 +58,38 @@ void showSshKeyForm({required BuildContext context, SshKey? sshKey}) {
                       hintText: context.l10n.sshKeyNameLabel,
                       labelText: context.l10n.sshKeyNameHint,
                     ),
+                  ),
+                  const SizedBox(height: 20),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size.fromHeight(50),
+                    ),
+                    onPressed: () async {
+                      try {
+                        final file = await FilePicker.pickFile(
+                          type: FileType.any,
+                        );
+                        if (file == null || !context.mounted) return;
+                        final privateKey =
+                            utf8.decode(await file.readAsBytes());
+                        if (!context.mounted) return;
+                        if (privateKey.trim().isEmpty) {
+                          throw const FormatException('Empty private key file');
+                        }
+                        sshKeyFormBloc.content.updateValue(privateKey);
+                        if (sshKeyFormBloc.name.value.trim().isEmpty) {
+                          sshKeyFormBloc.name.updateValue(file.name);
+                        }
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        showErrorToast(
+                          context: context,
+                          message: context.l10n.sshKeyImportError,
+                        );
+                      }
+                    },
+                    icon: const Icon(Icons.file_open_outlined),
+                    label: Text(context.l10n.sshKeyImport),
                   ),
                   const SizedBox(height: 20),
                   ElevatedButton(

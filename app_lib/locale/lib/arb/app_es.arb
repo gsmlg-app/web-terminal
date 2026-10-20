@@ -105,5 +105,7 @@
             }
         }
     },
+    "sshKeyImport": "Importar desde un archivo",
+    "sshKeyImportError": "No se pudo leer el archivo de la clave privada. Elige un archivo de texto UTF-8 que no esté vacío.",
     "@@description": "Herramientas de Cliente de Ansible Semaphore"
 }

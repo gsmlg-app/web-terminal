@@ -105,6 +105,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get sshKeyGenerate => 'Generate SSH Key';
 
   @override
+  String get sshKeyImport => 'Aus Datei importieren';
+
+  @override
+  String get sshKeyImportError =>
+      'Die Datei mit dem privaten Schlüssel konnte nicht gelesen werden. Wählen Sie eine nicht leere UTF-8-Textdatei aus.';
+
+  @override
   String get deleteSshKeyMessage =>
       'Are you sure you want to delete this SSH Key?';
 

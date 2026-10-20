@@ -108,5 +108,7 @@
     "sshHostKeyTitle": "信任 SSH 主机密钥？",
     "sshHostKeyTrust": "信任并连接",
     "sshHostKeyPrompt": "尚未信任 {hostname}:{port} 的身份。\n\n{type}\n{fingerprint}\n\n请先与服务器管理员核对指纹，再确认信任。",
+    "sshKeyImport": "从文件导入",
+    "sshKeyImportError": "无法读取私钥文件。请选择非空的 UTF-8 文本文件。",
     "@@description": "Ansible Semaphore 客户端工具"
 }

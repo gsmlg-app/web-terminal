@@ -105,5 +105,7 @@
             }
         }
     },
+    "sshKeyImport": "Импортировать из файла",
+    "sshKeyImportError": "Не удалось прочитать файл закрытого ключа. Выберите непустой текстовый файл в кодировке UTF-8.",
     "@@description": "Ansible Semaphore Client Tools"
 }

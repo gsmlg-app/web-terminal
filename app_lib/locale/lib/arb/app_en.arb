@@ -32,6 +32,8 @@
     "sshKeyNameHint": "Name of your SSH Key",
     "sshKeyContentLabel": "Key Content",
     "sshKeyGenerate": "Generate SSH Key",
+    "sshKeyImport": "Import from file",
+    "sshKeyImportError": "Unable to read the private key file. Choose a non-empty UTF-8 text file.",
     "deleteSshKeyMessage": "Are you sure you want to delete this SSH Key?",
     "publicKey": "Public Key",
     "sshHostHostLabel": "Host",

@@ -105,5 +105,7 @@
             }
         }
     },
+    "sshKeyImport": "استيراد من ملف",
+    "sshKeyImportError": "تعذرت قراءة ملف المفتاح الخاص. اختر ملفًا نصيًا غير فارغ بترميز UTF-8.",
     "@@description": "أدوات عميل Ansible Semaphore"
 }

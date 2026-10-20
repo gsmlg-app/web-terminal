@@ -312,6 +312,18 @@ abstract class AppLocalizations {
   /// **'Generate SSH Key'**
   String get sshKeyGenerate;
 
+  /// No description provided for @sshKeyImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from file'**
+  String get sshKeyImport;
+
+  /// No description provided for @sshKeyImportError.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to read the private key file. Choose a non-empty UTF-8 text file.'**
+  String get sshKeyImportError;
+
   /// No description provided for @deleteSshKeyMessage.
   ///
   /// In en, this message translates to:
