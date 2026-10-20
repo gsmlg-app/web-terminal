@@ -3,8 +3,11 @@ import 'dart:convert';
 
 import 'package:context_menus/context_menus.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:terminal_core/terminal_core.dart';
+import 'package:terminal_plugin/src/terminal_extra_keys.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
 import 'package:terminal_plugin/src/terminal_shortcut_handler.dart';
 import 'package:xterm/xterm.dart';
@@ -209,19 +212,111 @@ class TerminalTabView extends StatefulWidget {
   State<StatefulWidget> createState() => _TerminalTabViewState();
 }
 
-class _TerminalTabViewState extends State<TerminalTabView> {
+class _TerminalTabViewState extends State<TerminalTabView>
+    with WidgetsBindingObserver {
   final _terminalFocusNode = FocusNode(debugLabel: 'TerminalViewFocus');
   ValueNotifier<int>? _focusNotifier;
+  bool _keyboardVisible = false;
+  bool _ctrlPressed = false;
+  bool _altPressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _terminalFocusNode.addListener(_onTerminalFocusChanged);
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _keyboardVisible = View.of(context).viewInsets.bottom > 0;
     final newNotifier = TerminalShortcutHandler.of(context)?.focusNotifier;
     if (newNotifier != _focusNotifier) {
       _focusNotifier?.removeListener(_onFocusRequested);
       _focusNotifier = newNotifier;
       _focusNotifier?.addListener(_onFocusRequested);
     }
+  }
+
+  @override
+  void didUpdateWidget(TerminalTabView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.plugin != oldWidget.plugin) {
+      _ctrlPressed = false;
+      _altPressed = false;
+    }
+  }
+
+  @override
+  void didChangeMetrics() {
+    final visible = View.of(context).viewInsets.bottom > 0;
+    if (visible == _keyboardVisible) return;
+    setState(() {
+      _keyboardVisible = visible;
+      if (!visible) {
+        _ctrlPressed = false;
+        _altPressed = false;
+      }
+    });
+  }
+
+  void _onTerminalFocusChanged() {
+    if (!mounted) return;
+    setState(() {
+      if (!_terminalFocusNode.hasFocus) {
+        _ctrlPressed = false;
+        _altPressed = false;
+      }
+    });
+  }
+
+  void _clearModifiers() {
+    if (!_ctrlPressed && !_altPressed) return;
+    setState(() {
+      _ctrlPressed = false;
+      _altPressed = false;
+    });
+  }
+
+  void _sendKey(TerminalKey key) {
+    widget.plugin.terminal.keyInput(
+      key,
+      ctrl: _ctrlPressed || HardwareKeyboard.instance.isControlPressed,
+      alt: _altPressed || HardwareKeyboard.instance.isAltPressed,
+      shift: HardwareKeyboard.instance.isShiftPressed,
+    );
+    _clearModifiers();
+  }
+
+  bool _onKeyInput(TerminalKey key) {
+    if (!_ctrlPressed && !_altPressed) return false;
+    _sendKey(key);
+    return true;
+  }
+
+  bool _onTextInput(String text) {
+    if (!_ctrlPressed && !_altPressed) return false;
+    final ctrl = _ctrlPressed;
+    final alt = _altPressed;
+    _clearModifiers();
+
+    if (text.length != 1 || text.codeUnitAt(0) > 0x7f) {
+      widget.plugin.terminal.textInput(text);
+      return true;
+    }
+
+    var code = text.codeUnitAt(0);
+    if (ctrl) {
+      if (code == 0x20 || (code >= 0x40 && code <= 0x7e)) {
+        code &= 0x1f;
+      } else if (code == 0x3f) {
+        code = 0x7f;
+      }
+    }
+    final input = String.fromCharCode(code);
+    widget.plugin.terminal.textInput(alt ? '\x1b$input' : input);
+    return true;
   }
 
   void _onFocusRequested() {
@@ -232,34 +327,62 @@ class _TerminalTabViewState extends State<TerminalTabView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _focusNotifier?.removeListener(_onFocusRequested);
+    _terminalFocusNode.removeListener(_onTerminalFocusChanged);
     _terminalFocusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final showExtraKeys = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS) &&
+        _keyboardVisible &&
+        _terminalFocusNode.hasFocus;
     return CupertinoPageScaffold(
       key: ValueKey(widget.plugin),
       backgroundColor: Colors.transparent,
       child: SafeArea(
         child: Stack(
           children: [
-            ClipRect(
-              child: TerminalView(
-                widget.plugin.terminal,
-                controller: widget.plugin.terminalController,
-                focusNode: _terminalFocusNode,
-                onKeyEvent: TerminalShortcutHandler.of(context)?.onKeyEvent,
-                onSecondaryTapDown: (_, __) => showMenu(),
-                backgroundOpacity: 0.8,
-                autofocus: true,
-                cursorType: widget.plugin.profileCursorType,
-                textStyle: TerminalStyle(
-                  fontSize: widget.plugin.profileFontSize,
-                  fontFamily: widget.plugin.profileFontFamily,
+            Column(
+              children: [
+                Expanded(
+                  child: ClipRect(
+                    child: TerminalView(
+                      widget.plugin.terminal,
+                      controller: widget.plugin.terminalController,
+                      focusNode: _terminalFocusNode,
+                      onKeyEvent:
+                          TerminalShortcutHandler.of(context)?.onKeyEvent,
+                      onTextInput: _onTextInput,
+                      onKeyInput: _onKeyInput,
+                      onSecondaryTapDown: (_, __) => showMenu(),
+                      backgroundOpacity: 0.8,
+                      autofocus: true,
+                      cursorType: widget.plugin.profileCursorType,
+                      textStyle: TerminalStyle(
+                        fontSize: widget.plugin.profileFontSize,
+                        fontFamily: widget.plugin.profileFontFamily,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
+                if (showExtraKeys)
+                  TerminalExtraKeys(
+                    ctrlPressed: _ctrlPressed,
+                    altPressed: _altPressed,
+                    onToggleCtrl: () => setState(() {
+                      _ctrlPressed = !_ctrlPressed;
+                    }),
+                    onToggleAlt: () => setState(() {
+                      _altPressed = !_altPressed;
+                    }),
+                    onKey: _sendKey,
+                  ),
+              ],
             ),
             ValueListenableBuilder<String?>(
               valueListenable: widget.plugin.connectionError,
