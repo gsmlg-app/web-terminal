@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:web_terminal/screens/terminal/widgets/tab_switcher.dart';
@@ -13,6 +15,7 @@ void main() {
   Future<ValueNotifier<TabSwitcherResult?>> pumpTabSwitcher(
     WidgetTester tester, {
     List<SessionInfo> tabSessions = sessions,
+    List<DisplayFeature> displayFeatures = const [],
     ValueChanged<List<String>>? onReorder,
     void Function(String sessionId, String title)? onRename,
   }) async {
@@ -20,6 +23,11 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(displayFeatures: displayFeatures),
+          child: child!,
+        ),
         home: Builder(
           builder: (context) => Scaffold(
             body: Center(
@@ -137,5 +145,129 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+  });
+
+  group('Tab switcher display features', () {
+    final manySessions = List.generate(
+      25,
+      (index) => SessionInfo(id: '${index + 1}', name: 'Session ${index + 1}'),
+    );
+    const viewport = Size(1200, 1000);
+
+    void setViewport(WidgetTester tester, Size size) {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = size;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+    }
+
+    Rect panelRect(WidgetTester tester) => tester.getRect(
+      find
+          .ancestor(
+            of: find.text('Switch Tab'),
+            matching: find.byType(Material),
+          )
+          .first,
+    );
+
+    testWidgets('ordinary large screens keep the centered size limit', (
+      tester,
+    ) async {
+      setViewport(tester, viewport);
+      await pumpTabSwitcher(tester, tabSessions: manySessions);
+
+      final rect = panelRect(tester);
+      expect(rect.center, viewport.center(Offset.zero));
+      expect(rect.width, 560);
+      expect(rect.height, lessThanOrEqualTo(520));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+      'ordinary compact screens constrain the panel to the viewport',
+      (tester) async {
+        const compactViewport = Size(360, 480);
+        setViewport(tester, compactViewport);
+        await pumpTabSwitcher(tester);
+
+        final rect = panelRect(tester);
+        expect(rect.center, compactViewport.center(Offset.zero));
+        expect(rect.width, lessThanOrEqualTo(compactViewport.width));
+        expect(rect.height, lessThanOrEqualTo(compactViewport.height));
+        expect(tester.takeException(), isNull);
+      },
+    );
+
+    for (final state in [
+      DisplayFeatureState.postureHalfOpened,
+      DisplayFeatureState.postureFlat,
+    ]) {
+      for (final vertical in [true, false]) {
+        testWidgets(
+          'zero-area ${vertical ? 'vertical' : 'horizontal'} fold in ${state.name} keeps the whole viewport',
+          (tester) async {
+            setViewport(tester, viewport);
+            await pumpTabSwitcher(tester, tabSessions: manySessions);
+            final ordinaryRect = panelRect(tester);
+            await tester.pumpWidget(const SizedBox.shrink());
+            await tester.pumpAndSettle();
+            await pumpTabSwitcher(
+              tester,
+              tabSessions: manySessions,
+              displayFeatures: [
+                DisplayFeature(
+                  bounds: vertical
+                      ? const Rect.fromLTWH(600, 0, 0, 1000)
+                      : const Rect.fromLTWH(0, 500, 1200, 0),
+                  type: DisplayFeatureType.fold,
+                  state: state,
+                ),
+              ],
+            );
+
+            final rect = panelRect(tester);
+            expect(rect.center, viewport.center(Offset.zero));
+            expect(rect, ordinaryRect);
+            expect(tester.takeException(), isNull);
+          },
+        );
+      }
+    }
+
+    for (final vertical in [true, false]) {
+      testWidgets(
+        '${vertical ? 'vertical' : 'horizontal'} occluding hinge keeps the panel in one sub-screen',
+        (tester) async {
+          setViewport(tester, viewport);
+          final hinge = vertical
+              ? const Rect.fromLTWH(580, 0, 40, 1000)
+              : const Rect.fromLTWH(0, 480, 1200, 40);
+          await pumpTabSwitcher(
+            tester,
+            tabSessions: manySessions,
+            displayFeatures: [
+              DisplayFeature(
+                bounds: hinge,
+                type: DisplayFeatureType.hinge,
+                state: DisplayFeatureState.unknown,
+              ),
+            ],
+          );
+
+          final rect = panelRect(tester);
+          expect(rect.overlaps(hinge), isFalse);
+          if (vertical) {
+            expect(rect.right, lessThanOrEqualTo(hinge.left));
+            expect(rect.center, const Offset(290, 500));
+          } else {
+            expect(rect.bottom, lessThanOrEqualTo(hinge.top));
+            expect(rect.center, const Offset(600, 240));
+          }
+          expect(rect.width, lessThanOrEqualTo(560));
+          expect(rect.height, lessThanOrEqualTo(520));
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
   });
 }

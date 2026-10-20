@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:duskmoon_ui/duskmoon_ui.dart';
 
@@ -300,7 +302,48 @@ class AppAdaptiveScaffold extends StatelessWidget {
       return body?.call(context) ?? const SizedBox.shrink();
     }
 
-    return ValueListenableBuilder<bool?>(
+    final mediaQuery = MediaQuery.of(context);
+    final secondaryBodies = <Breakpoint, WidgetBuilder?>{
+      Breakpoints.standard: secondaryBody,
+      if (smallSecondaryBody != null) smallBreakpoint: smallSecondaryBody,
+      if (secondaryBody != null) mediumBreakpoint: secondaryBody,
+      if (mediumLargeSecondaryBody != null)
+        mediumLargeBreakpoint: mediumLargeSecondaryBody,
+      if (largeSecondaryBody != null) largeBreakpoint: largeSecondaryBody,
+      if (extraLargeSecondaryBody != null)
+        extraLargeBreakpoint: extraLargeSecondaryBody,
+    };
+    final activeSecondaryBody = secondaryBodies[
+        Breakpoint.activeBreakpointIn(context, secondaryBodies.keys.toList())];
+    final hasSingleBody = duoScreenPolicy == DuoScreenPolicy.splitBody &&
+        duoScreenRole == DuoScreenRole.single &&
+        (activeSecondaryBody == null ||
+            activeSecondaryBody == DmAdaptiveScaffold.emptyBuilder);
+    // TODO(upstream): duskmoon-dev/flutter-duskmoon-ui#23
+    // WORKAROUND(upstream): duskmoon-dev/flutter-duskmoon-ui#23
+    final displayFeatures = hasSingleBody
+        ? mediaQuery.displayFeatures
+            .where(
+              (feature) =>
+                  feature.type != DisplayFeatureType.fold ||
+                  (feature.bounds.width > 0 && feature.bounds.height > 0),
+            )
+            .toList()
+        : mediaQuery.displayFeatures;
+    final hasFilteredFold =
+        displayFeatures.length != mediaQuery.displayFeatures.length;
+
+    WidgetBuilder? preserveDisplayFeatures(WidgetBuilder? builder) {
+      if (builder == null || !hasFilteredFold) return builder;
+      return (context) => MediaQuery(
+            data: MediaQuery.of(context).copyWith(
+              displayFeatures: mediaQuery.displayFeatures,
+            ),
+            child: Builder(builder: builder),
+          );
+    }
+
+    final scaffold = ValueListenableBuilder<bool?>(
       valueListenable: navigationRailExtendedNotifier,
       builder: (context, sharedExtended, _) {
         final effectiveExtended = isExtendedOverride ?? sharedExtended;
@@ -319,11 +362,11 @@ class AppAdaptiveScaffold extends StatelessWidget {
           leadingExtendedNavRail: leadingExtendedNavRail,
           trailingNavRail: trailingNavRail,
           navigationRailPadding: navigationRailPadding,
-          smallBody: smallBody,
-          body: body,
-          mediumLargeBody: mediumLargeBody,
-          largeBody: largeBody,
-          extraLargeBody: extraLargeBody,
+          smallBody: preserveDisplayFeatures(smallBody),
+          body: preserveDisplayFeatures(body),
+          mediumLargeBody: preserveDisplayFeatures(mediumLargeBody),
+          largeBody: preserveDisplayFeatures(largeBody),
+          extraLargeBody: preserveDisplayFeatures(extraLargeBody),
           smallSecondaryBody: smallSecondaryBody,
           secondaryBody: secondaryBody,
           mediumLargeSecondaryBody: mediumLargeSecondaryBody,
@@ -361,5 +404,12 @@ class AppAdaptiveScaffold extends StatelessWidget {
         );
       },
     );
+
+    return hasFilteredFold
+        ? MediaQuery(
+            data: mediaQuery.copyWith(displayFeatures: displayFeatures),
+            child: scaffold,
+          )
+        : scaffold;
   }
 }

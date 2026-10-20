@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,16 +38,55 @@ Future<TabSwitcherResult?> showTabSwitcher(
   ValueChanged<List<String>>? onReorder,
   void Function(String sessionId, String title)? onRename,
 }) {
-  return showDialog<TabSwitcherResult>(
-    context: context,
-    barrierColor: Colors.black54,
-    builder: (context) => _TabSwitcherDialog(
-      sessions: sessions,
-      currentSessionId: currentSessionId,
-      onReorder: onReorder,
-      onRename: onRename,
+  final navigator = Navigator.of(context, rootNavigator: true);
+  return navigator.push(
+    _TabSwitcherRoute(
+      context: context,
+      themes: InheritedTheme.capture(from: context, to: navigator.context),
+      builder: (context) => _TabSwitcherDialog(
+        sessions: sessions,
+        currentSessionId: currentSessionId,
+        onReorder: onReorder,
+        onRename: onRename,
+      ),
     ),
   );
+}
+
+class _TabSwitcherRoute extends DialogRoute<TabSwitcherResult> {
+  _TabSwitcherRoute({
+    required super.context,
+    required super.builder,
+    required super.themes,
+  }) : super(
+         barrierColor: Colors.black54,
+         traversalEdgeBehavior: TraversalEdgeBehavior.closedLoop,
+       );
+
+  @override
+  Widget buildPage(
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    final mediaQuery = MediaQuery.of(context);
+    final displayFeatures = mediaQuery.displayFeatures
+        .where(
+          (feature) =>
+              feature.type != DisplayFeatureType.fold ||
+              !feature.bounds.isEmpty,
+        )
+        .toList();
+    final page = super.buildPage(context, animation, secondaryAnimation);
+    if (displayFeatures.length == mediaQuery.displayFeatures.length) {
+      return page;
+    }
+    // Filter before DialogRoute chooses a sub-screen for the switcher.
+    return MediaQuery(
+      data: mediaQuery.copyWith(displayFeatures: displayFeatures),
+      child: page,
+    );
+  }
 }
 
 enum _TabSwitcherMode { switcher, select, reorder }
@@ -310,9 +350,8 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
         event.logicalKey == LogicalKeyboardKey.space) {
       switch (_mode) {
         case _TabSwitcherMode.switcher:
-          Navigator.of(
-            context,
-          ).pop(TabSwitcherSelect(_sessions[_selectedIndex].id));
+          Navigator.of(context)
+              .pop(TabSwitcherSelect(_sessions[_selectedIndex].id));
         case _TabSwitcherMode.select:
           _toggleSelected(_sessions[_selectedIndex].id);
         case _TabSwitcherMode.reorder:
