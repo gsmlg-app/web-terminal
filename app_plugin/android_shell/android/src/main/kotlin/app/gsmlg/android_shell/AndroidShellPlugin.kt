@@ -5,6 +5,8 @@ import android.content.pm.ApplicationInfo
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.system.Os
+import android.system.OsConstants
 import android.util.Log
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.plugin.common.MethodCall
@@ -15,6 +17,7 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.concurrent.Executors
+import org.json.JSONObject
 
 class AndroidShellPlugin : FlutterPlugin, MethodCallHandler {
     private lateinit var channel: MethodChannel
@@ -78,7 +81,12 @@ class AndroidShellPlugin : FlutterPlugin, MethodCallHandler {
     private fun initialize(result: Result) {
         executor.execute {
             try {
-                val filesDir = context.filesDir.absolutePath
+                val legacyFiles = File("/data/data/${context.packageName}/files")
+                val filesDir = if (legacyFiles.canonicalFile == context.filesDir.canonicalFile) {
+                    legacyFiles.absolutePath
+                } else {
+                    context.filesDir.absolutePath
+                }
                 val arch = getArchitecture()
                 val rootfsDir = File(filesDir, "rootfs")
                 val tmpDir = File(filesDir, "tmp")
@@ -90,38 +98,37 @@ class AndroidShellPlugin : FlutterPlugin, MethodCallHandler {
                 Log.d(TAG, "nativeLibDir: $nativeLibDir")
                 Log.d(TAG, "arch: $arch")
 
+                val configuration = readConfiguration()
                 val versionFile = File(rootfsDir, ".rootfs_version")
-                if (versionFile.exists() && versionFile.readText().trim() == VERSION && prootBin.exists()) {
-                    Log.d(TAG, "Already initialized with version $VERSION")
-                    mainHandler.post {
-                        result.success(buildResultMap(filesDir, rootfsDir, nativeLibDir, prootBin, tmpDir, arch))
-                    }
-                    return@execute
-                }
-
-                rootfsDir.mkdirs()
                 tmpDir.mkdirs()
-
-                // Extract Alpine Linux minirootfs from assets
-                val assetPath = "shell/$arch/rootfs.tgz"
-                Log.d(TAG, "Extracting rootfs from asset: $assetPath")
-
-                context.assets.open(assetPath).use { assetStream ->
-                    TarExtractor.extractGzipTar(
-                        inputStream = assetStream,
-                        targetDir = rootfsDir
-                    )
+                if (!versionFile.exists()) {
+                    check(rootfsDir.list()?.isNotEmpty() != true) {
+                        "Existing rootfs has no image marker; refusing to overwrite user data"
+                    }
+                    val fresh = File(filesDir, "rootfs-install-staging")
+                    removeStaging(fresh)
+                    try {
+                        context.assets.open("shell/$arch/rootfs.tgz").use { assetStream ->
+                            TarExtractor.extractGzipTar(assetStream, fresh)
+                        }
+                        verifyBundledConfiguration(fresh, configuration)
+                        configureRootfs(fresh)
+                        File(fresh, ".rootfs_version").writeText(VERSION)
+                        check(!rootfsDir.exists() || rootfsDir.delete()) { "Cannot replace empty rootfs directory" }
+                        check(fresh.renameTo(rootfsDir)) { "Cannot activate prepared rootfs" }
+                    } finally {
+                        removeStaging(fresh)
+                    }
                 }
-
-                // Apply essential rootfs configurations
-                configureRootfs(rootfsDir)
-
-                // Write version marker
-                versionFile.writeText(VERSION)
-                Log.d(TAG, "Rootfs extraction and configuration completed successfully")
+                check(versionFile.readText().trim() == VERSION) {
+                    "Unsupported installed rootfs version; refusing to overwrite user data"
+                }
+                RootfsMigrator().migrate(rootfsDir, configuration) { missingPackages ->
+                    installOfflinePackages(rootfsDir, tmpDir, nativeLibDir, prootBin, arch, missingPackages, configuration)
+                }
 
                 mainHandler.post {
-                    result.success(buildResultMap(filesDir, rootfsDir, nativeLibDir, prootBin, tmpDir, arch))
+                    result.success(buildResultMap(filesDir, rootfsDir, nativeLibDir, prootBin, tmpDir, arch, configuration.user))
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to initialize shell environment", e)
@@ -138,7 +145,8 @@ class AndroidShellPlugin : FlutterPlugin, MethodCallHandler {
         nativeLibDir: String,
         prootBin: File,
         tmpDir: File,
-        arch: String
+        arch: String,
+        user: RootfsUser
     ): Map<String, String> {
         return mapOf(
             "filesDir" to filesDir,
@@ -148,9 +156,94 @@ class AndroidShellPlugin : FlutterPlugin, MethodCallHandler {
             "loaderPath" to File(nativeLibDir, "libloader.so").absolutePath,
             "loader32Path" to File(nativeLibDir, "libloader32.so").absolutePath,
             "tmpPath" to tmpDir.absolutePath,
-            "homePath" to File(rootfsDir, "root").absolutePath,
+            "homePath" to File(rootfsDir, user.home.removePrefix("/")).absolutePath,
+            "userName" to user.name,
+            "userId" to user.uid.toString(),
+            "groupId" to user.gid.toString(),
+            "guestHome" to user.home,
+            "guestShell" to user.shell,
             "arch" to arch
         )
+    }
+
+    private fun readConfiguration(): RootfsConfiguration {
+        val json = context.assets.open("shell/rootfs-config.json").bufferedReader().use { it.readText() }
+        val config = JSONObject(json)
+        require(config.getInt("schemaVersion") == 1) { "Unsupported rootfs configuration schema" }
+        val user = config.getJSONObject("user")
+        fun packages(key: String): List<String> {
+            val array = config.getJSONArray(key)
+            return (0 until array.length()).map { array.getString(it) }
+        }
+        return RootfsConfiguration(
+            RootfsUser(user.getString("name"), user.getInt("uid"), user.getInt("gid"), user.getString("home"), user.getString("shell")),
+            packages("packages"), packages("sourcePackages"), json
+        )
+    }
+
+    private fun installOfflinePackages(
+        rootfs: File,
+        temporary: File,
+        nativeLibDir: String,
+        proot: File,
+        arch: String,
+        packages: List<String>,
+        configuration: RootfsConfiguration
+    ) {
+        check(proot.exists()) { "PRoot is required to provision missing packages" }
+        val staging = File(rootfs.parentFile, "rootfs-package-staging")
+        removeStaging(staging)
+        try {
+            context.assets.open("shell/$arch/rootfs.tgz").use { TarExtractor.extractGzipTar(it, staging) }
+            verifyBundledConfiguration(staging, configuration)
+            val repository = File(staging, "opt/web-terminal/apks")
+            check(File(repository, "APKINDEX.tar.gz").isFile) { "Bundled offline package index is missing" }
+            File(rootfs, "opt/web-terminal/apks").mkdirs()
+            val command = listOf(
+                proot.absolutePath, "-r", rootfs.absolutePath, "-0", "--link2symlink", "--sysvipc", "--kill-on-exit",
+                "-b", "/dev", "-b", "/proc", "-b", "/sys",
+                "-b", "${temporary.absolutePath}:/tmp",
+                "-b", "${repository.absolutePath}:/opt/web-terminal/apks",
+                "-w", "/", "/sbin/apk", "--no-network", "--allow-untrusted",
+                "--repositories-file", "/dev/null", "--repository", "/opt/web-terminal/apks", "add"
+            ) + packages
+            val processBuilder = ProcessBuilder(command).redirectErrorStream(true)
+            processBuilder.environment().putAll(mapOf(
+                "LD_LIBRARY_PATH" to nativeLibDir,
+                "PROOT_LOADER" to File(nativeLibDir, "libloader.so").absolutePath,
+                "PROOT_TMP_DIR" to temporary.absolutePath,
+                "PROOT_IGNORE_MISSING_BINDINGS" to "1",
+                "HOME" to "/root", "USER" to "root", "LOGNAME" to "root",
+                "PATH" to "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "TMPDIR" to "/tmp"
+            ))
+            val loader32 = File(nativeLibDir, "libloader32.so")
+            if (loader32.exists()) processBuilder.environment()["PROOT_LOADER_32"] = loader32.absolutePath
+            val process = processBuilder.start()
+            try {
+                process.outputStream.close()
+                val output = process.inputStream.bufferedReader().use { it.readText() }
+                check(process.waitFor() == 0) { "Offline package provisioning failed: $output" }
+            } finally {
+                process.destroy()
+                process.waitFor()
+            }
+        } finally {
+            removeStaging(staging)
+        }
+    }
+
+    private fun verifyBundledConfiguration(rootfs: File, configuration: RootfsConfiguration) {
+        val manifest = JSONObject(File(rootfs, "etc/web-terminal/rootfs.json").readText())
+        check(manifest.getString("configSha256") == configuration.fingerprint) {
+            "Bundled rootfs configuration does not match shell/rootfs-config.json"
+        }
+    }
+
+    private fun removeStaging(file: File) {
+        val mode = try { Os.lstat(file.absolutePath).st_mode } catch (_: Exception) { return }
+        if (OsConstants.S_ISDIR(mode)) file.listFiles()?.forEach { removeStaging(it) }
+        check(file.delete()) { "Cannot remove package staging path: ${file.name}" }
     }
 
     private fun configureRootfs(rootfsDir: File) {

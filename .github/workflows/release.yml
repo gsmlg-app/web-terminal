@@ -107,7 +107,7 @@ jobs:
         run: melos run prepare
 
       - name: Verify Android shell artifacts offline
-        run: python3 -m unittest discover -s app_plugin/android_shell/scripts -p test_android_artifacts.py -v
+        run: python3 -m unittest discover -s app_plugin/android_shell/scripts -p 'test_*.py' -v
 
       - name: Run analyze
         run: melos run analyze

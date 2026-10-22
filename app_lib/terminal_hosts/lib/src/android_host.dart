@@ -32,25 +32,14 @@ class AndroidHost implements Host {
     bool root = false,
     Map<String, String>? environment,
   }) async {
-    final mergedEnv = {
-      ..._env.getEnvironment(),
-      ..._profileEnvironment,
-      ...environment ?? {},
-    };
+    final (mergedEnv, useRoot) = _sessionEnvironment(environment, root: root);
 
     if (!_env.usesSystemShell && _env.prootPath.isNotEmpty) {
-      final (prootBin, prootArgs) = _env.getShellCommand();
-      final baseArgs = prootArgs.length >= 2
-          ? prootArgs.sublist(0, prootArgs.length - 2)
-          : prootArgs;
-      final execArgs = [
-        ...baseArgs,
-        '/bin/sh',
-        '-c',
-        r'$0 "$@"',
+      final (prootBin, execArgs) = _env.getExecutionCommand(
         executable,
-        ...args,
-      ];
+        arguments: args,
+        root: useRoot,
+      );
 
       final result = await io.Process.run(
         prootBin,
@@ -84,20 +73,14 @@ class AndroidHost implements Host {
     int height = 25,
     Map<String, String>? environment,
   }) async {
-    final (command, args) = _env.getShellCommand();
-
-    // Merge environment: base → profile → session-specific
-    final mergedEnv = {
-      ..._env.getEnvironment(),
-      ..._profileEnvironment,
-      ...environment ?? {},
-    };
+    final (mergedEnv, useRoot) = _sessionEnvironment(environment);
+    final (command, args) = _env.getShellCommand(root: useRoot);
 
     final pty = Pty.start(
       command,
       arguments: args,
       environment: mergedEnv,
-      workingDirectory: _env.homePath,
+      workingDirectory: useRoot ? _env.rootHomePath : _env.homePath,
       rows: height,
       columns: width,
       ackRead: true, // Enable backpressure to prevent message queue flooding
@@ -113,6 +96,34 @@ class AndroidHost implements Host {
     }
 
     return AndroidExecutionSession(pty);
+  }
+
+  (Map<String, String>, bool) _sessionEnvironment(
+    Map<String, String>? environment, {
+    bool root = false,
+  }) {
+    final overrides = {..._profileEnvironment, ...?environment};
+    final selectedUser = overrides['WEB_TERMINAL_USER'] ?? _env.userName;
+    if (selectedUser != 'root' && selectedUser != _env.userName) {
+      throw ArgumentError.value(
+        selectedUser,
+        'WEB_TERMINAL_USER',
+        'Expected root or ${_env.userName}',
+      );
+    }
+    final useRoot = root || selectedUser == 'root';
+    final base = _env.getEnvironment(root: useRoot);
+    final merged = {...base, ...overrides};
+    for (final key in [
+      'HOME',
+      'USER',
+      'LOGNAME',
+      'SHELL',
+      'WEB_TERMINAL_USER',
+    ]) {
+      if (base.containsKey(key)) merged[key] = base[key]!;
+    }
+    return (merged, useRoot);
   }
 
   final _doneCompleter = Completer<void>();

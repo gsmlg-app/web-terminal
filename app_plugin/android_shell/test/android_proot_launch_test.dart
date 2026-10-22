@@ -25,7 +25,12 @@ void main() {
             'loaderPath': '${nativeDir.path}/libloader.so',
             'loader32Path': '${nativeDir.path}/libloader32.so',
             'tmpPath': '${directory.path}/tmp',
-            'homePath': '${directory.path}/rootfs/root',
+            'homePath': '${directory.path}/rootfs/home/gao',
+            'userName': 'gao',
+            'userId': '1000',
+            'groupId': '1000',
+            'guestHome': '/home/gao',
+            'guestShell': '/bin/zsh',
             'arch': 'arm64-v8a',
           },
         );
@@ -54,8 +59,70 @@ void main() {
     final (command, arguments) = environment.getShellCommand();
     expect(command, '${directory.path}/native/libproot.so');
     expect(arguments, containsAllInOrder(['-r', environment.rootfsPath]));
-    expect(arguments.sublist(arguments.length - 2), ['/bin/sh', '-l']);
+    expect(arguments, containsAllInOrder(['-i', '1000:1000']));
+    expect(arguments, isNot(contains('-0')));
+    expect(arguments, containsAllInOrder(['-w', '/home/gao']));
+    expect(arguments.sublist(arguments.length - 2), ['/bin/zsh', '-l']);
+    expect(environment.getEnvironment(), containsPair('HOME', '/home/gao'));
+    expect(environment.getEnvironment(), containsPair('USER', 'gao'));
+    expect(environment.getEnvironment(), containsPair('LOGNAME', 'gao'));
+    expect(environment.getEnvironment(), containsPair('SHELL', '/bin/zsh'));
+    expect(environment.homePath, '${directory.path}/rootfs/home/gao');
   });
+
+  test('administrator command and environment use root consistently', () async {
+    final environment = AndroidShellEnv.instance;
+    await environment.initialize();
+    final (_, arguments) = environment.getShellCommand(root: true);
+    expect(arguments, contains('-0'));
+    expect(arguments, isNot(contains('-i')));
+    expect(arguments, containsAllInOrder(['-w', '/root']));
+    expect(arguments.sublist(arguments.length - 2), ['/bin/zsh', '-l']);
+    expect(
+      environment.getEnvironment(root: true),
+      containsPair('HOME', '/root'),
+    );
+    expect(
+      environment.getEnvironment(root: true),
+      containsPair('USER', 'root'),
+    );
+    expect(
+      environment.getEnvironment(root: true),
+      containsPair('LOGNAME', 'root'),
+    );
+    expect(environment.rootHomePath, '${directory.path}/rootfs/root');
+  });
+
+  test(
+    'execution shares PRoot flags without assuming shell tail length',
+    () async {
+      final environment = AndroidShellEnv.instance;
+      await environment.initialize();
+      final (_, shellArguments) = environment.getShellCommand();
+      final (_, arguments) = environment.getExecutionCommand(
+        '/usr/bin/printf',
+        arguments: ['%s', 'argument with spaces'],
+      );
+      expect(
+        arguments.take(shellArguments.length - 2),
+        shellArguments.take(shellArguments.length - 2),
+      );
+      expect(arguments.skip(shellArguments.length - 2), [
+        '/bin/sh',
+        '-c',
+        r'exec "$0" "$@"',
+        '/usr/bin/printf',
+        '%s',
+        'argument with spaces',
+      ]);
+      final (_, rootArguments) = environment.getExecutionCommand(
+        'apk',
+        root: true,
+      );
+      expect(rootArguments, contains('-0'));
+      expect(rootArguments, containsAllInOrder(['-w', '/root']));
+    },
+  );
 
   test(
     'missing PRoot uses Android system paths in fallback environment',

@@ -1,8 +1,6 @@
 """Offline launch-contract checks for the actual bundled Android assets."""
 
-import hashlib
 import io
-import json
 import pathlib
 import re
 import struct
@@ -12,6 +10,7 @@ import unittest
 from unittest import mock
 
 import setup_alpine_proot
+import build_rootfs
 
 PLUGIN = pathlib.Path(__file__).resolve().parent.parent
 ROOT = PLUGIN.parent.parent
@@ -48,13 +47,13 @@ def needed_libraries(path):
 class AndroidArtifactsTest(unittest.TestCase):
     def test_runtime_rootfs_asset_avoids_android_gzip_expansion(self):
         source = (MAIN / 'kotlin/app/gsmlg/android_shell/AndroidShellPlugin.kt').read_text()
-        match = re.search(r'val assetPath = "shell/\$arch/([^"]+)"', source)
-        self.assertIsNotNone(match)
+        asset_names = re.findall(r'"shell/\$arch/([^"]+)"', source)
+        self.assertTrue(asset_names)
         # AGP removes .gz and gunzips assets before AAPT sees them.
-        self.assertEqual(match.group(1), 'rootfs.tgz')
+        self.assertEqual(set(asset_names), {'rootfs.tgz'})
         for abi in setup_alpine_proot.ARCH_CONFIG:
             with self.subTest(abi=abi):
-                content = (MAIN / 'assets/shell' / abi / match.group(1)).read_bytes()
+                content = (MAIN / 'assets/shell' / abi / asset_names[0]).read_bytes()
                 self.assertTrue(content.startswith(b'\x1f\x8b'))
 
     def test_download_rejects_content_with_wrong_checksum(self):
@@ -63,13 +62,25 @@ class AndroidArtifactsTest(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'SHA-256 mismatch'):
                 setup_alpine_proot.verified_download('https://invalid.test/artifact', '0' * 64)
 
-    def test_rootfs_archives_match_the_locked_upstream_checksums(self):
-        lock = json.loads((PLUGIN / 'scripts/android_artifacts.lock.json').read_text())
-        for abi, (_, alpine_arch, _) in setup_alpine_proot.ARCH_CONFIG.items():
-            with self.subTest(abi=abi):
-                content = (MAIN / 'assets/shell' / abi / 'rootfs.tgz').read_bytes()
-                self.assertEqual(hashlib.sha256(content).hexdigest(),
-                                 lock['alpine']['sha256'][alpine_arch])
+    def test_customized_rootfs_archives_match_their_lock(self):
+        lock = build_rootfs.verify_assets()
+        self.assertEqual(set(lock['architectures']), set(setup_alpine_proot.ARCH_CONFIG))
+
+    def test_native_setup_preserves_customized_rootfs(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = pathlib.Path(temporary)
+            assets = directory / 'assets'
+            rootfs = assets / 'arm64-v8a/rootfs.tgz'
+            rootfs.parent.mkdir(parents=True)
+            rootfs.write_bytes(b'customized rootfs must survive native updates')
+            with mock.patch.object(setup_alpine_proot, 'ASSETS_DIR', assets), \
+                    mock.patch.object(setup_alpine_proot, 'PLUGIN_DIR', directory), \
+                    mock.patch.object(setup_alpine_proot, 'JNILIBS_DIR', directory / 'jniLibs'), \
+                    mock.patch.object(setup_alpine_proot, 'verified_download', return_value=b'component'), \
+                    mock.patch.object(setup_alpine_proot, 'extract_file_from_deb', return_value=b'libtalloc.so.2\x00'), \
+                    mock.patch('builtins.print'):
+                setup_alpine_proot.download_and_setup(['arm64-v8a'])
+            self.assertEqual(rootfs.read_bytes(), b'customized rootfs must survive native updates')
 
     def test_all_native_dependencies_are_bundled(self):
         system_libraries = {'libc.so', 'libdl.so', 'libm.so', 'liblog.so'}

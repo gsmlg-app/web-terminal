@@ -1,0 +1,97 @@
+name: Build Android Rootfs
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'Refresh dependencies online, or rebuild locked inputs offline'
+        type: choice
+        required: true
+        default: refresh
+        options:
+          - refresh
+          - build
+      inputs-run-id:
+        description: 'Successful rootfs workflow run providing inputs for an offline build'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: android-rootfs-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      ROOTFS_MODE: ${{ inputs.mode }}
+      INPUTS_RUN_ID: ${{ inputs.inputs-run-id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Validate offline input selection
+        if: inputs.mode == 'build'
+        run: |
+          if [[ ! "$INPUTS_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo 'An offline build requires a successful rootfs workflow run ID.' >&2
+            exit 1
+          fi
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          image: tonistiigi/binfmt@sha256:400a4873b838d1b89194d982c45e5fb3cda4593fbfd7e08a02e76b03b21166f0
+          platforms: arm64,arm,amd64,386
+
+      - name: Download locked inputs
+        if: inputs.mode == 'build'
+        uses: actions/download-artifact@v4
+        with:
+          name: android-rootfs-inputs
+          path: build
+          run-id: ${{ inputs.inputs-run-id }}
+          github-token: ${{ github.token }}
+
+      - name: Restore locked inputs
+        if: inputs.mode == 'build'
+        run: |
+          mkdir -p build/android-rootfs
+          tar -xzf build/android-rootfs-inputs.tgz -C build/android-rootfs
+
+      - name: Build all four architectures
+        run: python3 app_plugin/android_shell/scripts/build_rootfs.py "$ROOTFS_MODE"
+
+      - name: Verify generated images and tooling
+        run: |
+          python3 app_plugin/android_shell/scripts/build_rootfs.py verify
+          python3 -m unittest discover -s app_plugin/android_shell/scripts -p 'test_*.py' -v
+
+      - name: Archive reusable locked inputs
+        run: |
+          tar -czf build/android-rootfs-inputs.tgz -C build/android-rootfs \
+            arm64-v8a/inputs armeabi-v7a/inputs x86_64/inputs x86/inputs
+
+      - name: Upload images and lock for review
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-rootfs-images
+          path: |
+            app_plugin/android_shell/android/src/main/assets/shell/*/rootfs.tgz
+            app_plugin/android_shell/android/src/main/assets/shell/rootfs-config.json
+            app_plugin/android_shell/rootfs/rootfs.lock.json
+          if-no-files-found: error
+          retention-days: 90
+
+      - name: Upload reusable build inputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-rootfs-inputs
+          path: build/android-rootfs-inputs.tgz
+          if-no-files-found: error
+          retention-days: 90

@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Install checksum-pinned Termux PRoot dependencies and Alpine Android assets.
+"""Install checksum-pinned Termux PRoot native dependencies.
 
 Source URLs, versions, and SHA-256 values live in android_artifacts.lock.json.
 The Termux repository package indexes and Alpine release checksums are the
 sources for these pins. No executable is extracted to an Android noexec path:
 all native executables are packaged through jniLibs for PackageManager.
+Customized Alpine assets are managed separately by build_rootfs.py; this helper
+never overwrites them with the original upstream minirootfs.
 """
 
 import hashlib
@@ -78,7 +80,7 @@ def download_and_setup(archs=None):
     for arch in archs or ARCH_CONFIG:
         if arch not in ARCH_CONFIG:
             raise ValueError(f"Unknown architecture: {arch}")
-        termux_arch, alpine_arch, has_loader32 = ARCH_CONFIG[arch]
+        termux_arch, _, has_loader32 = ARCH_CONFIG[arch]
         packages = {}
         for name, package in LOCK["termux"][termux_arch].items():
             url = "https://packages.termux.dev/apt/termux-main/" + package["Filename"]
@@ -98,14 +100,8 @@ def download_and_setup(archs=None):
         if has_loader32:
             binaries["libloader32.so"] = extract_file_from_deb(packages["proot"], "libexec/proot/loader32")
 
-        version = LOCK["alpine"]["version"]
-        branch = ".".join(version.split(".")[:2])
-        rootfs_url = (f"https://dl-cdn.alpinelinux.org/alpine/v{branch}/releases/"
-                      f"{alpine_arch}/alpine-minirootfs-{version}-{alpine_arch}.tar.gz")
-        rootfs = verified_download(rootfs_url, LOCK["alpine"]["sha256"][alpine_arch])
         for name, data in binaries.items():
             write_asset(JNILIBS_DIR / arch / name, data, executable=True)
-        write_asset(ASSETS_DIR / arch / "rootfs.tgz", rootfs)
 
 
 if __name__ == "__main__":

@@ -35,6 +35,11 @@ class AndroidShellEnv {
   late String _homePath;
   late String _arch;
   late String _shellPath;
+  late String _userName;
+  late String _userId;
+  late String _groupId;
+  late String _guestHome;
+  late String _guestShell;
   bool _usesSystemShell = false;
 
   /// Whether the environment has been initialized.
@@ -74,6 +79,12 @@ class AndroidShellEnv {
   /// e.g., /data/data/app.gsmlg.webterminal/files/rootfs/root
   String get homePath => _homePath;
 
+  /// Configured daily login user inside the Linux rootfs.
+  String get userName => _userName;
+
+  /// Host path of the administrator's existing home directory.
+  String get rootHomePath => p.join(rootfsPath, 'root');
+
   /// The temporary files directory on the host filesystem.
   /// e.g., /data/data/app.gsmlg.webterminal/files/tmp
   String get tmpPath => _tmpPath;
@@ -112,6 +123,11 @@ class AndroidShellEnv {
     _loader32Path = paths['loader32Path'] ?? '';
     _tmpPath = paths['tmpPath'] ?? p.join(_filesDir, 'tmp');
     _homePath = paths['homePath'] ?? p.join(_rootfsPath, 'root');
+    _userName = paths['userName'] ?? 'root';
+    _userId = paths['userId'] ?? '0';
+    _groupId = paths['groupId'] ?? '0';
+    _guestHome = paths['guestHome'] ?? '/root';
+    _guestShell = paths['guestShell'] ?? '/bin/sh';
     _arch = paths['arch'] ?? 'arm64-v8a';
 
     // Verify if PRoot binary exists and can be used
@@ -135,7 +151,7 @@ class AndroidShellEnv {
   /// Returns environment variables for the sandboxed Linux shell.
   ///
   /// These should be passed to the PTY when starting a shell session.
-  Map<String, String> getEnvironment() {
+  Map<String, String> getEnvironment({bool root = false}) {
     if (_usesSystemShell) {
       return {
         'PREFIX': prefix,
@@ -152,11 +168,12 @@ class AndroidShellEnv {
 
     final env = <String, String>{
       'PREFIX': prefix,
-      'HOME': '/root',
-      'USER': 'root',
-      'LOGNAME': 'root',
+      'HOME': root ? '/root' : _guestHome,
+      'USER': root ? 'root' : _userName,
+      'LOGNAME': root ? 'root' : _userName,
       'PATH': '/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
-      'SHELL': '/bin/sh',
+      'SHELL': _guestShell,
+      'WEB_TERMINAL_USER': root ? 'root' : _userName,
       'TERM': 'xterm-256color',
       'LANG': 'C.UTF-8',
       'TMPDIR': '/tmp',
@@ -182,17 +199,42 @@ class AndroidShellEnv {
 
   /// Returns the shell command and arguments for starting a login shell.
   ///
-  /// When PRoot is available, starts an isolated Linux container with fake root (uid 0),
-  /// mounting essential system endpoints (/dev, /proc, /sys) and setting up /root.
-  (String, List<String>) getShellCommand() {
+  /// Uses the configured daily identity, or fake root for administrator sessions.
+  (String, List<String>) getShellCommand({bool root = false}) {
     if (_usesSystemShell || _prootPath.isEmpty) {
       return (shellPath, ['-i']);
     }
 
-    final args = [
+    return (_prootPath, [..._getProotArguments(root: root), _guestShell, '-l']);
+  }
+
+  /// Builds a command invocation with the same mounts and identity as a shell.
+  (String, List<String>) getExecutionCommand(
+    String executable, {
+    List<String> arguments = const [],
+    bool root = false,
+  }) {
+    if (_usesSystemShell || _prootPath.isEmpty) {
+      return (executable, arguments);
+    }
+    return (
+      _prootPath,
+      [
+        ..._getProotArguments(root: root),
+        '/bin/sh',
+        '-c',
+        r'exec "$0" "$@"',
+        executable,
+        ...arguments,
+      ],
+    );
+  }
+
+  List<String> _getProotArguments({required bool root}) {
+    return [
       '-r',
       rootfsPath,
-      '-0',
+      if (root) '-0' else ...['-i', '$_userId:$_groupId'],
       '--link2symlink',
       '--sysvipc',
       '--kill-on-exit',
@@ -217,12 +259,8 @@ class AndroidShellEnv {
       '-b',
       '$tmpPath:/dev/shm',
       '-w',
-      '/root',
-      '/bin/sh',
-      '-l',
+      root ? '/root' : _guestHome,
     ];
-
-    return (_prootPath, args);
   }
 
   /// Resets the singleton instance (useful for testing).

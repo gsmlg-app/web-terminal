@@ -35,6 +35,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  android-shell-artifacts:
+    name: Verify Android Shell Assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          lfs: true
+
+      - name: Verify configuration, customized images and artifact tooling
+        run: python3 -m unittest discover -s app_plugin/android_shell/scripts -p 'test_*.py' -v
+
   format-check:
     name: Format Check
     runs-on: ubuntu-latest

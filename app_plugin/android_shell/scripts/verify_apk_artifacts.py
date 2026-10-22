@@ -4,16 +4,15 @@
 import argparse
 from collections import Counter
 import hashlib
-import json
 from pathlib import Path
 import struct
 import tempfile
 from zipfile import ZipFile
 
+from build_rootfs import verify_assets
 from setup_alpine_proot import ARCH_CONFIG
 from test_android_artifacts import needed_libraries
 
-SCRIPT_DIR = Path(__file__).resolve().parent
 FLUTTER_ABIS = {
     'arm64-v8a': (2, 183),
     'armeabi-v7a': (1, 40),
@@ -26,7 +25,7 @@ SYSTEM_LIBRARIES = {
 
 
 def verify_apk(apk):
-    lock = json.loads((SCRIPT_DIR / 'android_artifacts.lock.json').read_text())
+    lock = verify_assets()
     with ZipFile(apk) as archive:
         names = archive.namelist()
         duplicates = [name for name, count in Counter(names).items() if count > 1]
@@ -35,7 +34,13 @@ def verify_apk(apk):
         bad_member = archive.testzip()
         if bad_member:
             raise ValueError(f'APK CRC check failed: {bad_member}')
-        for abi, (_, alpine_arch, _) in ARCH_CONFIG.items():
+        config_name = 'assets/shell/rootfs-config.json'
+        if config_name not in names:
+            raise ValueError('Missing runtime rootfs configuration')
+        config_hash = hashlib.sha256(archive.read(config_name)).hexdigest()
+        if config_hash != lock['configSha256']:
+            raise ValueError('Packaged rootfs configuration does not match the image lock')
+        for abi in ARCH_CONFIG:
             name = f'assets/shell/{abi}/rootfs.tgz'
             stale = [f'assets/shell/{abi}/{suffix}'
                      for suffix in ('rootfs.tar', 'rootfs.tar.gz')
@@ -45,10 +50,10 @@ def verify_apk(apk):
             if name not in names:
                 raise ValueError(f'Missing runtime rootfs asset: {name}')
             data = archive.read(name)
-            expected = lock['alpine']['sha256'][alpine_arch]
+            expected = lock['architectures'][abi]['sha256']
             if not data.startswith(b'\x1f\x8b') or hashlib.sha256(data).hexdigest() != expected:
-                raise ValueError(f'Rootfs gzip bytes do not match the locked source: {name}')
-            print(f'PASS locked rootfs: {name}')
+                raise ValueError(f'Rootfs gzip bytes do not match the locked customized image: {name}')
+            print(f'PASS customized rootfs: {name}')
         for abi, architecture in FLUTTER_ABIS.items():
             prefix = f'lib/{abi}/'
             libraries = {name.removeprefix(prefix): name for name in names
