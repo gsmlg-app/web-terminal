@@ -48,11 +48,25 @@ import awk
 @_silgen_name("id_main") func id_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
 @_silgen_name("sleep_main") func sleep_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
 @_silgen_name("tee_main") func tee_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("base64_main") func base64_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("chksum_main") func chksum_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("compress_main") func compress_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("w_main") func w_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("curl_main") func curl_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("dig_main") func dig_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("host_main") func host_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("nslookup_main") func nslookup_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("ping_main") func ping_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("netcat_main") func netcat_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("whois_main") func whois_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("lua_main") func lua_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
+@_silgen_name("luac_main") func luac_main(_ argc: Int32, _ argv: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
 
 // Command dispatch function type
 typealias CommandMain = (Int32, UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?) -> Int32
 
 public class IosShellPlugin: NSObject, FlutterPlugin {
+    private let commandQueue = DispatchQueue(label: "app.gsmlg.ios_shell.commands")
     private var isInitialized = false
     private var documentsPath: String = ""
     private var tmpPath: String = ""
@@ -61,7 +75,6 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
     private static let commandMap: [String: CommandMain] = [
         // files framework
         "ls": ls_main,
-        "cat": cat_main,
         "cp": cp_main,
         "mv": mv_main,
         "rm": rm_main,
@@ -76,6 +89,14 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
         "gunzip": gzip_main,
         "less": less_main,
         "stat": stat_main,
+        "base64": base64_main,
+        "cksum": chksum_main,
+        "sum": chksum_main,
+        "compress": compress_main,
+        "uncompress": compress_main,
+        "link": ln_main,
+        "readlink": stat_main,
+        "unlink": rm_main,
         // shell framework
         "pwd": pwd_main,
         "echo": echo_main,
@@ -91,7 +112,10 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
         "xargs": xargs_main,
         "sleep": sleep_main,
         "tee": tee_main,
+        "uptime": w_main,
+        "whoami": id_main,
         // text framework
+        "cat": cat_main,
         "head": head_main,
         "tail": tail_main,
         "grep": grep_main,
@@ -101,10 +125,25 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
         "tr": tr_main,
         "diff": diff_main,
         "sed": sed_main,
+        "md5": webterminal_md5_main,
+        "egrep": grep_main,
+        "fgrep": grep_main,
         // tar framework
         "tar": tar_main,
         // awk framework
         "awk": awk_main,
+        "curl": curl_main,
+        "dig": dig_main,
+        "host": host_main,
+        "nslookup": nslookup_main,
+        "ping": ping_main,
+        "nc": netcat_main,
+        "whois": whois_main,
+        "lua": lua_main,
+        "luac": luac_main,
+        "lg2": webterminal_lg2_main,
+        "python": webterminal_python_main,
+        "python3": webterminal_python_main,
     ]
 
     public static func register(with registrar: FlutterPluginRegistrar) {
@@ -117,6 +156,14 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
     }
 
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        commandQueue.async {
+            self.handleCall(call) { value in
+                DispatchQueue.main.async { result(value) }
+            }
+        }
+    }
+
+    private func handleCall(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         switch call.method {
         case "initialize":
             initialize(result: result)
@@ -162,7 +209,7 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
         tmpPath = NSTemporaryDirectory()
 
         // Load framework symbols into global namespace so ios_system can find them
-        let frameworkNames = ["files", "shell", "text", "tar", "awk"]
+        let frameworkNames = ["files", "shell", "text", "tar", "awk", "openssl", "libssh2", "curl_ios", "network_ios", "lua_ios", "lg2", "Python"]
         for name in frameworkNames {
             if let frameworkBundle = Bundle(identifier: "Nicolas-Holzschuch.\(name)") ??
                                      Bundle(path: Bundle.main.privateFrameworksPath! + "/\(name).framework") {
@@ -181,6 +228,8 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
 
         // Initialize ios_system - reads commandDictionary.plist from main bundle
         initializeEnvironment()
+        joinMainThread = true
+        numPythonInterpreters = 1
 
         NSLog("[IosShell] ios_system initialized with command dictionary")
 
@@ -193,11 +242,18 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
 
         // Set up environment variables
         setenv("HOME", documentsPath, 1)
-        setenv("PATH", "\(binPath):/usr/bin:/bin", 1)
+        setenv("PATH", binPath, 1)
         setenv("TMPDIR", tmpPath, 1)
         setenv("TERM", "xterm-256color", 1)
         setenv("LANG", "en_US.UTF-8", 1)
         setenv("CLICOLOR", "1", 1)
+        guard let certificates = Bundle(for: IosShellPlugin.self).path(forResource: "cacert", ofType: "pem") ??
+                                 Bundle.main.path(forResource: "cacert", ofType: "pem") else {
+            result(FlutterError(code: "MISSING_CA_BUNDLE", message: "TLS certificate bundle is missing", details: nil))
+            return
+        }
+        setenv("SSL_CERT_FILE", certificates, 1)
+        setenv("CURL_CA_BUNDLE", certificates, 1)
 
         // Change to home directory
         FileManager.default.changeCurrentDirectoryPath(documentsPath)
@@ -228,34 +284,7 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
             return
         }
 
-        // Create temporary files for stdout and stderr capture
-        let stdoutPath = tmpPath + "/ios_shell_stdout_\(ProcessInfo.processInfo.globallyUniqueString)"
-        let stderrPath = tmpPath + "/ios_shell_stderr_\(ProcessInfo.processInfo.globallyUniqueString)"
-
-        // Create the files
-        FileManager.default.createFile(atPath: stdoutPath, contents: nil)
-        FileManager.default.createFile(atPath: stderrPath, contents: nil)
-
-        // Redirect command output using shell redirection
-        // This works because ios_system handles redirections internally
-        let redirectedCommand = "\(trimmed) > \"\(stdoutPath)\" 2> \"\(stderrPath)\""
-
-        // Execute via ios_system with redirection
-        let exitCode = ios_system(redirectedCommand)
-
-        // Read output from temp files
-        let stdoutStr = (try? String(contentsOfFile: stdoutPath, encoding: .utf8)) ?? ""
-        let stderrStr = (try? String(contentsOfFile: stderrPath, encoding: .utf8)) ?? ""
-
-        // Clean up temp files
-        try? FileManager.default.removeItem(atPath: stdoutPath)
-        try? FileManager.default.removeItem(atPath: stderrPath)
-
-        result([
-            "exitCode": exitCode,
-            "stdout": stdoutStr,
-            "stderr": stderrStr
-        ])
+        result(webterminal_execute_command(trimmed))
     }
 
     private func listCommands(result: @escaping FlutterResult) {
@@ -272,7 +301,7 @@ public class IosShellPlugin: NSObject, FlutterPlugin {
     }
 
     private func setCurrentDirectory(path: String, result: @escaping FlutterResult) {
-        let success = FileManager.default.changeCurrentDirectoryPath(path)
+        let success = webterminal_set_directory(path)
         result(success)
     }
 

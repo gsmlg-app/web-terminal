@@ -13,9 +13,10 @@ from the a-shell project. Provides Unix command execution capabilities.
   s.license          = { :type => 'BSD-3-Clause', :file => '../LICENSE' }
   s.author           = { 'GSMLG' => 'me@gsmlg.org' }
   s.source           = { :path => '.' }
-  s.source_files     = 'Classes/**/*.swift'
+  s.source_files     = 'Classes/**/*.{c,h,m,swift}'
+  s.preserve_paths   = 'Vendor/md5/*'
   # Keep plist in framework bundle for reference
-  s.resource         = 'Classes/commandDictionary.plist'
+  s.resources        = ['Classes/commandDictionary.plist', 'Resources/cacert.pem', 'Resources/Notices/*']
 
   s.dependency 'Flutter'
 
@@ -30,19 +31,25 @@ from the a-shell project. Provides Unix command execution capabilities.
 
   # ios_system and related frameworks
   # These XCFrameworks should be downloaded and placed in the Frameworks directory
-  # Note: curl_ios requires libssh2 which is not available, so we exclude it
   s.vendored_frameworks = [
     'Frameworks/ios_system.xcframework',
     'Frameworks/shell.xcframework',
     'Frameworks/files.xcframework',
     'Frameworks/text.xcframework',
     'Frameworks/tar.xcframework',
-    'Frameworks/awk.xcframework'
+    'Frameworks/awk.xcframework',
+    'Frameworks/openssl.xcframework',
+    'Frameworks/libssh2.xcframework',
+    'Frameworks/curl_ios.xcframework',
+    'Frameworks/network_ios.xcframework',
+    'Frameworks/lua_ios.xcframework',
+    'Frameworks/lg2.xcframework',
+    'Frameworks/Python.xcframework'
   ]
 
   # Framework search paths
   s.xcconfig = {
     'FRAMEWORK_SEARCH_PATHS' => '$(inherited) "${PODS_ROOT}/../.symlinks/plugins/ios_shell/ios/Frameworks"',
-    'OTHER_LDFLAGS' => '$(inherited) -framework ios_system -framework shell -framework files -framework text -framework tar -framework awk'
+    'OTHER_LDFLAGS' => '$(inherited) -framework ios_system -framework shell -framework files -framework text -framework tar -framework awk -framework openssl -framework libssh2 -framework curl_ios -framework network_ios -framework lua_ios -framework lg2 -framework Python'
   }
 end

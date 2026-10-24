@@ -63,6 +63,14 @@ SCRIPT
         main_project.save
         puts "Added 'Copy ios_system Command Dictionary' script phase to Runner target"
       end
+
+      python_phase_name = 'Embed Python Standard Library'
+      python_phase = runner_target.build_phases.find { |p| p.respond_to?(:name) && p.name == python_phase_name }
+      python_phase ||= runner_target.new_shell_script_build_phase(python_phase_name)
+      python_phase.shell_path = '/bin/bash'
+      python_phase.shell_script = '"${PODS_ROOT}/../.symlinks/plugins/ios_shell/scripts/embed_python.sh"'
+      python_phase.always_out_of_date = '1'
+      main_project.save
     end
   end
 end

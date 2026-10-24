@@ -218,9 +218,10 @@ class IosExecutionSession implements ExecutionSession {
     for (final char in input.split('')) {
       if (char == '\r' || char == '\n') {
         // Execute the command
-        _output('\r\n');
-        await _executeCommand(_inputBuffer.trim());
+        final command = _inputBuffer.trim();
         _inputBuffer = '';
+        _output('\r\n');
+        await _executeCommand(command);
         if (!_closed) {
           _showPrompt();
         }
@@ -283,6 +284,24 @@ class IosExecutionSession implements ExecutionSession {
 
     // Execute via ios_system
     try {
+      if (command == 'clear') {
+        _output('\x1b[2J\x1b[H');
+        return;
+      }
+
+      if (command == 'help') {
+        final commands = {
+          ...await _env.listCommands(),
+          'cd',
+          'clear',
+          'exit',
+          'help',
+          'logout',
+        }.toList()..sort();
+        _output('${commands.join('  ')}\r\n');
+        return;
+      }
+
       final result = await _env.execute(command);
 
       if (result.stdout.isNotEmpty) {
