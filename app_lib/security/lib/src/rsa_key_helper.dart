@@ -156,7 +156,7 @@ class RsaKeyHelper {
 
     var version = ASN1Integer(BigInt.from(0));
     var modulus = ASN1Integer(privateKey.n!);
-    var publicExponent = ASN1Integer(privateKey.exponent!);
+    var publicExponent = ASN1Integer(privateKey.publicExponent!);
     var privateExponent = ASN1Integer(privateKey.privateExponent!);
     var p = ASN1Integer(privateKey.p!);
     var q = ASN1Integer(privateKey.q!);

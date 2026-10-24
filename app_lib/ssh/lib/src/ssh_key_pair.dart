@@ -686,10 +686,15 @@ class RsaPrivateKey implements SSHKeyPair {
     final sequence = parser.nextObject() as ASN1Sequence;
     final version = (sequence.elements[0] as ASN1Integer).valueAsBigInteger;
     final n = (sequence.elements[1] as ASN1Integer).valueAsBigInteger;
-    final e = (sequence.elements[2] as ASN1Integer).valueAsBigInteger;
+    final encodedPublicExponent =
+        (sequence.elements[2] as ASN1Integer).valueAsBigInteger;
     final d = (sequence.elements[3] as ASN1Integer).valueAsBigInteger;
     final p = (sequence.elements[4] as ASN1Integer).valueAsBigInteger;
     final q = (sequence.elements[5] as ASN1Integer).valueAsBigInteger;
+    // Older app-generated keys stored d in the public-exponent field.
+    final e = encodedPublicExponent == d
+        ? d.modInverse((p - BigInt.one) * (q - BigInt.one))
+        : encodedPublicExponent;
     final exponent1 = (sequence.elements[6] as ASN1Integer).valueAsBigInteger;
     final exponent2 = (sequence.elements[7] as ASN1Integer).valueAsBigInteger;
     final coefficient = (sequence.elements[8] as ASN1Integer).valueAsBigInteger;
