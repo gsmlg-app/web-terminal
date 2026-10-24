@@ -1,3 +1,4 @@
+import 'package:app_locale/app_locale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -31,7 +32,11 @@ void main() {
     final plugin = TerminalPlugin();
     addTearDown(plugin.terminal.dispose);
     await tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: TerminalTabView(plugin))),
+      MaterialApp(
+        localizationsDelegates: AppLocale.localizationsDelegates,
+        supportedLocales: AppLocale.supportedLocales,
+        home: Scaffold(body: TerminalTabView(plugin)),
+      ),
     );
     await tester.pump();
     return plugin;
@@ -243,6 +248,174 @@ void main() {
     expect(tester.takeException(), isNull);
   }, platform: TargetPlatform.iOS);
 
+  keyboardTest('iOS soft keyboard sends repeated backspaces after typing', (
+    tester,
+  ) async {
+    final plugin = await pumpTerminal(tester);
+    final output = <String>[];
+    plugin.terminal.onOutput = output.add;
+
+    _insertText(tester, 'abc');
+    await tester.pump();
+    for (var i = 0; i < 3; i++) {
+      _deleteBackward(tester);
+      await tester.pump();
+    }
+    _insertText(tester, 'z');
+    await tester.pump();
+
+    expect(output, ['abc', '\x7f', '\x7f', '\x7f', 'z']);
+    expect(tester.takeException(), isNull);
+  }, platform: TargetPlatform.iOS);
+
+  keyboardTest('iOS Enter sends once and consumes the virtual modifier', (
+    tester,
+  ) async {
+    final plugin = await pumpTerminal(tester);
+    final output = <String>[];
+    plugin.terminal.onOutput = output.add;
+
+    _insertText(tester, 'ls -a');
+    await tester.pump();
+    await tester.tap(find.text('CTRL'));
+    await tester.pump();
+    await tester.testTextInput.receiveAction(TextInputAction.newline);
+    _insertText(tester, '\n');
+    await tester.pump();
+    _insertText(tester, 'c');
+    await tester.pump();
+
+    expect(output, ['ls -a', '\r', 'c']);
+  }, platform: TargetPlatform.iOS);
+
+  keyboardTest('iOS soft keyboard deletes text sent by the minus shortcut', (
+    tester,
+  ) async {
+    final plugin = await pumpTerminal(tester);
+    final output = <String>[];
+    plugin.terminal.onOutput = output.add;
+
+    await tester.tap(find.text('-'));
+    await tester.pump();
+    _deleteBackward(tester);
+    await tester.pump();
+
+    expect(output, ['-', '\x7f']);
+  }, platform: TargetPlatform.iOS);
+
+  keyboardTest('iOS soft keyboard deletion survives hiding and reopening', (
+    tester,
+  ) async {
+    final plugin = await pumpTerminal(tester);
+    final output = <String>[];
+    plugin.terminal.onOutput = output.add;
+
+    _insertText(tester, 'a');
+    await tester.pump();
+    await tester.tap(find.byIcon(Icons.keyboard_hide));
+    await tester.pump();
+    await tester.tap(find.byType(TerminalView));
+    await tester.pump(const Duration(milliseconds: 300));
+    _deleteBackward(tester);
+    await tester.pump();
+    _insertText(tester, 'b');
+    await tester.pump();
+    _deleteBackward(tester);
+    await tester.pump();
+
+    expect(output, ['a', '\x7f', 'b', '\x7f']);
+  }, platform: TargetPlatform.iOS);
+
+  keyboardTest('iOS composition deletion stays local until text is committed', (
+    tester,
+  ) async {
+    final plugin = await pumpTerminal(tester);
+    final output = <String>[];
+    plugin.terminal.onOutput = output.add;
+    final prefix = tester.testTextInput.editingState!['text'] as String;
+
+    for (final composing in ['ni', 'n']) {
+      tester.testTextInput.updateEditingValue(
+        TextEditingValue(
+          text: '$prefix$composing',
+          selection: TextSelection.collapsed(
+            offset: prefix.length + composing.length,
+          ),
+          composing: TextRange(
+            start: prefix.length,
+            end: prefix.length + composing.length,
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(output, isEmpty);
+    }
+    tester.testTextInput.updateEditingValue(
+      TextEditingValue(
+        text: '$prefix你',
+        selection: TextSelection.collapsed(offset: prefix.length + 1),
+      ),
+    );
+    await tester.pump();
+    _deleteBackward(tester);
+    await tester.pump();
+
+    expect(output, ['你', '\x7f']);
+  }, platform: TargetPlatform.iOS);
+
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    keyboardTest(
+      '${platform.name} minus shortcut sends literal text and retains focus',
+      (tester) async {
+        final plugin = await pumpTerminal(tester);
+        final output = <String>[];
+        plugin.terminal.onOutput = output.add;
+        final terminal = tester.widget<TerminalView>(find.byType(TerminalView));
+
+        await tester.tap(find.text('-'));
+        await tester.pump();
+
+        expect(output, ['-']);
+        expect(terminal.focusNode!.hasFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+      },
+      platform: platform,
+    );
+
+    keyboardTest(
+      '${platform.name} hide shortcut clears modifiers and terminal tap restores keyboard',
+      (tester) async {
+        final plugin = await pumpTerminal(tester);
+        final output = <String>[];
+        plugin.terminal.onOutput = output.add;
+        final terminal = tester.widget<TerminalView>(find.byType(TerminalView));
+
+        await tester.tap(find.text('CTRL'));
+        await tester.tap(find.text('ALT'));
+        await tester.pump();
+        await tester.tap(find.byIcon(Icons.keyboard_hide));
+        await tester.pump();
+
+        expect(terminal.focusNode!.hasFocus, isFalse);
+        expect(tester.testTextInput.isVisible, isFalse);
+        expect(find.text('CTRL'), findsNothing);
+        expect(find.byIcon(Icons.keyboard_hide), findsNothing);
+
+        await tester.tap(find.byType(TerminalView));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(terminal.focusNode!.hasFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+        expect(find.text('CTRL'), findsOneWidget);
+        expect(find.byIcon(Icons.keyboard_hide), findsOneWidget);
+        _insertText(tester, 'c');
+        await tester.pump();
+        expect(output, ['c']);
+      },
+      platform: platform,
+    );
+  }
+
   keyboardTest('Ctrl supports space and punctuation control bytes', (
     tester,
   ) async {
@@ -273,7 +446,11 @@ void main() {
     final output = <String>[];
     replacement.terminal.onOutput = output.add;
     await tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: TerminalTabView(replacement))),
+      MaterialApp(
+        localizationsDelegates: AppLocale.localizationsDelegates,
+        supportedLocales: AppLocale.supportedLocales,
+        home: Scaffold(body: TerminalTabView(replacement)),
+      ),
     );
     await tester.pump();
     expect(tester.state(find.byType(TerminalTabView)), same(previousState));
@@ -290,4 +467,27 @@ void main() {
 
     expect(output.join(), 'c');
   });
+}
+
+void _insertText(WidgetTester tester, String text) {
+  final value = TextEditingValue.fromJSON(tester.testTextInput.editingState!);
+  final selection = value.selection;
+  tester.testTextInput.updateEditingValue(
+    TextEditingValue(
+      text: value.text.replaceRange(selection.start, selection.end, text),
+      selection: TextSelection.collapsed(offset: selection.start + text.length),
+    ),
+  );
+}
+
+void _deleteBackward(WidgetTester tester) {
+  final value = TextEditingValue.fromJSON(tester.testTextInput.editingState!);
+  final cursor = value.selection.baseOffset;
+  if (cursor == 0) return;
+  tester.testTextInput.updateEditingValue(
+    TextEditingValue(
+      text: value.text.replaceRange(cursor - 1, cursor, ''),
+      selection: TextSelection.collapsed(offset: cursor - 1),
+    ),
+  );
 }

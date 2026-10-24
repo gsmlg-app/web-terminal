@@ -159,6 +159,24 @@ void main() {
   });
 
   group('TerminalView.onKeyInput', () {
+    testWidgets('iOS newline action and insertion send one enter per press',
+        (tester) async {
+      final output = <String>[];
+      final terminal = Terminal(onOutput: output.add);
+
+      await _pumpTerminal(tester, terminal);
+      for (var press = 0; press < 2; press++) {
+        await tester.testTextInput.receiveAction(TextInputAction.newline);
+        tester.testTextInput.enterText('\n');
+        await tester.pump();
+      }
+      tester.testTextInput.enterText('first\nsecond');
+      await tester.pump();
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+
+      expect(output, ['\r', '\r', 'first\nsecond', '\r']);
+    }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
+
     testWidgets(
         'consumes a soft keyboard enter action without duplicate output',
         (tester) async {

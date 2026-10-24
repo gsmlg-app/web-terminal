@@ -815,6 +815,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
               Destinations.changeHandler(idx, context),
           destinations: Destinations.navs(context),
           hideNavigation: isFullscreen,
+          navigationVisible:
+              !AppAdaptiveScaffold.appSmallBreakpoint.isActive(context) ||
+              MediaQuery.viewInsetsOf(context).bottom == 0,
           body: (context) => widget,
         );
       },

@@ -1,3 +1,4 @@
+import 'package:app_locale/app_locale.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:terminal_plugin/src/terminal_extra_keys.dart';
@@ -17,7 +18,9 @@ void main() {
     '↑',
     '→',
     'PGDN',
+    '-',
   ];
+  const slotLabels = [...labels, 'Hide'];
 
   Future<void> pumpKeys(
     WidgetTester tester, {
@@ -28,10 +31,14 @@ void main() {
     VoidCallback? onToggleCtrl,
     VoidCallback? onToggleAlt,
     ValueChanged<TerminalKey>? onKey,
+    ValueChanged<String>? onText,
+    VoidCallback? onHideKeyboard,
     Brightness brightness = Brightness.light,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocale.localizationsDelegates,
+        supportedLocales: AppLocale.supportedLocales,
         theme: ThemeData(brightness: brightness),
         home: Scaffold(
           body: Align(
@@ -46,6 +53,8 @@ void main() {
                   onToggleCtrl: onToggleCtrl ?? () {},
                   onToggleAlt: onToggleAlt ?? () {},
                   onKey: onKey ?? (_) {},
+                  onText: onText ?? (_) {},
+                  onHideKeyboard: onHideKeyboard ?? () {},
                 ),
               ),
             ),
@@ -56,33 +65,38 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('narrow screens show two ordered rows with 48px touch targets',
-      (tester) async {
-    await pumpKeys(tester);
-
-    for (var index = 0; index < labels.length; index++) {
-      final key = find.bySemanticsLabel(labels[index]);
-      expect(find.byTooltip(labels[index]), findsOneWidget);
-      final rect = tester.getRect(key);
-      expect(rect.height, 48);
-      expect(rect.width, 60);
-      expect(rect.top, index < 6 ? 0 : 48);
-      expect(rect.left, (index % 6) * 60);
-    }
-    expect(tester.getSize(find.byType(TerminalExtraKeys)).height, 96);
-    expect(tester.takeException(), isNull);
-  });
-
-  for (final width in [576.0, 720.0]) {
-    testWidgets('width $width shows all twelve keys in one row',
+  for (final width in [320.0, 360.0, 576.0, 671.0]) {
+    testWidgets('width $width shows two ordered rows of seven keys',
         (tester) async {
       await pumpKeys(tester, width: width);
 
-      for (var index = 0; index < labels.length; index++) {
-        final rect = tester.getRect(find.bySemanticsLabel(labels[index]));
+      for (var index = 0; index < slotLabels.length; index++) {
+        final key = find.bySemanticsLabel(slotLabels[index]);
+        expect(find.byTooltip(slotLabels[index]), findsOneWidget);
+        final rect = tester.getRect(key);
+        expect(rect.height, 48);
+        expect(rect.width, closeTo(width / 7, 0.01));
+        expect(rect.top, index < 7 ? 0 : 48);
+        expect(rect.left, closeTo((index % 7) * width / 7, 0.01));
+      }
+      expect(find.byIcon(Icons.keyboard_hide), findsOneWidget);
+      expect(tester.getRect(find.bySemanticsLabel('Hide')).right,
+          closeTo(width, 0.01));
+      expect(tester.getSize(find.byType(TerminalExtraKeys)).height, 96);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
+  for (final width in [672.0, 720.0]) {
+    testWidgets('width $width shows all fourteen keys in one row',
+        (tester) async {
+      await pumpKeys(tester, width: width);
+
+      for (var index = 0; index < slotLabels.length; index++) {
+        final rect = tester.getRect(find.bySemanticsLabel(slotLabels[index]));
         expect(rect.top, 0);
-        expect(rect.left, closeTo(index * width / 12, 0.01));
-        expect(rect.width, closeTo(width / 12, 0.01));
+        expect(rect.left, closeTo(index * width / 14, 0.01));
+        expect(rect.width, closeTo(width / 14, 0.01));
         expect(rect.height, 48);
       }
       expect(tester.getSize(find.byType(TerminalExtraKeys)).height, 48);
@@ -100,13 +114,16 @@ void main() {
         brightness: brightness,
       );
 
-      for (final label in labels) {
-        expect(find.text(label), findsOneWidget);
+      for (final label in slotLabels) {
         final rect = tester.getRect(find.bySemanticsLabel(label));
         expect(rect.left, greaterThanOrEqualTo(0));
-        expect(rect.right, lessThanOrEqualTo(320));
+        expect(rect.right, lessThanOrEqualTo(320.01));
         expect(rect.height, 48);
       }
+      for (final label in labels) {
+        expect(find.text(label), findsOneWidget);
+      }
+      expect(find.byIcon(Icons.keyboard_hide), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
@@ -116,8 +133,8 @@ void main() {
     final sent = <TerminalKey>[];
     await pumpKeys(tester, onKey: sent.add);
 
-    for (final label
-        in labels.where((label) => label != 'CTRL' && label != 'ALT')) {
+    for (final label in labels
+        .where((label) => label != 'CTRL' && label != 'ALT' && label != '-')) {
       await tester.tap(find.text(label));
     }
 
@@ -133,6 +150,41 @@ void main() {
       TerminalKey.arrowRight,
       TerminalKey.pageDown,
     ]);
+  });
+
+  testWidgets('minus sends literal text and hide invokes only its callback',
+      (tester) async {
+    final text = <String>[];
+    final keys = <TerminalKey>[];
+    var hides = 0;
+    var modifierTaps = 0;
+    await pumpKeys(
+      tester,
+      onText: text.add,
+      onKey: keys.add,
+      onHideKeyboard: () => hides++,
+      onToggleCtrl: () => modifierTaps++,
+      onToggleAlt: () => modifierTaps++,
+    );
+
+    await tester.tap(find.text('-'));
+    expect(text, ['-']);
+    expect(hides, 0);
+    await tester.tap(find.byIcon(Icons.keyboard_hide));
+    expect(hides, 1);
+    expect(text, ['-']);
+    expect(keys, isEmpty);
+    expect(modifierTaps, 0);
+    expect(find.byTooltip('Hide'), findsOneWidget);
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Hide')),
+      matchesSemantics(
+        label: 'Hide',
+        textDirection: TextDirection.ltr,
+        isButton: true,
+        hasTapAction: true,
+      ),
+    );
   });
 
   testWidgets('modifier callbacks leave state ownership with the parent',
@@ -183,12 +235,14 @@ void main() {
     }
   });
 
-  testWidgets('tapping every key retains terminal focus and the soft keyboard',
+  testWidgets('tapping input keys retains terminal focus and the soft keyboard',
       (tester) async {
     final terminalFocus = FocusNode();
     addTearDown(terminalFocus.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        localizationsDelegates: AppLocale.localizationsDelegates,
+        supportedLocales: AppLocale.supportedLocales,
         home: Scaffold(
           body: Column(
             children: [
@@ -205,6 +259,8 @@ void main() {
                 onToggleCtrl: () {},
                 onToggleAlt: () {},
                 onKey: (_) {},
+                onText: (_) {},
+                onHideKeyboard: () {},
               ),
             ],
           ),

@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -289,6 +290,11 @@ class TerminalViewState extends State<TerminalView> {
         },
         onComposing: _onComposing,
         onAction: (action) {
+          if (!kIsWeb &&
+              defaultTargetPlatform == TargetPlatform.iOS &&
+              action == TextInputAction.newline) {
+            return;
+          }
           _scrollToBottom();
           // Android sends TextInputAction.newline when the user presses the virtual keyboard's enter key.
           if (action == TextInputAction.done ||
@@ -421,6 +427,14 @@ class TerminalViewState extends State<TerminalView> {
   }
 
   void _onInsert(String text) {
+    if (!kIsWeb &&
+        defaultTargetPlatform == TargetPlatform.iOS &&
+        text == '\n') {
+      _handleKeyInput(TerminalKey.enter);
+      _scrollToBottom();
+      return;
+    }
+
     if (widget.onTextInput?.call(text) == true) {
       _scrollToBottom();
       return;

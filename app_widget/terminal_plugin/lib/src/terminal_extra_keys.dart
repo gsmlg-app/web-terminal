@@ -1,3 +1,4 @@
+import 'package:app_locale/app_locale.dart';
 import 'package:flutter/material.dart';
 import 'package:xterm/xterm.dart';
 
@@ -10,6 +11,8 @@ class TerminalExtraKeys extends StatelessWidget {
     required this.onToggleCtrl,
     required this.onToggleAlt,
     required this.onKey,
+    required this.onText,
+    required this.onHideKeyboard,
   });
 
   final bool ctrlPressed;
@@ -17,6 +20,8 @@ class TerminalExtraKeys extends StatelessWidget {
   final VoidCallback onToggleCtrl;
   final VoidCallback onToggleAlt;
   final ValueChanged<TerminalKey> onKey;
+  final ValueChanged<String> onText;
+  final VoidCallback onHideKeyboard;
 
   static const _keys = <(String, TerminalKey?)>[
     ('ESC', TerminalKey.escape),
@@ -31,6 +36,8 @@ class TerminalExtraKeys extends StatelessWidget {
     ('↑', TerminalKey.arrowUp),
     ('→', TerminalKey.arrowRight),
     ('PGDN', TerminalKey.pageDown),
+    ('-', null),
+    ('HIDE', null),
   ];
 
   @override
@@ -40,7 +47,8 @@ class TerminalExtraKeys extends StatelessWidget {
       child: ExcludeFocus(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final columns = constraints.maxWidth >= 12 * 48 ? 12 : 6;
+            final columns =
+                constraints.maxWidth >= _keys.length * 48 ? _keys.length : 7;
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -68,6 +76,8 @@ class TerminalExtraKeys extends StatelessWidget {
     TerminalKey? terminalKey,
   ) {
     final colors = Theme.of(context).colorScheme;
+    final isHideKeyboard = label == 'HIDE';
+    final keyLabel = isHideKeyboard ? context.l10n.hide : label;
     final bool? toggled = switch (label) {
       'CTRL' => ctrlPressed,
       'ALT' => altPressed,
@@ -75,18 +85,21 @@ class TerminalExtraKeys extends StatelessWidget {
     };
     final onPressed = terminalKey != null
         ? () => onKey(terminalKey)
-        : label == 'CTRL'
-            ? onToggleCtrl
-            : onToggleAlt;
+        : switch (label) {
+            'CTRL' => onToggleCtrl,
+            'ALT' => onToggleAlt,
+            '-' => () => onText('-'),
+            _ => onHideKeyboard,
+          };
 
     return Semantics(
-      label: label,
+      label: keyLabel,
       button: true,
       toggled: toggled,
       onTap: onPressed,
       excludeSemantics: true,
       child: Tooltip(
-        message: label,
+        message: keyLabel,
         excludeFromSemantics: true,
         child: Ink(
           color: toggled == true
@@ -102,18 +115,21 @@ class TerminalExtraKeys extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
                 child: FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: toggled == true
-                              ? colors.onSecondaryContainer
-                              : colors.onSurface,
-                          fontWeight: toggled == true
-                              ? FontWeight.bold
-                              : FontWeight.w500,
+                  child: isHideKeyboard
+                      ? Icon(Icons.keyboard_hide, color: colors.onSurface)
+                      : Text(
+                          label,
+                          maxLines: 1,
+                          style:
+                              Theme.of(context).textTheme.labelLarge?.copyWith(
+                                    color: toggled == true
+                                        ? colors.onSecondaryContainer
+                                        : colors.onSurface,
+                                    fontWeight: toggled == true
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                  ),
                         ),
-                  ),
                 ),
               ),
             ),

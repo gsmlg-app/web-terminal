@@ -289,6 +289,17 @@ class _TerminalTabViewState extends State<TerminalTabView>
     _clearModifiers();
   }
 
+  void _sendText(String text) {
+    if (!_onTextInput(text)) {
+      widget.plugin.terminal.textInput(text);
+    }
+  }
+
+  void _hideKeyboard() {
+    _clearModifiers();
+    _terminalFocusNode.unfocus();
+  }
+
   bool _onKeyInput(TerminalKey key) {
     if (!_ctrlPressed && !_altPressed) return false;
     _sendKey(key);
@@ -359,6 +370,8 @@ class _TerminalTabViewState extends State<TerminalTabView>
                           TerminalShortcutHandler.of(context)?.onKeyEvent,
                       onTextInput: _onTextInput,
                       onKeyInput: _onKeyInput,
+                      deleteDetection: !kIsWeb &&
+                          defaultTargetPlatform == TargetPlatform.iOS,
                       onSecondaryTapDown: (_, __) => showMenu(),
                       backgroundOpacity: 0.8,
                       autofocus: true,
@@ -381,6 +394,8 @@ class _TerminalTabViewState extends State<TerminalTabView>
                       _altPressed = !_altPressed;
                     }),
                     onKey: _sendKey,
+                    onText: _sendText,
+                    onHideKeyboard: _hideKeyboard,
                   ),
               ],
             ),

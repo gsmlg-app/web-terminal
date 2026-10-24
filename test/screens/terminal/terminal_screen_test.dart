@@ -1,6 +1,7 @@
 import 'package:app_database/app_database.dart';
 import 'package:app_locale/app_locale.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
+import 'package:flex_tabs/flex_tabs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,10 +11,12 @@ import 'package:shell_profile_bloc/shell_profile_bloc.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/terminal_hosts.dart';
 import 'package:terminal_plugin/terminal_plugin.dart';
+import 'package:terminal_plugin/src/terminal_extra_keys.dart';
 import 'package:terminal_settings_bloc/terminal_settings_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:web_terminal/screens/terminal/terminal_screen.dart';
+import 'package:xterm/xterm.dart';
 
 class _FakeVaultRepository implements VaultRepository {
   final _storage = <String, String>{};
@@ -50,6 +53,112 @@ class _FakeVaultRepository implements VaultRepository {
 }
 
 void main() {
+  for (final platform in [TargetPlatform.android, TargetPlatform.iOS]) {
+    testWidgets(
+      '${platform.name} terminal keys meet the keyboard and navigation returns after dismissal',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(390, 844);
+        tester.view.viewPadding = const FakeViewPadding(top: 47, bottom: 34);
+        tester.view.padding = const FakeViewPadding(top: 47, bottom: 34);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        addTearDown(tester.view.resetViewPadding);
+        addTearDown(tester.view.resetPadding);
+        addTearDown(tester.view.resetViewInsets);
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final database = AppDatabase.forTesting();
+        addTearDown(database.close);
+        final tabBloc = TerminalTabBloc()..add(TerminalTabStart());
+        addTearDown(tabBloc.close);
+        await tester.pump();
+        final plugin = TerminalPlugin();
+        addTearDown(plugin.terminal.dispose);
+        final tab = TabItem(content: TerminalTabView(plugin));
+        addTearDown(tab.dispose);
+        tabBloc.add(TerminalTabOpenTab(tab));
+        addTearDown(() async {
+          await tester.pumpWidget(const SizedBox.shrink());
+          await tester.pump();
+        });
+
+        await tester.pumpWidget(
+          MultiRepositoryProvider(
+            providers: [
+              RepositoryProvider<SharedPreferences>.value(value: prefs),
+              RepositoryProvider<AppDatabase>.value(value: database),
+            ],
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<TerminalTabBloc>.value(value: tabBloc),
+                BlocProvider<TerminalSettingsBloc>(
+                  create: (context) =>
+                      TerminalSettingsBloc(vault: _FakeVaultRepository()),
+                ),
+                BlocProvider<ShellProfileBloc>(
+                  create: (context) => ShellProfileBloc(database),
+                ),
+              ],
+              child: MaterialApp(
+                localizationsDelegates: AppLocale.localizationsDelegates,
+                supportedLocales: AppLocale.supportedLocales,
+                home: const TerminalScreen(),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+        expect(find.byType(NavigationBar), findsOneWidget);
+        expect(find.byType(TerminalExtraKeys), findsNothing);
+        final terminalState = tester.state<TerminalViewState>(
+          find.byType(TerminalView),
+        );
+        await tester.tap(find.byType(TerminalView));
+        await tester.pump(const Duration(milliseconds: 300));
+
+        tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+        tester.view.padding = const FakeViewPadding(top: 47);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(TerminalExtraKeys), findsOneWidget);
+        expect(
+          tester.getBottomRight(find.byType(TerminalExtraKeys)).dy,
+          closeTo(844 - 300, 1),
+        );
+        expect(find.byType(NavigationBar), findsNothing);
+        expect(
+          tester.state<TerminalViewState>(find.byType(TerminalView)),
+          same(terminalState),
+        );
+        expect(
+          tester.widget<TerminalTabView>(find.byType(TerminalTabView)).plugin,
+          same(plugin),
+        );
+
+        tester.view.viewInsets = FakeViewPadding.zero;
+        tester.view.padding = const FakeViewPadding(top: 47, bottom: 34);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        expect(find.byType(NavigationBar), findsOneWidget);
+        expect(find.byType(TerminalExtraKeys), findsNothing);
+        expect(
+          tester.state<TerminalViewState>(find.byType(TerminalView)),
+          same(terminalState),
+        );
+        expect(
+          tester.widget<TerminalTabView>(find.byType(TerminalTabView)).plugin,
+          same(plugin),
+        );
+        expect(tester.takeException(), isNull);
+      },
+      variant: TargetPlatformVariant.only(platform),
+    );
+  }
+
   testWidgets(
     'disposes without looking up providers from a deactivated context',
     (tester) async {
