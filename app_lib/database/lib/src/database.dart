@@ -39,14 +39,14 @@ class AppDatabase extends _$AppDatabase {
           // Add shell_profiles table in version 2
           await m.createTable(shellProfiles);
         }
-        if (from < 3) {
+        if (from >= 2 && from < 3) {
           // Add new shell profile columns in version 3
           await m.addColumn(shellProfiles, shellProfiles.workingDirectory);
           await m.addColumn(shellProfiles, shellProfiles.startupCommand);
           await m.addColumn(shellProfiles, shellProfiles.cursorStyle);
           await m.addColumn(shellProfiles, shellProfiles.scrollbackLines);
         }
-        if (from < 4) {
+        if (from >= 2 && from < 4) {
           // Add shell profile state inheritance option in version 4
           await m.addColumn(shellProfiles, shellProfiles.inheritCurrentState);
         }
