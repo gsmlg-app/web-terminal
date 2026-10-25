@@ -4,6 +4,15 @@ import 'package:app_logging/app_logging.dart';
 import 'package:uuid/uuid.dart';
 
 import 'session.dart';
+import '../config/server_config.dart';
+
+class SessionLimitException implements Exception {
+  final String message;
+  const SessionLimitException(this.message);
+
+  @override
+  String toString() => message;
+}
 
 /// Event types for session manager notifications.
 sealed class SessionManagerEvent {
@@ -70,18 +79,60 @@ class SessionManager {
   /// Timer for cleanup.
   Timer? _cleanupTimer;
 
+  ServerConfig _config;
+  final DateTime Function() _now;
+  final _recentCreations = <({DateTime time, String address})>[];
+
   SessionManager({
     this.sessionExpiry = const Duration(hours: 24),
-  }) {
+    ServerConfig? config,
+    DateTime Function()? now,
+  })  : _config = config ?? const ServerConfig(staticFilesPath: ''),
+        _now = now ?? DateTime.now {
     // Start periodic cleanup
     _cleanupTimer = Timer.periodic(
-      const Duration(minutes: 5),
+      const Duration(seconds: 30),
       (_) => cleanup(),
     );
   }
 
   /// Stream of session manager events.
   Stream<SessionManagerEvent> get events => _eventController.stream;
+
+  void configure(ServerConfig config) {
+    _config = config;
+    cleanup();
+  }
+
+  void _checkCreationLimits(String clientAddress) {
+    cleanup();
+    final now = _now();
+    _recentCreations.removeWhere(
+      (entry) => now.difference(entry.time) >= const Duration(minutes: 1),
+    );
+    final sessions = _sessions.values;
+    final pending = sessions.where((session) => !session.isApproved);
+    if (pending.length >= _config.maxPendingSessions ||
+        pending
+                .where((session) => session.clientAddress == clientAddress)
+                .length >=
+            _config.maxPendingSessionsPerClient) {
+      throw const SessionLimitException('Too many pending sessions');
+    }
+    if (sessions
+            .where((session) => session.clientAddress == clientAddress)
+            .length >=
+        _config.maxSessionsPerToken) {
+      throw const SessionLimitException('Too many sessions for this client');
+    }
+    if (_recentCreations.length >= _config.maxSessionCreationsPerMinute ||
+        _recentCreations
+                .where((entry) => entry.address == clientAddress)
+                .length >=
+            _config.maxSessionCreationsPerClientPerMinute) {
+      throw const SessionLimitException('Session creation rate exceeded');
+    }
+  }
 
   /// Create a new pending session.
   ///
@@ -91,6 +142,7 @@ class SessionManager {
     required String clientAddress,
     String? userAgent,
   }) {
+    _checkCreationLimits(clientAddress);
     final sessionId = _uuid.v4();
     final approvalCode = WebSession.generateApprovalCode();
 
@@ -100,10 +152,12 @@ class SessionManager {
       clientAddress: clientAddress,
       userAgent: userAgent,
       status: WebSessionStatus.pending,
+      createdAt: _now(),
     );
 
     _sessions[sessionId] = session;
     _sessionsByApprovalCode[approvalCode] = sessionId;
+    _recentCreations.add((time: _now(), address: clientAddress));
 
     final logger = AppLogger();
     logger.d(
@@ -150,8 +204,13 @@ class SessionManager {
 
   /// Approve a pending session by its session ID.
   bool approveSession(String sessionId) {
+    cleanup();
     final session = getSession(sessionId);
     if (session != null && session.status == WebSessionStatus.pending) {
+      if (_sessions.values.where((session) => session.isApproved).length >=
+          _config.maxActiveSessions) {
+        return false;
+      }
       session.status = WebSessionStatus.approved;
       _eventController.add(SessionApprovedEvent(session));
       return true;
@@ -219,6 +278,7 @@ class SessionManager {
     if (session != null && _isExpired(session)) {
       session.status = WebSessionStatus.expired;
       _removeSession(session);
+      _eventController.add(SessionUpdatedEvent(session));
       return null;
     }
     return session;
@@ -228,7 +288,7 @@ class SessionManager {
   WebSession? getSessionByApprovalCode(String approvalCode) {
     final sessionId = _sessionsByApprovalCode[approvalCode];
     if (sessionId == null) return null;
-    return _sessions[sessionId];
+    return getSession(sessionId);
   }
 
   /// Get all sessions.
@@ -252,7 +312,13 @@ class SessionManager {
 
   /// Check if a session is expired.
   bool _isExpired(WebSession session) {
-    return DateTime.now().difference(session.createdAt) > sessionExpiry;
+    var expiry = sessionExpiry < _config.sessionTimeout
+        ? sessionExpiry
+        : _config.sessionTimeout;
+    if (!session.isApproved && _config.pendingSessionTimeout < expiry) {
+      expiry = _config.pendingSessionTimeout;
+    }
+    return _now().difference(session.createdAt) >= expiry;
   }
 
   /// Remove a session and clean up indexes.
@@ -270,6 +336,7 @@ class SessionManager {
     for (final session in expiredSessions) {
       session.status = WebSessionStatus.expired;
       _removeSession(session);
+      _eventController.add(SessionUpdatedEvent(session));
     }
   }
 
@@ -281,6 +348,7 @@ class SessionManager {
     }
     _sessions.clear();
     _sessionsByApprovalCode.clear();
+    _recentCreations.clear();
     await _eventController.close();
   }
 }

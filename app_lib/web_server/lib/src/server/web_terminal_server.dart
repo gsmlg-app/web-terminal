@@ -41,7 +41,9 @@ class WebTerminalServer {
   WebTerminalServer({
     required this.config,
     required this.sessionManager,
-  });
+  }) {
+    sessionManager.configure(config);
+  }
 
   /// Whether the server is running.
   bool get isRunning => _server != null;
@@ -197,11 +199,20 @@ class WebTerminalServer {
     final clientAddress = _getClientAddress(request);
     final userAgent = request.headers['user-agent'];
 
-    final session = sessionManager.getOrCreateSession(
-      existingSessionId: existingSessionId,
-      clientAddress: clientAddress,
-      userAgent: userAgent,
-    );
+    final WebSession session;
+    try {
+      session = sessionManager.getOrCreateSession(
+        existingSessionId: existingSessionId,
+        clientAddress: clientAddress,
+        userAgent: userAgent,
+      );
+    } on SessionLimitException catch (error) {
+      return Response(429, body: error.message, headers: {
+        'Content-Type': 'text/plain; charset=utf-8',
+        'Retry-After': '60',
+        'Cache-Control': 'no-store',
+      });
+    }
 
     final isNewSession = existingSessionId != session.id;
     final logger = AppLogger();
@@ -283,17 +294,6 @@ class WebTerminalServer {
 
   /// Get client address from request.
   String _getClientAddress(Request request) {
-    // Try X-Forwarded-For first (for proxied requests)
-    final forwarded = request.headers['x-forwarded-for'];
-    if (forwarded != null) {
-      return forwarded.split(',').first.trim();
-    }
-
-    final realIp = request.headers['x-real-ip'];
-    if (realIp != null && realIp.isNotEmpty) {
-      return realIp;
-    }
-
     final connectionInfo =
         request.context['shelf.io.connection_info'] as HttpConnectionInfo?;
     return connectionInfo?.remoteAddress.address ?? '0.0.0.0';

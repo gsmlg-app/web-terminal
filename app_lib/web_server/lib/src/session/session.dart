@@ -83,7 +83,8 @@ class WebSession {
     required this.clientAddress,
     this.userAgent,
     this.status = WebSessionStatus.pending,
-  }) : createdAt = DateTime.now();
+    DateTime? createdAt,
+  }) : createdAt = createdAt ?? DateTime.now();
 
   /// Generate a random 6-character approval code.
   static String generateApprovalCode() {

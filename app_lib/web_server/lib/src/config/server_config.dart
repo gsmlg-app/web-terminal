@@ -15,8 +15,15 @@ class ServerConfig {
   /// Session timeout duration.
   final Duration sessionTimeout;
 
-  /// Maximum number of sessions per token.
+  /// Maximum browser sessions per client address (legacy option name).
   final int maxSessionsPerToken;
+
+  final int maxPendingSessions;
+  final int maxPendingSessionsPerClient;
+  final int maxActiveSessions;
+  final Duration pendingSessionTimeout;
+  final int maxSessionCreationsPerMinute;
+  final int maxSessionCreationsPerClientPerMinute;
 
   /// Maximum number of PTY sessions per WebSocket connection.
   final int maxPtySessions;
@@ -34,6 +41,12 @@ class ServerConfig {
     required this.staticFilesPath,
     this.sessionTimeout = const Duration(hours: 24),
     this.maxSessionsPerToken = 5,
+    this.maxPendingSessions = 32,
+    this.maxPendingSessionsPerClient = 3,
+    this.maxActiveSessions = 32,
+    this.pendingSessionTimeout = const Duration(minutes: 5),
+    this.maxSessionCreationsPerMinute = 60,
+    this.maxSessionCreationsPerClientPerMinute = 10,
     this.maxPtySessions = 10,
     this.debugMode = false,
     this.useSsl = false,
@@ -46,6 +59,12 @@ class ServerConfig {
     String? staticFilesPath,
     Duration? sessionTimeout,
     int? maxSessionsPerToken,
+    int? maxPendingSessions,
+    int? maxPendingSessionsPerClient,
+    int? maxActiveSessions,
+    Duration? pendingSessionTimeout,
+    int? maxSessionCreationsPerMinute,
+    int? maxSessionCreationsPerClientPerMinute,
     int? maxPtySessions,
     bool? debugMode,
     bool? useSsl,
@@ -57,6 +76,17 @@ class ServerConfig {
       staticFilesPath: staticFilesPath ?? this.staticFilesPath,
       sessionTimeout: sessionTimeout ?? this.sessionTimeout,
       maxSessionsPerToken: maxSessionsPerToken ?? this.maxSessionsPerToken,
+      maxPendingSessions: maxPendingSessions ?? this.maxPendingSessions,
+      maxPendingSessionsPerClient:
+          maxPendingSessionsPerClient ?? this.maxPendingSessionsPerClient,
+      maxActiveSessions: maxActiveSessions ?? this.maxActiveSessions,
+      pendingSessionTimeout:
+          pendingSessionTimeout ?? this.pendingSessionTimeout,
+      maxSessionCreationsPerMinute:
+          maxSessionCreationsPerMinute ?? this.maxSessionCreationsPerMinute,
+      maxSessionCreationsPerClientPerMinute:
+          maxSessionCreationsPerClientPerMinute ??
+              this.maxSessionCreationsPerClientPerMinute,
       maxPtySessions: maxPtySessions ?? this.maxPtySessions,
       debugMode: debugMode ?? this.debugMode,
       useSsl: useSsl ?? this.useSsl,
