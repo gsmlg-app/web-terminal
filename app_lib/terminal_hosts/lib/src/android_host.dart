@@ -188,7 +188,7 @@ class AndroidExecutionSession implements ExecutionSession {
 
   @override
   Future<void> close() async {
-    _pty.kill();
+    await _pty.close();
   }
 
   @override

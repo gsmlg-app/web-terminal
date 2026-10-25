@@ -453,6 +453,52 @@ class FlutterPtyBindings {
   late final _pty_getpid =
       _pty_getpidPtr.asFunction<int Function(ffi.Pointer<PtyHandle>)>();
 
+  void pty_destroy(
+    ffi.Pointer<PtyHandle> handle,
+  ) {
+    return _pty_destroy(
+      handle,
+    );
+  }
+
+  late final _pty_destroyPtr =
+      _lookup<ffi.NativeFunction<ffi.Void Function(ffi.Pointer<PtyHandle>)>>(
+          'pty_destroy');
+  late final _pty_destroy =
+      _pty_destroyPtr.asFunction<void Function(ffi.Pointer<PtyHandle>)>();
+
+  int pty_terminate(
+    ffi.Pointer<PtyHandle> handle,
+    int signal_number,
+  ) {
+    return _pty_terminate(
+      handle,
+      signal_number,
+    );
+  }
+
+  late final _pty_terminatePtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(ffi.Pointer<PtyHandle>, ffi.Int)>>('pty_terminate');
+  late final _pty_terminate =
+      _pty_terminatePtr.asFunction<int Function(ffi.Pointer<PtyHandle>, int)>();
+
+  int pty_kill(
+    ffi.Pointer<PtyHandle> handle,
+    int signal_number,
+  ) {
+    return _pty_kill(
+      handle,
+      signal_number,
+    );
+  }
+
+  late final _pty_killPtr = _lookup<
+      ffi.NativeFunction<
+          ffi.Int Function(ffi.Pointer<PtyHandle>, ffi.Int)>>('pty_kill');
+  late final _pty_kill =
+      _pty_killPtr.asFunction<int Function(ffi.Pointer<PtyHandle>, int)>();
+
   ffi.Pointer<ffi.Char> pty_error() {
     return _pty_error();
   }

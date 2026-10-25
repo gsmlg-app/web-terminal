@@ -47,6 +47,12 @@ FFI_PLUGIN_EXPORT int pty_resize(PtyHandle *handle, int rows, int cols);
 
 FFI_PLUGIN_EXPORT int pty_getpid(PtyHandle *handle);
 
+FFI_PLUGIN_EXPORT int pty_terminate(PtyHandle *handle, int signal_number);
+
+FFI_PLUGIN_EXPORT int pty_kill(PtyHandle *handle, int signal_number);
+
+FFI_PLUGIN_EXPORT void pty_destroy(PtyHandle *handle);
+
 FFI_PLUGIN_EXPORT char *pty_error(void);
 
 #endif

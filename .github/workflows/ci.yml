@@ -121,6 +121,9 @@ jobs:
       - name: Prepare project
         run: melos run prepare
 
+      - name: Test native PTY lifecycle
+        run: python3 -m unittest discover -s app_plugin/pty/test -p 'test_native_*.py' -v
+
       - name: Run tests
         run: melos run test
 

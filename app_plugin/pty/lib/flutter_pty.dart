@@ -89,44 +89,53 @@ class Pty {
       }
     }
 
-    // build argv
-    final argv = calloc<Pointer<Utf8>>(arguments.length + 2);
-    argv.elementAt(0).value = executable.toNativeUtf8();
-    for (var i = 0; i < arguments.length; i++) {
-      argv.elementAt(i + 1).value = arguments[i].toNativeUtf8();
-    }
-    argv.elementAt(arguments.length + 1).value = nullptr;
+    _stdoutPort.listen(_onOutput);
+    try {
+      _handle = using((arena) {
+        final argv = arena<Pointer<Utf8>>(arguments.length + 2);
+        argv[0] = executable.toNativeUtf8(allocator: arena);
+        for (var i = 0; i < arguments.length; i++) {
+          argv[i + 1] = arguments[i].toNativeUtf8(allocator: arena);
+        }
+        argv[arguments.length + 1] = nullptr;
 
-    //build env
-    final envp = calloc<Pointer<Utf8>>(effectiveEnv.length + 1);
-    for (var i = 0; i < effectiveEnv.length; i++) {
-      final entry = effectiveEnv.entries.elementAt(i);
-      envp.elementAt(i).value = '${entry.key}=${entry.value}'.toNativeUtf8();
-    }
-    envp.elementAt(effectiveEnv.length).value = nullptr;
+        final envp = arena<Pointer<Utf8>>(effectiveEnv.length + 1);
+        var index = 0;
+        for (final entry in effectiveEnv.entries) {
+          envp[index++] = '${entry.key}=${entry.value}'.toNativeUtf8(
+            allocator: arena,
+          );
+        }
+        envp[index] = nullptr;
 
-    final options = calloc<PtyOptions>();
-    options.ref.rows = rows;
-    options.ref.cols = columns;
-    options.ref.executable = executable.toNativeUtf8().cast();
-    options.ref.arguments = argv.cast();
-    options.ref.environment = envp.cast();
-    options.ref.stdout_port = _stdoutPort.sendPort.nativePort;
-    options.ref.exit_port = _exitPort.sendPort.nativePort;
-    options.ref.ackRead = ackRead;
-
-    if (workingDirectory != null) {
-      options.ref.working_directory = workingDirectory.toNativeUtf8().cast();
-    } else {
-      options.ref.working_directory = nullptr;
-    }
-
-    _handle = _bindings.pty_create(options);
-
-    calloc.free(options);
-
-    if (_handle == nullptr) {
-      throw StateError('Failed to create PTY: ${_getPtyError()}');
+        final options = arena<PtyOptions>();
+        options.ref
+          ..rows = rows
+          ..cols = columns
+          ..executable = argv[0].cast()
+          ..arguments = argv.cast()
+          ..environment = envp.cast()
+          ..working_directory = workingDirectory == null
+              ? nullptr
+              : workingDirectory.toNativeUtf8(allocator: arena).cast()
+          ..stdout_port = _stdoutPort.sendPort.nativePort
+          ..exit_port = _exitPort.sendPort.nativePort
+          ..ackRead = ackRead;
+        return _bindings.pty_create(options);
+      });
+      if (_handle == nullptr) {
+        throw ProcessException(
+          executable,
+          arguments,
+          _getPtyError() ?? 'Failed to create PTY',
+        );
+      }
+      _pid = _bindings.pty_getpid(_handle);
+    } catch (_) {
+      _stdoutPort.close();
+      _exitPort.close();
+      unawaited(_outputController.close());
+      rethrow;
     }
 
     _exitPort.first.then(_onExitCode);
@@ -138,11 +147,14 @@ class Pty {
 
   final _exitCodeCompleter = Completer<int>();
 
-  late final Pointer<PtyHandle> _handle;
+  Pointer<PtyHandle> _handle = nullptr;
+  late final int _pid;
+  final _outputController = StreamController<Uint8List>();
+  Future<void>? _closeFuture;
 
   /// The output stream from the pseudo-terminal. Note that pseudo-terminals
   /// do not distinguish between stdout and stderr.
-  Stream<Uint8List> get output => _stdoutPort.cast();
+  Stream<Uint8List> get output => _outputController.stream;
 
   /// A `Future` which completes with the exit code of the process
   /// when the process completes.
@@ -173,10 +185,11 @@ class Pty {
   Future<int> get exitCode => _exitCodeCompleter.future;
 
   /// The process id of the process running in the pseudo-terminal.
-  int get pid => _bindings.pty_getpid(_handle);
+  int get pid => _pid;
 
   /// Write data to the pseudo-terminal.
   void write(Uint8List data) {
+    if (_handle == nullptr || _closeFuture != null) return;
     final buf = malloc<Int8>(data.length);
     buf.asTypedList(data.length).setAll(0, data);
     _bindings.pty_write(_handle, buf.cast(), data.length);
@@ -185,6 +198,7 @@ class Pty {
 
   /// Resize the pseudo-terminal.
   void resize(int rows, int cols) {
+    if (_handle == nullptr || _closeFuture != null) return;
     _bindings.pty_resize(_handle, rows, cols);
   }
 
@@ -194,20 +208,67 @@ class Pty {
   /// Linux and OS X. The default signal is [ProcessSignal.sigterm]
   /// which will normally terminate the process.
   bool kill([ProcessSignal signal = ProcessSignal.sigterm]) {
-    return Process.killPid(pid, signal);
+    if (_handle == nullptr) return false;
+    return Platform.isWindows
+        ? Process.killPid(pid, signal)
+        : _bindings.pty_kill(_handle, signal.signalNumber) == 0;
+  }
+
+  /// Ends the shell and its foreground process group, waits for exit, and
+  /// releases native resources. Repeated calls share the same completion.
+  Future<void> close() => _closeFuture ??= _close();
+
+  Future<void> _close() async {
+    for (final signal in [
+      if (!Platform.isWindows) ProcessSignal.sighup,
+      ProcessSignal.sigterm,
+      ProcessSignal.sigkill,
+    ]) {
+      if (_handle == nullptr) return;
+      if (Platform.isWindows) {
+        kill(signal);
+      } else {
+        _bindings.pty_terminate(_handle, signal.signalNumber);
+      }
+      try {
+        await exitCode.timeout(
+          signal == ProcessSignal.sigkill
+              ? const Duration(seconds: 2)
+              : const Duration(milliseconds: 250),
+        );
+        return;
+      } on TimeoutException {
+        if (signal == ProcessSignal.sigkill) rethrow;
+      }
+    }
   }
 
   /// indicates that a data chunk has been processed.
   /// This is needed when ackRead is set to true as the pty will wait for this signal to happen
   /// before any additional data is sent.
   void ackRead() {
+    if (_handle == nullptr) return;
     _bindings.pty_ack_read(_handle);
   }
 
+  void _onOutput(dynamic data) {
+    if (data == null) {
+      _stdoutPort.close();
+      unawaited(_outputController.close());
+    } else {
+      _outputController.add(data as Uint8List);
+    }
+  }
+
   void _onExitCode(dynamic exitCode) {
-    _stdoutPort.close();
+    if (!Platform.isWindows) {
+      _bindings.pty_destroy(_handle);
+    } else {
+      _onOutput(null);
+    }
+    _handle = nullptr;
     _exitPort.close();
-    _exitCodeCompleter.complete(exitCode);
+    _exitCodeCompleter.complete(exitCode as int);
   }
 }
 
