@@ -100,6 +100,7 @@ class _SSHExecutionSession implements ExecutionSession {
   @override
   Future<void> close() async {
     session.close();
+    await session.done;
   }
 
   @override

@@ -100,7 +100,7 @@ class SSHSession {
 
   /// Close the session. After this call, the session is no longer usable.
   void close() {
-    _channel.close();
+    _channel.destroy();
   }
 
   /// Deliver [signal] to the remote process. Some implementations may not
