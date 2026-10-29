@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
+import 'package:app_locale/app_locale.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:app_logging/app_logging.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
@@ -121,9 +122,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       return;
     }
     final profileState = context.read<ShellProfileBloc>().state;
-    if (settingsState.restoreTerminalTabs &&
-        (profileState is ShellProfileInitial ||
-            profileState is ShellProfileLoading)) {
+    if (profileState is! ShellProfileLoaded) {
       return;
     }
 
@@ -191,6 +190,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   void _openLocalShell() {
+    if (context.read<ShellProfileBloc>().state is! ShellProfileLoaded) return;
     if (!_checkMaxShellsLimit()) return;
 
     selectProfileAndOpenShell(
@@ -829,29 +829,38 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
     if (activeTab == null) {
       // No active tab, show empty state
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.terminal,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
+      return BlocBuilder<ShellProfileBloc, ShellProfileState>(
+        builder: (context, profileState) {
+          if (profileState is ShellProfileError) {
+            return Center(
+              child: Text('${context.l10n.error}: ${profileState.error}'),
+            );
+          }
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.terminal,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No active session',
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: _openLocalShell,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Open Local Shell'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'No active session',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _openLocalShell,
-              icon: const Icon(Icons.add),
-              label: const Text('Open Local Shell'),
-            ),
-          ],
-        ),
+          );
+        },
       );
     }
 

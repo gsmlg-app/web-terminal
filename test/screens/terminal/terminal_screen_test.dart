@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:app_database/app_database.dart';
 import 'package:app_locale/app_locale.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
@@ -50,6 +52,79 @@ class _FakeVaultRepository implements VaultRepository {
   Future<void> write({required String key, required String value}) async {
     _storage[key] = value;
   }
+}
+
+class _FakeSshSpec extends SSHHostSpec {
+  _FakeSshSpec(super.record);
+
+  final fakeHost = _FakeSshHost();
+  int connectorCount = 0;
+
+  @override
+  HostConnector createConnector() {
+    connectorCount++;
+    return _FakeSshConnector(fakeHost);
+  }
+}
+
+class _FakeSshConnector extends HostConnector<_FakeSshHost> {
+  _FakeSshConnector(this.fakeHost);
+
+  final _FakeSshHost fakeHost;
+
+  @override
+  Future<_FakeSshHost> createHost() async => fakeHost;
+}
+
+class _FakeSshHost extends Fake implements Host {
+  final _done = Completer<void>();
+  final sessions = <_FakeSession>[];
+
+  @override
+  Future<void> get done => _done.future;
+
+  @override
+  Future<ExecutionSession> shell({
+    int width = 80,
+    int height = 25,
+    Map<String, String>? environment,
+  }) async {
+    final session = _FakeSession();
+    sessions.add(session);
+    return session;
+  }
+
+  @override
+  Future<void> disconnect() async {
+    for (final session in sessions) {
+      await session.close();
+    }
+    if (!_done.isCompleted) _done.complete();
+  }
+}
+
+class _FakeSession implements ExecutionSession {
+  final _exitCode = Completer<int>();
+
+  @override
+  Future<int> get exitCode => _exitCode.future;
+
+  @override
+  Stream<Uint8List> get output => const Stream.empty();
+
+  @override
+  Future<void> close() async {
+    if (!_exitCode.isCompleted) _exitCode.complete(0);
+  }
+
+  @override
+  void ackRead() {}
+
+  @override
+  Future<void> resize(int width, int height) async {}
+
+  @override
+  Future<void> write(Uint8List data) async {}
 }
 
 void main() {
@@ -214,7 +289,7 @@ void main() {
       addTearDown(tabBloc.close);
       await tester.pump();
 
-      final sshSpec = SSHHostSpec(
+      final sshSpec = _FakeSshSpec(
         SshHost(
           id: 1,
           host: 'prod-1',
@@ -223,10 +298,17 @@ void main() {
           username: 'gao',
           identityType: 0,
         ),
-        passwordProvider: () => 'secret',
-        verifyHostKey: (_, _) async => true,
       );
       final sshManager = PluginManager(sshSpec);
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        for (final tab in (tabBloc.state as TerminalTabLoaded).allTabs) {
+          final plugin = (tab as PluginTab).plugin as TerminalPlugin;
+          tab.dispose();
+          plugin.terminal.dispose();
+        }
+        await tester.pump();
+      });
       final firstSshTab = PluginTab(TerminalPlugin(), sshManager);
       tabBloc.add(TerminalTabOpenTab(firstSshTab));
 
@@ -273,6 +355,8 @@ void main() {
       expect(secondTab, isNot(same(firstSshTab)));
       expect(secondTab.manager, same(sshManager));
       expect(secondTab.manager.hostSpec, same(sshSpec));
+      expect(sshSpec.connectorCount, 1);
+      expect(sshSpec.fakeHost.sessions, hasLength(2));
     },
   );
 }
