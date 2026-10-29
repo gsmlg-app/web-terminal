@@ -36,7 +36,8 @@ Future<void> main() async {
   final sharedPrefs = await SharedPreferences.getInstance();
   final savedRailExtended = sharedPrefs.getBool('app_navigation_rail_extended');
   if (savedRailExtended != null) {
-    AppAdaptiveScaffold.navigationRailExtendedNotifier.value = savedRailExtended;
+    AppAdaptiveScaffold.navigationRailExtendedNotifier.value =
+        savedRailExtended;
   }
   AppAdaptiveScaffold.navigationRailExtendedNotifier.addListener(() {
     final val = AppAdaptiveScaffold.navigationRailExtendedNotifier.value;
@@ -135,9 +136,8 @@ Future<void> main() async {
             },
           ),
           BlocProvider<ShellProfileBloc>(
-            create: (BuildContext context) => ShellProfileBloc(database)
-              ..add(const EnsureDefaultProfile())
-              ..add(const LoadShellProfiles()),
+            create: (BuildContext context) =>
+                ShellProfileBloc(database)..add(const EnsureDefaultProfile()),
           ),
         ],
         child: const App(),
