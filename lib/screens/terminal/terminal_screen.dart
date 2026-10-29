@@ -123,9 +123,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       return;
     }
     final profileState = context.read<ShellProfileBloc>().state;
-    if (settingsState.restoreTerminalTabs &&
-        (profileState is ShellProfileInitial ||
-            profileState is ShellProfileLoading)) {
+    if (profileState is! ShellProfileLoaded) {
       return;
     }
 
@@ -193,6 +191,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
   }
 
   void _openLocalShell() {
+    if (context.read<ShellProfileBloc>().state is! ShellProfileLoaded) return;
     if (!_checkMaxShellsLimit()) return;
 
     selectProfileAndOpenShell(
@@ -512,7 +511,14 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final tabState = _terminalTabBloc.state;
     if (tabState is! TerminalTabLoaded) return;
 
-    final tabs = tabState.allTabs.whereType<PluginTab>().toList();
+    final tabs = <PluginTab>[];
+    final descriptors = <Map<String, Object?>>[];
+    for (final tab in tabState.allTabs.whereType<PluginTab>()) {
+      final descriptor = _encodeTab(tab);
+      if (descriptor == null) continue;
+      tabs.add(tab);
+      descriptors.add(descriptor);
+    }
     if (tabs.isEmpty) {
       await prefs.remove(_persistedTabsKey);
       return;
@@ -522,7 +528,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final activeIndex = tabs.indexWhere((tab) => identical(tab, activeTab));
     final payload = <String, Object?>{
       'activeIndex': activeIndex >= 0 ? activeIndex : 0,
-      'tabs': tabs.map(_encodeTab).whereType<Map<String, Object?>>().toList(),
+      'tabs': descriptors,
     };
     await prefs.setString(_persistedTabsKey, jsonEncode(payload));
   }
@@ -535,7 +541,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
         'hostId': hostSpec.record.id,
       };
     }
-    if (hostSpec is LocalHostSpec) {
+    if (hostSpec is LocalHostSpec ||
+        hostSpec is AndroidHostSpec ||
+        hostSpec is IosHostSpec) {
       return {
         'type': 'local',
         'profileId': tab.shellProfileId,
@@ -873,29 +881,38 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
     if (activeTab == null) {
       // No active tab, show empty state
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.terminal,
-              size: 64,
-              color: Theme.of(context).colorScheme.outline,
+      return BlocBuilder<ShellProfileBloc, ShellProfileState>(
+        builder: (context, profileState) {
+          if (profileState is ShellProfileError) {
+            return Center(
+              child: Text('${context.l10n.error}: ${profileState.error}'),
+            );
+          }
+          return Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.terminal,
+                  size: 64,
+                  color: Theme.of(context).colorScheme.outline,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'No active session',
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(color: Theme.of(context).colorScheme.outline),
+                ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: _openLocalShell,
+                  icon: const Icon(Icons.add),
+                  label: const Text('Open Local Shell'),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(
-              'No active session',
-              style: Theme.of(context).textTheme.titleMedium
-                  ?.copyWith(color: Theme.of(context).colorScheme.outline),
-            ),
-            const SizedBox(height: 24),
-            FilledButton.icon(
-              onPressed: _openLocalShell,
-              icon: const Icon(Icons.add),
-              label: const Text('Open Local Shell'),
-            ),
-          ],
-        ),
+          );
+        },
       );
     }
 
