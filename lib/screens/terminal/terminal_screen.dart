@@ -499,7 +499,14 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final tabState = _terminalTabBloc.state;
     if (tabState is! TerminalTabLoaded) return;
 
-    final tabs = tabState.allTabs.whereType<PluginTab>().toList();
+    final tabs = <PluginTab>[];
+    final descriptors = <Map<String, Object?>>[];
+    for (final tab in tabState.allTabs.whereType<PluginTab>()) {
+      final descriptor = _encodeTab(tab);
+      if (descriptor == null) continue;
+      tabs.add(tab);
+      descriptors.add(descriptor);
+    }
     if (tabs.isEmpty) {
       await prefs.remove(_persistedTabsKey);
       return;
@@ -509,7 +516,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final activeIndex = tabs.indexWhere((tab) => identical(tab, activeTab));
     final payload = <String, Object?>{
       'activeIndex': activeIndex >= 0 ? activeIndex : 0,
-      'tabs': tabs.map(_encodeTab).whereType<Map<String, Object?>>().toList(),
+      'tabs': descriptors,
     };
     await prefs.setString(_persistedTabsKey, jsonEncode(payload));
   }
@@ -519,7 +526,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
     if (hostSpec is SSHHostSpec) {
       return {'type': 'ssh', 'hostId': hostSpec.record.id};
     }
-    if (hostSpec is LocalHostSpec) {
+    if (hostSpec is LocalHostSpec ||
+        hostSpec is AndroidHostSpec ||
+        hostSpec is IosHostSpec) {
       return {
         'type': 'local',
         'profileId': tab.shellProfileId,
