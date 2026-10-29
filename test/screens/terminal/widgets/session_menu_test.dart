@@ -93,7 +93,10 @@ void main() {
         await tester.pumpWidget(buildTestWidget());
 
         // Use widgetWithText to find PopupMenuButton without specifying exact type
-        expect(find.byWidgetPredicate((w) => w is PopupMenuButton), findsOneWidget);
+        expect(
+          find.byWidgetPredicate((w) => w is PopupMenuButton),
+          findsOneWidget,
+        );
       });
 
       testWidgets('has correct tooltip', (WidgetTester tester) async {
@@ -116,8 +119,9 @@ void main() {
         expect(find.text('SFTP Server'), findsOneWidget);
       });
 
-      testWidgets('shows correct subtitles in menu',
-          (WidgetTester tester) async {
+      testWidgets('shows correct subtitles in menu', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         await tester.tap(find.byIcon(Icons.add));
@@ -125,7 +129,7 @@ void main() {
 
         expect(find.text('Open a terminal on this device'), findsOneWidget);
         expect(find.text('Connect to a remote server'), findsOneWidget);
-        expect(find.text('Browse remote files (coming soon)'), findsOneWidget);
+        expect(find.textContaining('coming soon'), findsNothing);
       });
 
       testWidgets('shows correct icons in menu', (WidgetTester tester) async {
@@ -139,8 +143,9 @@ void main() {
         expect(find.byIcon(Icons.folder), findsOneWidget);
       });
 
-      testWidgets('calls onNewLocalShell when Local Shell selected',
-          (WidgetTester tester) async {
+      testWidgets('calls onNewLocalShell when Local Shell selected', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         await tester.tap(find.byIcon(Icons.add));
@@ -154,8 +159,9 @@ void main() {
         expect(sftpSessionCalled, isFalse);
       });
 
-      testWidgets('calls onNewSshSession when SSH Shell selected',
-          (WidgetTester tester) async {
+      testWidgets('calls onNewSshSession when SSH Shell selected', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         await tester.tap(find.byIcon(Icons.add));
@@ -169,18 +175,18 @@ void main() {
         expect(sftpSessionCalled, isFalse);
       });
 
-      testWidgets('SFTP option is disabled', (WidgetTester tester) async {
+      testWidgets('calls onNewSftpSession when SFTP selected', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(buildTestWidget());
 
         await tester.tap(find.byIcon(Icons.add));
         await tester.pumpAndSettle();
 
-        // Tap on SFTP - since it's disabled, callback should not be called
         await tester.tap(find.text('SFTP Server'));
         await tester.pumpAndSettle();
 
-        // SFTP is disabled so callback not called
-        expect(sftpSessionCalled, isFalse);
+        expect(sftpSessionCalled, isTrue);
       });
 
       testWidgets('menu closes after selection', (WidgetTester tester) async {
@@ -230,8 +236,9 @@ void main() {
         expect(semanticsFinder, findsWidgets);
       });
 
-      testWidgets('menu items use ListTile with text',
-          (WidgetTester tester) async {
+      testWidgets('menu items use ListTile with text', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(
@@ -286,10 +293,7 @@ void main() {
 
         // Icon should be descendant of SessionMenu
         expect(
-          find.ancestor(
-            of: iconFinder,
-            matching: find.byType(SessionMenu),
-          ),
+          find.ancestor(of: iconFinder, matching: find.byType(SessionMenu)),
           findsOneWidget,
         );
       });
@@ -319,7 +323,9 @@ void main() {
         expect(find.byType(ListTile), findsNWidgets(3));
       });
 
-      testWidgets('each ListTile has leading icon', (WidgetTester tester) async {
+      testWidgets('each ListTile has leading icon', (
+        WidgetTester tester,
+      ) async {
         await tester.pumpWidget(
           MaterialApp(
             home: Scaffold(

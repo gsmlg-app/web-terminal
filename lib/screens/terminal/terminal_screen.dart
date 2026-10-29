@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
 import 'package:app_locale/app_locale.dart';
+import 'package:file_manager_plugin/file_manager_plugin.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:app_logging/app_logging.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
@@ -422,9 +423,14 @@ class _TerminalScreenState extends State<TerminalScreen> {
         );
         return true;
       case 'ssh':
+      case 'sftp':
         final hostId = item['hostId'];
         if (hostId is! int) return false;
-        return _restoreSshSession(hostId, activate: activate);
+        return _restoreSshSession(
+          hostId,
+          activate: activate,
+          sftp: item['type'] == 'sftp',
+        );
       default:
         return false;
     }
@@ -440,7 +446,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
     return null;
   }
 
-  Future<bool> _restoreSshSession(int hostId, {required bool activate}) async {
+  Future<bool> _restoreSshSession(
+    int hostId, {
+    required bool activate,
+    bool sftp = false,
+  }) async {
     try {
       final database = context.read<AppDatabase>();
       final host = await (database.select(
@@ -457,7 +467,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
       }
 
       if (!mounted) return false;
-      final plugin = _createTerminalPlugin();
+      final Plugin plugin = sftp
+          ? FileManagerPlugin()
+          : _createTerminalPlugin();
       final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
       _terminalTabBloc.add(TerminalTabOpenTab(tabItem, activate: activate));
@@ -524,7 +536,10 @@ class _TerminalScreenState extends State<TerminalScreen> {
   Map<String, Object?>? _encodeTab(PluginTab tab) {
     final hostSpec = tab.manager.hostSpec;
     if (hostSpec is SSHHostSpec) {
-      return {'type': 'ssh', 'hostId': hostSpec.record.id};
+      return {
+        'type': tab.plugin is FileManagerPlugin ? 'sftp' : 'ssh',
+        'hostId': hostSpec.record.id,
+      };
     }
     if (hostSpec is LocalHostSpec ||
         hostSpec is AndroidHostSpec ||
@@ -538,14 +553,42 @@ class _TerminalScreenState extends State<TerminalScreen> {
     return null;
   }
 
-  void _openSftpSession() {
-    // SFTP is planned for future release
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('SFTP support coming soon'),
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _openSftpSession() async {
+    if (!_checkMaxShellsLimit()) return;
+    final host = await SshHostSelector.show(context);
+    if (host == null || !mounted || !_checkMaxShellsLimit()) return;
+
+    try {
+      SshKeyData? keyData;
+      if (SshIdentityType.fromValue(host.identityType) == SshIdentityType.key) {
+        final keyId = host.identityKeyId;
+        if (keyId == null) throw StateError('SSH key not found');
+        keyData = await _loadSshKeyData(keyId);
+      }
+      if (!mounted || !_checkMaxShellsLimit()) return;
+      PluginManager? manager;
+      final state = _terminalTabBloc.state;
+      if (state is TerminalTabLoaded && state.activeTab is PluginTab) {
+        final activeManager = (state.activeTab as PluginTab).manager;
+        final spec = activeManager.hostSpec;
+        if (activeManager.isConnected &&
+            spec is SSHHostSpec &&
+            spec.record == host) {
+          manager = activeManager;
+        }
+      }
+      manager ??= PluginManager(_sshHostSpec(host, keyData: keyData));
+      final tab = PluginTab(FileManagerPlugin(), manager);
+      _terminalTabBloc.add(TerminalTabOpenTab(tab));
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${context.l10n.error}: $error'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
   }
 
   Future<void> _showTabSwitcher() async {
