@@ -62,3 +62,6 @@ mason-lock.json
 
 # ios_system framework build artifacts
 **/ios_system.xcframework/**/commandDictionary.plist
+
+# Flutter golden test failure artifacts
+**/test/**/failures/
