@@ -172,4 +172,45 @@ class AppLocalizationsIt extends AppLocalizations {
       String hostname, int port, String type, String fingerprint) {
     return 'The identity of $hostname:$port is not yet trusted.\n\n$type\n$fingerprint\n\nCompare this fingerprint with the server administrator before trusting it.';
   }
+
+  @override
+  String get optionKeyBehavior => 'Option Key Behavior';
+
+  @override
+  String get optionKeyBehaviorLeftMeta => 'Left Meta';
+
+  @override
+  String get optionKeyBehaviorBothMeta => 'Both Meta';
+
+  @override
+  String get optionKeyBehaviorNormal => 'Normal';
+
+  @override
+  String get optionKeyBehaviorDescription =>
+      'Meta sends Esc + key. Normal types special characters.';
+
+  @override
+  String get closeTabConfirmTitle => 'Close Tab?';
+
+  @override
+  String closeTabConfirmMessage(String title) {
+    return '\"$title\" has a running program. Closing the tab will terminate it.';
+  }
+
+  @override
+  String get quitConfirmTitle => 'Quit Web Terminal?';
+
+  @override
+  String quitConfirmMessage(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tabs have running programs:',
+      one: '1 tab has a running program:',
+    );
+    return '$_temp0\n$titles\n\nQuitting will terminate them.';
+  }
+
+  @override
+  String get quit => 'Quit';
 }

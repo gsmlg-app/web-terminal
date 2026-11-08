@@ -171,6 +171,46 @@ class AppLocalizationsZh extends AppLocalizations {
       String hostname, int port, String type, String fingerprint) {
     return '尚未信任 $hostname:$port 的身份。\n\n$type\n$fingerprint\n\n请先与服务器管理员核对指纹，再确认信任。';
   }
+
+  @override
+  String get optionKeyBehavior => 'Option 键行为';
+
+  @override
+  String get optionKeyBehaviorLeftMeta => '左侧 Meta';
+
+  @override
+  String get optionKeyBehaviorBothMeta => '两侧 Meta';
+
+  @override
+  String get optionKeyBehaviorNormal => '正常';
+
+  @override
+  String get optionKeyBehaviorDescription => 'Meta 发送 Esc + 按键；正常模式输入特殊字符。';
+
+  @override
+  String get closeTabConfirmTitle => 'Close Tab?';
+
+  @override
+  String closeTabConfirmMessage(String title) {
+    return '\"$title\" has a running program. Closing the tab will terminate it.';
+  }
+
+  @override
+  String get quitConfirmTitle => 'Quit Web Terminal?';
+
+  @override
+  String quitConfirmMessage(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tabs have running programs:',
+      one: '1 tab has a running program:',
+    );
+    return '$_temp0\n$titles\n\nQuitting will terminate them.';
+  }
+
+  @override
+  String get quit => 'Quit';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -230,6 +270,21 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
       String hostname, int port, String type, String fingerprint) {
     return '尚未信任 $hostname:$port 的身份。\n\n$type\n$fingerprint\n\n请先与服务器管理员核对指纹，再确认信任。';
   }
+
+  @override
+  String get optionKeyBehavior => 'Option 键行为';
+
+  @override
+  String get optionKeyBehaviorLeftMeta => '左侧 Meta';
+
+  @override
+  String get optionKeyBehaviorBothMeta => '两侧 Meta';
+
+  @override
+  String get optionKeyBehaviorNormal => '正常';
+
+  @override
+  String get optionKeyBehaviorDescription => 'Meta 发送 Esc + 按键；正常模式输入特殊字符。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -289,4 +344,19 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       String hostname, int port, String type, String fingerprint) {
     return '尚未信任 $hostname:$port 的身分。\n\n$type\n$fingerprint\n\n請先與伺服器管理員核對指紋，再確認信任。';
   }
+
+  @override
+  String get optionKeyBehavior => 'Option 鍵行為';
+
+  @override
+  String get optionKeyBehaviorLeftMeta => '左側 Meta';
+
+  @override
+  String get optionKeyBehaviorBothMeta => '兩側 Meta';
+
+  @override
+  String get optionKeyBehaviorNormal => '正常';
+
+  @override
+  String get optionKeyBehaviorDescription => 'Meta 傳送 Esc + 按鍵；正常模式輸入特殊字元。';
 }

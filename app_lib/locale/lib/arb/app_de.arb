@@ -107,5 +107,10 @@
     },
     "sshKeyImport": "Aus Datei importieren",
     "sshKeyImportError": "Die Datei mit dem privaten Schlüssel konnte nicht gelesen werden. Wählen Sie eine nicht leere UTF-8-Textdatei aus.",
+    "optionKeyBehavior": "Verhalten der Wahltaste",
+    "optionKeyBehaviorLeftMeta": "Links Meta",
+    "optionKeyBehaviorBothMeta": "Beide Meta",
+    "optionKeyBehaviorNormal": "Normal",
+    "optionKeyBehaviorDescription": "Meta sendet Esc + Taste. Normal gibt Sonderzeichen ein.",
     "@@description": "Ansible Semaphore Client Tools"
 }

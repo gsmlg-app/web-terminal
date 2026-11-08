@@ -110,5 +110,10 @@
     "sshHostKeyPrompt": "尚未信任 {hostname}:{port} 的身分。\n\n{type}\n{fingerprint}\n\n請先與伺服器管理員核對指紋，再確認信任。",
     "sshKeyImport": "從檔案匯入",
     "sshKeyImportError": "無法讀取私鑰檔案。請選擇非空白的 UTF-8 文字檔案。",
+    "optionKeyBehavior": "Option 鍵行為",
+    "optionKeyBehaviorLeftMeta": "左側 Meta",
+    "optionKeyBehaviorBothMeta": "兩側 Meta",
+    "optionKeyBehaviorNormal": "正常",
+    "optionKeyBehaviorDescription": "Meta 傳送 Esc + 按鍵；正常模式輸入特殊字元。",
     "@@description": "Ansible Semaphore 客戶端工具"
 }

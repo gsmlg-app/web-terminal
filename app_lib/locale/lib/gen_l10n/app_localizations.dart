@@ -438,6 +438,66 @@ abstract class AppLocalizations {
   /// **'The identity of {hostname}:{port} is not yet trusted.\n\n{type}\n{fingerprint}\n\nCompare this fingerprint with the server administrator before trusting it.'**
   String sshHostKeyPrompt(
       String hostname, int port, String type, String fingerprint);
+
+  /// No description provided for @optionKeyBehavior.
+  ///
+  /// In en, this message translates to:
+  /// **'Option Key Behavior'**
+  String get optionKeyBehavior;
+
+  /// No description provided for @optionKeyBehaviorLeftMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Left Meta'**
+  String get optionKeyBehaviorLeftMeta;
+
+  /// No description provided for @optionKeyBehaviorBothMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'Both Meta'**
+  String get optionKeyBehaviorBothMeta;
+
+  /// No description provided for @optionKeyBehaviorNormal.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get optionKeyBehaviorNormal;
+
+  /// No description provided for @optionKeyBehaviorDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Meta sends Esc + key. Normal types special characters.'**
+  String get optionKeyBehaviorDescription;
+
+  /// No description provided for @closeTabConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Tab?'**
+  String get closeTabConfirmTitle;
+
+  /// Shown before closing a tab whose shell has a foreground program running.
+  ///
+  /// In en, this message translates to:
+  /// **'\"{title}\" has a running program. Closing the tab will terminate it.'**
+  String closeTabConfirmMessage(String title);
+
+  /// No description provided for @quitConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit Web Terminal?'**
+  String get quitConfirmTitle;
+
+  /// Shown before quitting or closing the window while tabs have foreground programs running.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 tab has a running program:} other{{count} tabs have running programs:}}\n{titles}\n\nQuitting will terminate them.'**
+  String quitConfirmMessage(int count, String titles);
+
+  /// No description provided for @quit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit'**
+  String get quit;
 }
 
 class _AppLocalizationsDelegate
