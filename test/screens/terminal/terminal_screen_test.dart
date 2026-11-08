@@ -277,86 +277,124 @@ void main() {
     },
   );
 
-  testWidgets(
-    'Ctrl+T on an active SSH tab opens a new SSH tab reusing the same connection',
-    (tester) async {
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      final database = AppDatabase.forTesting();
-      addTearDown(database.close);
-
-      final tabBloc = TerminalTabBloc()..add(TerminalTabStart());
-      addTearDown(tabBloc.close);
-      await tester.pump();
-
-      final sshSpec = _FakeSshSpec(
-        SshHost(
-          id: 1,
-          host: 'prod-1',
-          hostname: '10.100.10.24',
-          port: 22,
-          username: 'gao',
-          identityType: 0,
+  for (final shortcut
+      in <
+        ({
+          TargetPlatform platform,
+          LogicalKeyboardKey modifier,
+          String label,
+          bool opensTab,
+        })
+      >[
+        (
+          platform: TargetPlatform.linux,
+          modifier: LogicalKeyboardKey.controlLeft,
+          label: 'Ctrl+T on Linux',
+          opensTab: true,
         ),
-      );
-      final sshManager = PluginManager(sshSpec);
-      addTearDown(() async {
-        await tester.pumpWidget(const SizedBox.shrink());
-        for (final tab in (tabBloc.state as TerminalTabLoaded).allTabs) {
-          final plugin = (tab as PluginTab).plugin as TerminalPlugin;
-          tab.dispose();
-          plugin.terminal.dispose();
-        }
-        await tester.pump();
-      });
-      final firstSshTab = PluginTab(TerminalPlugin(), sshManager);
-      tabBloc.add(TerminalTabOpenTab(firstSshTab));
+        (
+          platform: TargetPlatform.macOS,
+          modifier: LogicalKeyboardKey.metaLeft,
+          label: 'Cmd+T on macOS',
+          opensTab: true,
+        ),
+        (
+          platform: TargetPlatform.macOS,
+          modifier: LogicalKeyboardKey.controlLeft,
+          label: 'Ctrl+T on macOS',
+          opensTab: false,
+        ),
+      ]) {
+    testWidgets(
+      shortcut.opensTab
+          ? '${shortcut.label} on an active SSH tab opens a new SSH tab '
+                'reusing the same connection'
+          : '${shortcut.label} is left to the shell',
+      variant: TargetPlatformVariant.only(shortcut.platform),
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final database = AppDatabase.forTesting();
+        addTearDown(database.close);
 
-      await tester.pumpWidget(
-        MultiRepositoryProvider(
-          providers: [
-            RepositoryProvider<SharedPreferences>.value(value: prefs),
-            RepositoryProvider<AppDatabase>.value(value: database),
-          ],
-          child: MultiBlocProvider(
+        final tabBloc = TerminalTabBloc()..add(TerminalTabStart());
+        addTearDown(tabBloc.close);
+        await tester.pump();
+
+        final sshSpec = _FakeSshSpec(
+          SshHost(
+            id: 1,
+            host: 'prod-1',
+            hostname: '10.100.10.24',
+            port: 22,
+            username: 'gao',
+            identityType: 0,
+          ),
+        );
+        final sshManager = PluginManager(sshSpec);
+        addTearDown(() async {
+          await tester.pumpWidget(const SizedBox.shrink());
+          for (final tab in (tabBloc.state as TerminalTabLoaded).allTabs) {
+            final plugin = (tab as PluginTab).plugin as TerminalPlugin;
+            tab.dispose();
+            plugin.terminal.dispose();
+          }
+          await tester.pump();
+        });
+        final firstSshTab = PluginTab(TerminalPlugin(), sshManager);
+        tabBloc.add(TerminalTabOpenTab(firstSshTab));
+
+        await tester.pumpWidget(
+          MultiRepositoryProvider(
             providers: [
-              BlocProvider<TerminalTabBloc>.value(value: tabBloc),
-              BlocProvider<TerminalSettingsBloc>(
-                create: (context) =>
-                    TerminalSettingsBloc(vault: _FakeVaultRepository()),
-              ),
-              BlocProvider<ShellProfileBloc>(
-                create: (context) => ShellProfileBloc(database),
-              ),
+              RepositoryProvider<SharedPreferences>.value(value: prefs),
+              RepositoryProvider<AppDatabase>.value(value: database),
             ],
-            child: MaterialApp(
-              localizationsDelegates: AppLocale.localizationsDelegates,
-              supportedLocales: AppLocale.supportedLocales,
-              home: const TerminalScreen(),
+            child: MultiBlocProvider(
+              providers: [
+                BlocProvider<TerminalTabBloc>.value(value: tabBloc),
+                BlocProvider<TerminalSettingsBloc>(
+                  create: (context) =>
+                      TerminalSettingsBloc(vault: _FakeVaultRepository()),
+                ),
+                BlocProvider<ShellProfileBloc>(
+                  create: (context) => ShellProfileBloc(database),
+                ),
+              ],
+              child: MaterialApp(
+                localizationsDelegates: AppLocale.localizationsDelegates,
+                supportedLocales: AppLocale.supportedLocales,
+                home: const TerminalScreen(),
+              ),
             ),
           ),
-        ),
-      );
-      await tester.pump();
+        );
+        await tester.pump();
 
-      final loadedBefore = tabBloc.state as TerminalTabLoaded;
-      expect(loadedBefore.tabCount, 1);
-      expect(loadedBefore.activeTab, same(firstSshTab));
+        final loadedBefore = tabBloc.state as TerminalTabLoaded;
+        expect(loadedBefore.tabCount, 1);
+        expect(loadedBefore.activeTab, same(firstSshTab));
 
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
-      await tester.sendKeyDownEvent(LogicalKeyboardKey.keyT);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.keyT);
-      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
-      await tester.pump();
+        await tester.sendKeyDownEvent(shortcut.modifier);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.keyT);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.keyT);
+        await tester.sendKeyUpEvent(shortcut.modifier);
+        await tester.pump();
 
-      final loadedAfter = tabBloc.state as TerminalTabLoaded;
-      expect(loadedAfter.tabCount, 2);
-      final secondTab = loadedAfter.activeTab as PluginTab;
-      expect(secondTab, isNot(same(firstSshTab)));
-      expect(secondTab.manager, same(sshManager));
-      expect(secondTab.manager.hostSpec, same(sshSpec));
-      expect(sshSpec.connectorCount, 1);
-      expect(sshSpec.fakeHost.sessions, hasLength(2));
-    },
-  );
+        final loadedAfter = tabBloc.state as TerminalTabLoaded;
+        if (!shortcut.opensTab) {
+          expect(loadedAfter.tabCount, 1);
+          expect(sshSpec.fakeHost.sessions, hasLength(1));
+          return;
+        }
+        expect(loadedAfter.tabCount, 2);
+        final secondTab = loadedAfter.activeTab as PluginTab;
+        expect(secondTab, isNot(same(firstSshTab)));
+        expect(secondTab.manager, same(sshManager));
+        expect(secondTab.manager.hostSpec, same(sshSpec));
+        expect(sshSpec.connectorCount, 1);
+        expect(sshSpec.fakeHost.sessions, hasLength(2));
+      },
+    );
+  }
 }

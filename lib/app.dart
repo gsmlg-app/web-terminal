@@ -7,6 +7,7 @@ import 'package:app_locale/app_locale.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:theme_bloc/theme_bloc.dart';
 import 'package:web_terminal/router.dart';
+import 'package:web_terminal/screens/terminal/close_confirmation.dart';
 
 class App extends StatelessWidget {
   const App({super.key});
@@ -28,7 +29,14 @@ class App extends StatelessWidget {
           localizationsDelegates: AppLocale.localizationsDelegates,
           supportedLocales: AppLocale.supportedLocales,
           builder: (context, child) {
-            return ContextMenuOverlay(child: child ?? const SizedBox.shrink());
+            return AppExitGuard(
+              navigatorKey: navigatorKey,
+              interceptWindowClose:
+                  !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS,
+              child: ContextMenuOverlay(
+                child: child ?? const SizedBox.shrink(),
+              ),
+            );
           },
         );
 

@@ -8,6 +8,7 @@ import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_database/app_database.dart';
 import 'package:app_locale/app_locale.dart';
 import 'package:file_manager_plugin/file_manager_plugin.dart';
+import 'package:flex_tabs/flex_tabs.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:app_logging/app_logging.dart';
 import 'package:shell_profile_bloc/shell_profile_bloc.dart';
@@ -22,6 +23,7 @@ import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:xterm/xterm.dart' show TerminalCursorType;
 
+import 'close_confirmation.dart';
 import 'widgets/widgets.dart';
 
 class TerminalScreen extends StatefulWidget {
@@ -594,7 +596,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
   Future<void> _showTabSwitcher() async {
     final state = _terminalTabBloc.state;
     if (state is! TerminalTabLoaded) return;
-    final sessions = _buildSessionList(state);
+    final busyTabs = (await findBusyTabs(state.allTabs)).toSet();
+    if (!mounted) return;
+    final sessions = _buildSessionList(state, busyTabs: busyTabs);
     if (sessions.isEmpty) return;
     final currentId = state.activeTab?.hashCode.toString();
     final result = await showTabSwitcher(
@@ -622,6 +626,25 @@ class _TerminalScreenState extends State<TerminalScreen> {
         }
         _requestTerminalFocus();
     }
+  }
+
+  Future<void> _closeActiveTab() async {
+    final state = _terminalTabBloc.state;
+    final activeTab = state is TerminalTabLoaded ? state.activeTab : null;
+    if (activeTab == null) return;
+    if (!await confirmCloseTab(context, activeTab)) {
+      _requestTerminalFocus();
+      return;
+    }
+    if (!mounted) return;
+    final current = _terminalTabBloc.state;
+    if (current is! TerminalTabLoaded || !current.allTabs.contains(activeTab)) {
+      return;
+    }
+    _terminalTabBloc.add(
+      TerminalTabCloseSession(activeTab.hashCode.toString()),
+    );
+    _requestTerminalFocus();
   }
 
   /// Signals the active TerminalView to request focus after a tab switch.
@@ -670,8 +693,8 @@ class _TerminalScreenState extends State<TerminalScreen> {
         defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.iOS;
 
-    // New tab: Ctrl+T, Ctrl+Shift+T, or Cmd+T (macOS/iOS)
-    if (key == LogicalKeyboardKey.keyT && (ctrl || (isApple && meta))) {
+    // New tab: Cmd+T (macOS/iOS) or Ctrl+T / Ctrl+Shift+T (other platforms)
+    if (key == LogicalKeyboardKey.keyT && (isApple ? meta : ctrl)) {
       _openNewTabFromActiveSession();
       return KeyEventResult.handled;
     }
@@ -679,13 +702,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     // Close active tab: Cmd+W (macOS/iOS) or Ctrl+Shift+W (Linux/Win)
     if (key == LogicalKeyboardKey.keyW &&
         ((isApple && meta && !shift) || (ctrl && shift))) {
-      final state = _terminalTabBloc.state;
-      if (state is TerminalTabLoaded && state.activeTab != null) {
-        _terminalTabBloc.add(
-          TerminalTabCloseSession(state.activeTab.hashCode.toString()),
-        );
-        _requestTerminalFocus();
-      }
+      unawaited(_closeActiveTab());
       return KeyEventResult.handled;
     }
 
@@ -738,14 +755,16 @@ class _TerminalScreenState extends State<TerminalScreen> {
     return KeyEventResult.ignored;
   }
 
-  List<SessionInfo> _buildSessionList(TerminalTabLoaded state) {
+  List<SessionInfo> _buildSessionList(
+    TerminalTabLoaded state, {
+    Set<TabItem> busyTabs = const <TabItem>{},
+  }) {
     return state.allTabs.map((tab) {
       String name = 'Terminal';
-      bool isRunning = false;
       if (tab is PluginTab) {
         name = tab.displayTitle;
-        isRunning = tab.manager.isConnected;
       }
+      final isRunning = busyTabs.contains(tab);
       return SessionInfo(
         id: tab.hashCode.toString(),
         name: name,

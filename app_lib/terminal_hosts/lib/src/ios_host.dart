@@ -112,7 +112,7 @@ class IosExecutionResult implements ExecutionResult {
 /// - Reading lines of input
 /// - Executing commands via ios_system
 /// - Outputting results
-class IosExecutionSession implements ExecutionSession {
+class IosExecutionSession implements ExecutionSession, ForegroundProcessAware {
   final IosShellEnv _env;
 
   /// Environment variables from profile (applied to each command).
@@ -121,6 +121,9 @@ class IosExecutionSession implements ExecutionSession {
 
   final _outputController = StreamController<Uint8List>.broadcast();
   final _exitCodeCompleter = Completer<int>();
+
+  @override
+  Future<bool> hasForegroundProcess() async => false;
 
   final StringBuffer _decodedInput = StringBuffer();
   late final ByteConversionSink _inputDecoder = const Utf8Decoder(

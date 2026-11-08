@@ -96,6 +96,13 @@ void main() {
     },
   );
 
+  test(
+    'never reports a foreground process so closing does not prompt',
+    () async {
+      expect(await session.hasForegroundProcess(), isFalse);
+    },
+  );
+
   test('clear clears the terminal and returns to the prompt', () async {
     await enter('clear');
 
