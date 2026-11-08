@@ -317,7 +317,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -eu\nSHELL_ROOT=\"${SRCROOT}/../app_plugin/ios_shell/ios\"\nRESOURCES=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"$RESOURCES\"\ncp \"$SHELL_ROOT/Classes/commandDictionary.plist\" \"$RESOURCES/\"\ncp \"$SHELL_ROOT/Resources/cacert.pem\" \"$RESOURCES/\"\ncp -R \"$SHELL_ROOT/Resources/Notices\" \"$RESOURCES/\"\n";
+			shellScript = "set -eu\nSHELL_ROOT=\"${SRCROOT}/../app_plugin/ios_shell/ios\"\nRESOURCES=\"${TARGET_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\nmkdir -p \"$RESOURCES\"\ncp \"$SHELL_ROOT/Classes/commandDictionary.plist\" \"$RESOURCES/\"\ncp \"$SHELL_ROOT/Resources/cacert.pem\" \"$RESOURCES/\"\ncp -R \"$SHELL_ROOT/Resources/Notices\" \"$RESOURCES/\"\nrsync -a --delete --exclude __pycache__ --exclude '*.pyc' \"$SHELL_ROOT/Resources/git_lfs/\" \"$RESOURCES/git_lfs/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

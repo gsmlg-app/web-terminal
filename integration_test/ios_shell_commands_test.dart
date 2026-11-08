@@ -86,6 +86,7 @@ void main() {
           'egrep',
           'fgrep',
           'host',
+          'git',
           'lg2',
           'lua',
           'md5',
@@ -388,6 +389,77 @@ print(count)
     expect(await succeeds('lg2 status'), contains('sample.txt'));
   });
 
+  testWidgets('git commits on two branches and rebases one onto the other', (
+    tester,
+  ) async {
+    Future<String> head() async =>
+        (await succeeds('git rev-parse HEAD')).trim();
+
+    await succeeds('git init .');
+    await succeeds("git config user.name 'Web Terminal'");
+    await succeeds('git config user.email test@example.com');
+    await succeeds('git add sample.txt');
+    await succeeds('git commit -m base');
+    final headRef = await File('${fixture.path}/.git/HEAD').readAsString();
+    final mainBranch = headRef.trim().split('/').last;
+
+    await succeeds('git branch feature');
+    await File('${fixture.path}/main.txt').writeAsString('main\n');
+    await succeeds('git add main.txt');
+    await succeeds('git commit -m main');
+    final mainHead = await head();
+
+    await succeeds('git checkout feature');
+    await File('${fixture.path}/feature.txt').writeAsString('feature\n');
+    await succeeds('git add feature.txt');
+    await succeeds('git commit -m feature');
+
+    await succeeds('git rebase $mainBranch');
+    expect((await succeeds('git rev-parse HEAD~1')).trim(), mainHead);
+    expect(await File('${fixture.path}/main.txt').exists(), isTrue);
+    expect(await File('${fixture.path}/feature.txt').exists(), isTrue);
+  });
+
+  testWidgets('git lfs stores pointers and restores content on checkout', (
+    tester,
+  ) async {
+    final data = List<int>.generate(4096, (index) => (index * 31 + 7) % 256);
+    final dataFile = File('${fixture.path}/data.bin');
+
+    await succeeds('git init .');
+    await succeeds("git config user.name 'Web Terminal'");
+    await succeeds('git config user.email test@example.com');
+    await succeeds('git add sample.txt');
+    await succeeds('git commit -m base');
+    final headRef = await File('${fixture.path}/.git/HEAD').readAsString();
+    final mainBranch = headRef.trim().split('/').last;
+    await succeeds('git branch without-lfs');
+
+    expect(await succeeds('git lfs version'), contains('git-lfs/'));
+    expect(await succeeds("git lfs track '*.bin'"), contains('Tracking'));
+    await dataFile.writeAsBytes(data);
+    await succeeds('git add .gitattributes');
+    await succeeds('git add data.bin');
+    await succeeds('git commit -m lfs');
+
+    final pointer = await succeeds('git cat-file -p HEAD:data.bin');
+    expect(pointer, startsWith('version https://git-lfs.github.com/spec/v1'));
+    final oid = RegExp(r'oid sha256:([0-9a-f]{64})').firstMatch(pointer)![1]!;
+    expect(pointer, contains('size ${data.length}'));
+    final stored = File(
+      '${fixture.path}/.git/lfs/objects/'
+      '${oid.substring(0, 2)}/${oid.substring(2, 4)}/$oid',
+    );
+    expect(await stored.readAsBytes(), data);
+    expect(await dataFile.readAsBytes(), data);
+    expect(await succeeds('git lfs ls-files'), contains('* data.bin'));
+
+    await succeeds('git checkout without-lfs');
+    expect(await dataFile.exists(), isFalse);
+    await succeeds('git checkout $mainBranch');
+    expect(await dataFile.readAsBytes(), data);
+  });
+
   testWidgets(
     'a blocking native command allows the Flutter thread to respond',
     (tester) async {
@@ -398,6 +470,83 @@ print(count)
       expect((await command)['exitCode'], 0);
     },
   );
+
+  group('interactive session', () {
+    late IosExecutionSession session;
+    late StreamSubscription<Uint8List> subscription;
+    final output = StringBuffer();
+    Completer<void> prompt = Completer<void>();
+
+    Future<String> enter(List<int> bytes) async {
+      output.clear();
+      prompt = Completer<void>();
+      await session.write(Uint8List.fromList(bytes));
+      await prompt.future.timeout(const Duration(seconds: 30));
+      return output.toString();
+    }
+
+    Future<String> line(String text) => enter(utf8.encode('$text\r'));
+
+    setUp(() async {
+      output.clear();
+      prompt = Completer<void>();
+      session = await host.shell();
+      subscription = session.output.listen((data) {
+        output.write(utf8.decode(data));
+        if (output.toString().endsWith(' \$ ') && !prompt.isCompleted) {
+          prompt.complete();
+        }
+      });
+      await prompt.future.timeout(const Duration(seconds: 30));
+    });
+
+    tearDown(() async {
+      await session.close();
+      await subscription.cancel();
+    });
+
+    testWidgets('arrow and navigation keys do not leak into the command', (
+      tester,
+    ) async {
+      final text = await enter([
+        ...utf8.encode('echo hi'),
+        ...utf8.encode('\x1b[A\x1b[D\x1bOH\x1b[5~'),
+        13,
+      ]);
+      expect(text, contains('hi\r\n'));
+      expect(text, isNot(contains('[A')));
+      expect(text, isNot(contains('[5~')));
+    });
+
+    testWidgets('multi-byte input split across writes is decoded', (
+      tester,
+    ) async {
+      final bytes = utf8.encode('echo 你好');
+      await session.write(Uint8List.fromList(bytes.sublist(0, 7)));
+      final text = await enter([...bytes.sublist(7), 13]);
+      expect(text, contains('你好\r\n'));
+    });
+
+    testWidgets('prompt follows cd, cd - and cd ~', (tester) async {
+      final name = fixture.path.split('/').last;
+      await Directory('${fixture.path}/sub dir').create();
+      expect(await line("cd 'sub dir'"), endsWith('sub dir \$ '));
+      final back = await line('cd -');
+      expect(back, contains(name));
+      expect(back, endsWith('$name \$ '));
+      expect(await line('cd ~'), endsWith('~ \$ '));
+      expect(await line('cd missing-dir'), contains('no such file'));
+    });
+
+    testWidgets('export applies to later commands without leaking', (
+      tester,
+    ) async {
+      await line('export WT_SESSION_VAR="hello world"');
+      expect(await line('printenv WT_SESSION_VAR'), contains('hello world'));
+      final outside = await execute('printenv WT_SESSION_VAR');
+      expect(outside['stdout'], isNot(contains('hello world')));
+    });
+  });
 
   tearDownAll(() async {
     await host.disconnect();
