@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:ui' show AppExitResponse;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -1117,5 +1118,13 @@ class _TerminalLifecycleObserver extends WidgetsBindingObserver {
       case AppLifecycleState.resumed:
         break;
     }
+  }
+
+  /// Saves open tabs before quitting. A `cd` does not change any app state,
+  /// so without this the saved working directories could be stale.
+  @override
+  Future<AppExitResponse> didRequestAppExit() async {
+    await onAppExit();
+    return AppExitResponse.exit;
   }
 }

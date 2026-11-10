@@ -229,4 +229,38 @@ void main() {
     },
     skip: !Platform.isMacOS && !Platform.isLinux,
   );
+
+  testWidgets(
+    'quitting saves the directory the shell moved to',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      await pumpScreen(tester, inherit: true);
+      await preferences.remove(_tabsKey);
+      shell.directory = '/Users/me/after-cd';
+
+      final response = Completer<Map<String, Object?>>();
+      const codec = JSONMethodCodec();
+      unawaited(
+        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+          SystemChannels.platform.name,
+          codec.encodeMethodCall(const MethodCall('System.requestAppExit')),
+          (ByteData? reply) => response.complete(
+            codec.decodeEnvelope(reply!) as Map<String, Object?>,
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      expect((await response.future)['response'], 'exit');
+      final saved =
+          jsonDecode(preferences.getString(_tabsKey)!) as Map<String, dynamic>;
+      final savedTabs = saved['tabs'] as List;
+      expect(
+        (savedTabs.single as Map)['workingDirectory'],
+        '/Users/me/after-cd',
+      );
+    },
+    skip: !Platform.isMacOS && !Platform.isLinux,
+  );
 }
