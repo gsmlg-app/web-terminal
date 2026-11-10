@@ -199,7 +199,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     selectProfileAndOpenShell(
       context: context,
       onProfileSelected: (profile) {
-        _openLocalShellWithProfile(profile);
+        unawaited(_openLocalShellInLiveDirectory(profile));
       },
     );
   }
@@ -271,6 +271,30 @@ class _TerminalScreenState extends State<TerminalScreen> {
       SessionType.local,
       metadata: profile != null ? {'profile': profile.name} : null,
     );
+  }
+
+  /// Opens a local shell, inheriting the active shell's real directory when
+  /// the profile asks for it. The directory comes from the operating system,
+  /// so it works even when the shell does not report its directory.
+  Future<void> _openLocalShellInLiveDirectory(ShellProfile? profile) async {
+    String? liveDirectory;
+    if (profile?.inheritCurrentState == true) {
+      liveDirectory = await _activeLiveWorkingDirectory();
+      if (!mounted) return;
+    }
+    _openLocalShellWithProfile(
+      profile,
+      workingDirectoryOverride: liveDirectory,
+    );
+  }
+
+  Future<String?> _activeLiveWorkingDirectory() async {
+    final state = _terminalTabBloc.state;
+    if (state is! TerminalTabLoaded) return null;
+    final activeTab = state.activeTab;
+    if (activeTab is! PluginTab) return null;
+    final plugin = activeTab.plugin;
+    return plugin is TerminalPlugin ? plugin.liveWorkingDirectory() : null;
   }
 
   String? _getInheritedWorkingDirectory(ShellProfile? profile) {
@@ -553,6 +577,15 @@ class _TerminalScreenState extends State<TerminalScreen> {
     for (final tab in tabState.allTabs.whereType<PluginTab>()) {
       final descriptor = _encodeTab(tab);
       if (descriptor == null) continue;
+      if (descriptor['type'] == 'local') {
+        final plugin = tab.plugin;
+        final liveDirectory = plugin is TerminalPlugin
+            ? await plugin.liveWorkingDirectory()
+            : null;
+        if (liveDirectory != null) {
+          descriptor['workingDirectory'] = liveDirectory;
+        }
+      }
       final groupId = grouping.groupIdOf(tab);
       if (groupId != null) descriptor['groupId'] = groupId;
       tabs.add(tab);

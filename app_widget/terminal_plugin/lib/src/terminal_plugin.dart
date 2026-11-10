@@ -65,6 +65,20 @@ class TerminalPlugin extends Plugin {
     return true;
   }
 
+  /// The shell's current working directory as reported by the operating
+  /// system, or null when the session cannot report it.
+  Future<String?> liveWorkingDirectory() async {
+    final activeSession = session;
+    if (activeSession is! WorkingDirectoryAware) return null;
+    try {
+      final directory = await (activeSession as WorkingDirectoryAware)
+          .currentWorkingDirectory();
+      return directory == null || directory.isEmpty ? null : directory;
+    } catch (_) {
+      return null;
+    }
+  }
+
   StreamSubscription<String>? _outputSubscription;
   int _sessionGeneration = 0;
 

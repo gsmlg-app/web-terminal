@@ -54,4 +54,28 @@ void main() {
     }
     expect(await session.hasForegroundProcess(), isFalse);
   });
+
+  testWidgets('local shell reports its real working directory after cd', (
+    WidgetTester tester,
+  ) async {
+    final session = await LocalHost(workingDirectory: '/usr').shell();
+    final subscription = session.output.listen((Uint8List _) {
+      session.ackRead();
+    });
+    try {
+      await waitFor(
+        () async => await session.currentWorkingDirectory() == '/usr',
+        'shell did not start in /usr',
+      );
+
+      await session.write(utf8.encode('cd /usr/bin\n'));
+      await waitFor(
+        () async => await session.currentWorkingDirectory() == '/usr/bin',
+        'working directory did not follow cd',
+      );
+    } finally {
+      await session.close();
+      await subscription.cancel();
+    }
+  });
 }
