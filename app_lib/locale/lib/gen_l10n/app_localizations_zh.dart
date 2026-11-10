@@ -211,6 +211,43 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get quit => 'Quit';
+
+  @override
+  String get tabGroupUngrouped => '未分组';
+
+  @override
+  String get tabGroupMoveTo => '移到分组';
+
+  @override
+  String get tabGroupNew => '新建分组…';
+
+  @override
+  String get tabGroupRemove => '移出分组';
+
+  @override
+  String get tabGroupRename => '重命名分组…';
+
+  @override
+  String get tabGroupClose => '关闭分组';
+
+  @override
+  String get tabGroupNameHint => '分组名称';
+
+  @override
+  String get tabRename => '重命名…';
+
+  @override
+  String get tabGroupCloseConfirmTitle => '关闭分组？';
+
+  @override
+  String tabGroupCloseConfirmMessage(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '该分组中有 $count 个标签页正在运行程序：',
+    );
+    return '$_temp0\n$titles\n\n关闭分组将终止这些程序。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -285,6 +322,43 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get optionKeyBehaviorDescription => 'Meta 发送 Esc + 按键；正常模式输入特殊字符。';
+
+  @override
+  String get tabGroupUngrouped => '未分组';
+
+  @override
+  String get tabGroupMoveTo => '移到分组';
+
+  @override
+  String get tabGroupNew => '新建分组…';
+
+  @override
+  String get tabGroupRemove => '移出分组';
+
+  @override
+  String get tabGroupRename => '重命名分组…';
+
+  @override
+  String get tabGroupClose => '关闭分组';
+
+  @override
+  String get tabGroupNameHint => '分组名称';
+
+  @override
+  String get tabRename => '重命名…';
+
+  @override
+  String get tabGroupCloseConfirmTitle => '关闭分组？';
+
+  @override
+  String tabGroupCloseConfirmMessage(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '该分组中有 $count 个标签页正在运行程序：',
+    );
+    return '$_temp0\n$titles\n\n关闭分组将终止这些程序。';
+  }
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -359,4 +433,41 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get optionKeyBehaviorDescription => 'Meta 傳送 Esc + 按鍵；正常模式輸入特殊字元。';
+
+  @override
+  String get tabGroupUngrouped => '未分組';
+
+  @override
+  String get tabGroupMoveTo => '移到分組';
+
+  @override
+  String get tabGroupNew => '新增分組…';
+
+  @override
+  String get tabGroupRemove => '移出分組';
+
+  @override
+  String get tabGroupRename => '重新命名分組…';
+
+  @override
+  String get tabGroupClose => '關閉分組';
+
+  @override
+  String get tabGroupNameHint => '分組名稱';
+
+  @override
+  String get tabRename => '重新命名…';
+
+  @override
+  String get tabGroupCloseConfirmTitle => '關閉分組？';
+
+  @override
+  String tabGroupCloseConfirmMessage(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '此分組中有 $count 個分頁正在執行程式：',
+    );
+    return '$_temp0\n$titles\n\n關閉分組將終止這些程式。';
+  }
 }

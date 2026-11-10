@@ -112,5 +112,15 @@
     "optionKeyBehaviorBothMeta": "Beide Meta",
     "optionKeyBehaviorNormal": "Normal",
     "optionKeyBehaviorDescription": "Meta sendet Esc + Taste. Normal gibt Sonderzeichen ein.",
+    "tabGroupUngrouped": "Ohne Gruppe",
+    "tabGroupMoveTo": "In Gruppe verschieben",
+    "tabGroupNew": "Neue Gruppe…",
+    "tabGroupRemove": "Aus Gruppe entfernen",
+    "tabGroupRename": "Gruppe umbenennen…",
+    "tabGroupClose": "Gruppe schließen",
+    "tabGroupNameHint": "Gruppenname",
+    "tabRename": "Umbenennen…",
+    "tabGroupCloseConfirmTitle": "Gruppe schließen?",
+    "tabGroupCloseConfirmMessage": "{count, plural, =1{In 1 Tab dieser Gruppe läuft ein Programm:} other{In {count} Tabs dieser Gruppe laufen Programme:}}\n{titles}\n\nBeim Schließen der Gruppe werden sie beendet.",
     "@@description": "Ansible Semaphore Client Tools"
 }

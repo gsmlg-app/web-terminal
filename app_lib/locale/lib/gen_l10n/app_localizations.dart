@@ -498,6 +498,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quit'**
   String get quit;
+
+  /// Tab switcher section label for tabs not in any group.
+  ///
+  /// In en, this message translates to:
+  /// **'Ungrouped'**
+  String get tabGroupUngrouped;
+
+  /// Tab card menu item: submenu listing groups to move the tab into.
+  ///
+  /// In en, this message translates to:
+  /// **'Move to group'**
+  String get tabGroupMoveTo;
+
+  /// Tab card menu item: create a new group containing this tab.
+  ///
+  /// In en, this message translates to:
+  /// **'New group…'**
+  String get tabGroupNew;
+
+  /// Tab card menu item: remove the tab from its group.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from group'**
+  String get tabGroupRemove;
+
+  /// Group header menu item and dialog title for renaming a group.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename group…'**
+  String get tabGroupRename;
+
+  /// Group header menu item that closes every tab in the group.
+  ///
+  /// In en, this message translates to:
+  /// **'Close group'**
+  String get tabGroupClose;
+
+  /// Hint text for the group name input.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get tabGroupNameHint;
+
+  /// Tab card menu item for renaming the tab.
+  ///
+  /// In en, this message translates to:
+  /// **'Rename…'**
+  String get tabRename;
+
+  /// Title of the confirmation shown before closing a group with running programs.
+  ///
+  /// In en, this message translates to:
+  /// **'Close Group?'**
+  String get tabGroupCloseConfirmTitle;
+
+  /// Shown before closing a tab group whose tabs have foreground programs running.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 tab in this group has a running program:} other{{count} tabs in this group have running programs:}}\n{titles}\n\nClosing the group will terminate them.'**
+  String tabGroupCloseConfirmMessage(int count, String titles);
 }
 
 class _AppLocalizationsDelegate

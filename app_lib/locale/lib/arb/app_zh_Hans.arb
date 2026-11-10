@@ -115,5 +115,15 @@
     "optionKeyBehaviorBothMeta": "两侧 Meta",
     "optionKeyBehaviorNormal": "正常",
     "optionKeyBehaviorDescription": "Meta 发送 Esc + 按键；正常模式输入特殊字符。",
+    "tabGroupUngrouped": "未分组",
+    "tabGroupMoveTo": "移到分组",
+    "tabGroupNew": "新建分组…",
+    "tabGroupRemove": "移出分组",
+    "tabGroupRename": "重命名分组…",
+    "tabGroupClose": "关闭分组",
+    "tabGroupNameHint": "分组名称",
+    "tabRename": "重命名…",
+    "tabGroupCloseConfirmTitle": "关闭分组？",
+    "tabGroupCloseConfirmMessage": "{count, plural, other{该分组中有 {count} 个标签页正在运行程序：}}\n{titles}\n\n关闭分组将终止这些程序。",
     "@@description": "Ansible Semaphore 客户端工具"
 }

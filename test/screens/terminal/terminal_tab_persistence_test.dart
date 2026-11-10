@@ -319,4 +319,190 @@ void main() {
       ],
     });
   });
+
+  group('tab groups', () {
+    testWidgets('groups round-trip through save and restore', (tester) async {
+      final original = _Harness(preferences);
+      await original.start(tester);
+      addTearDown(() => original.close(tester));
+      await original.seed(tester, [LocalHostSpec(), LocalHostSpec()]);
+      final seeded = (original.tabs.state as TerminalTabLoaded).allTabs;
+      original.tabs.add(
+        TerminalTabCreateGroup(seeded[0].hashCode.toString(), 'web'),
+      );
+      original.tabs.add(TerminalTabToggleGroupCollapsed(null));
+      await tester.pump();
+      await original.mount(tester);
+      await original.save(tester);
+
+      final payload = _saved(preferences);
+      final groupId =
+          (original.tabs.state as TerminalTabLoaded).grouping.groups.single.id;
+      expect(payload['groups'], [
+        {'id': groupId, 'name': 'web', 'collapsed': false},
+      ]);
+      expect(payload['ungroupedCollapsed'], isTrue);
+      final savedTabs = payload['tabs'] as List;
+      expect((savedTabs[0] as Map)['groupId'], groupId);
+      expect((savedTabs[1] as Map).containsKey('groupId'), isFalse);
+
+      await original.close(tester);
+      final restored = _Harness(preferences);
+      await restored.start(tester);
+      addTearDown(() => restored.close(tester));
+      await restored.mount(tester);
+
+      final state = restored.tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      final tabs = state.allTabs;
+      expect(state.grouping.groupOf(tabs[0])?.name, 'web');
+      expect(state.grouping.groupIdOf(tabs[1]), isNull);
+      expect(state.grouping.ungroupedCollapsed, isTrue);
+    });
+
+    testWidgets('several groups survive restore and the next save', (
+      tester,
+    ) async {
+      await preferences.setString(
+        _tabsKey,
+        jsonEncode({
+          'activeIndex': 0,
+          'groups': [
+            {'id': 'a', 'name': 'api', 'collapsed': false},
+            {'id': 'b', 'name': 'web', 'collapsed': true},
+          ],
+          'tabs': [
+            {
+              'type': 'local',
+              'profileId': 11,
+              'workingDirectory': '/a',
+              'groupId': 'a',
+            },
+            {
+              'type': 'local',
+              'profileId': 22,
+              'workingDirectory': '/b',
+              'groupId': 'b',
+            },
+            {
+              'type': 'local',
+              'profileId': 11,
+              'workingDirectory': '/c',
+              'groupId': 'a',
+            },
+          ],
+        }),
+      );
+      final harness = _Harness(preferences);
+      await harness.start(tester);
+      addTearDown(() => harness.close(tester));
+      await harness.mount(tester);
+
+      final state = harness.tabs.state as TerminalTabLoaded;
+      final tabs = state.allTabs;
+      expect(state.grouping.groups.map((TabGroup g) => g.name), [
+        'api',
+        'web',
+      ]);
+      expect(state.grouping.groupOf(tabs[0])?.name, 'api');
+      expect(state.grouping.groupOf(tabs[1])?.name, 'web');
+      expect(state.grouping.groupOf(tabs[2])?.name, 'api');
+
+      await harness.save(tester);
+      expect(_saved(preferences)['groups'], [
+        {'id': 'a', 'name': 'api', 'collapsed': false},
+        {'id': 'b', 'name': 'web', 'collapsed': true},
+      ]);
+    });
+
+    testWidgets('old payload without groups restores tabs ungrouped', (
+      tester,
+    ) async {
+      await preferences.setString(
+        _tabsKey,
+        jsonEncode({
+          'activeIndex': 0,
+          'tabs': [
+            {'type': 'local', 'profileId': 11, 'workingDirectory': '/a'},
+            {'type': 'local', 'profileId': 22, 'workingDirectory': '/b'},
+          ],
+        }),
+      );
+      final harness = _Harness(preferences);
+      await harness.start(tester);
+      addTearDown(() => harness.close(tester));
+      await harness.mount(tester);
+
+      final state = harness.tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      expect(state.grouping.groups, isEmpty);
+      expect(state.grouping.membership, isEmpty);
+    });
+
+    testWidgets('unknown groupId and malformed groups restore ungrouped', (
+      tester,
+    ) async {
+      await preferences.setString(
+        _tabsKey,
+        jsonEncode({
+          'activeIndex': 0,
+          'groups': 'oops',
+          'tabs': [
+            {
+              'type': 'local',
+              'profileId': 11,
+              'workingDirectory': '/a',
+              'groupId': 'missing',
+            },
+            {
+              'type': 'local',
+              'profileId': 22,
+              'workingDirectory': '/b',
+              'groupId': 7,
+            },
+          ],
+        }),
+      );
+      final harness = _Harness(preferences);
+      await harness.start(tester);
+      addTearDown(() => harness.close(tester));
+      await harness.mount(tester);
+
+      final state = harness.tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      expect(state.grouping.groups, isEmpty);
+      expect(state.grouping.membership, isEmpty);
+      expect(preferences.getString(_tabsKey), isNotNull);
+    });
+
+    testWidgets('group entries with bad fields are skipped', (tester) async {
+      await preferences.setString(
+        _tabsKey,
+        jsonEncode({
+          'activeIndex': 0,
+          'groups': [
+            'junk',
+            {'id': 1, 'name': 'bad'},
+            {'id': 'ok', 'name': 'api'},
+          ],
+          'tabs': [
+            {
+              'type': 'local',
+              'profileId': 11,
+              'workingDirectory': '/a',
+              'groupId': 'ok',
+            },
+          ],
+        }),
+      );
+      final harness = _Harness(preferences);
+      await harness.start(tester);
+      addTearDown(() => harness.close(tester));
+      await harness.mount(tester);
+
+      final state = harness.tabs.state as TerminalTabLoaded;
+      expect(state.grouping.groups, [const TabGroup(id: 'ok', name: 'api')]);
+      expect(state.grouping.groupOf(state.allTabs.single)?.name, 'api');
+    });
+  });
 }

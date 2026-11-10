@@ -397,4 +397,131 @@ void main() {
       },
     );
   }
+
+  group('tab groups', () {
+    Future<
+      ({
+        TerminalTabBloc tabBloc,
+        PluginTab grouped,
+        PluginTab other,
+        _FakeSshSpec spec,
+      })
+    >
+    pumpGroupedScreen(WidgetTester tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final database = AppDatabase.forTesting();
+      addTearDown(database.close);
+
+      final tabBloc = TerminalTabBloc()..add(TerminalTabStart());
+      addTearDown(tabBloc.close);
+      await tester.pump();
+
+      final spec = _FakeSshSpec(
+        SshHost(
+          id: 1,
+          host: 'prod-1',
+          hostname: '10.100.10.24',
+          port: 22,
+          username: 'gao',
+          identityType: 0,
+        ),
+      );
+      final manager = PluginManager(spec);
+      addTearDown(() async {
+        await tester.pumpWidget(const SizedBox.shrink());
+        for (final tab in (tabBloc.state as TerminalTabLoaded).allTabs) {
+          final plugin = (tab as PluginTab).plugin as TerminalPlugin;
+          tab.dispose();
+          plugin.terminal.dispose();
+        }
+        await tester.pump();
+      });
+      final other = PluginTab(TerminalPlugin(), manager);
+      final grouped = PluginTab(TerminalPlugin(), manager);
+      tabBloc.add(TerminalTabOpenTab(other));
+      tabBloc.add(TerminalTabOpenTab(grouped));
+      tabBloc.add(TerminalTabCreateGroup(grouped.hashCode.toString(), 'web'));
+
+      await tester.pumpWidget(
+        MultiRepositoryProvider(
+          providers: [
+            RepositoryProvider<SharedPreferences>.value(value: prefs),
+            RepositoryProvider<AppDatabase>.value(value: database),
+          ],
+          child: MultiBlocProvider(
+            providers: [
+              BlocProvider<TerminalTabBloc>.value(value: tabBloc),
+              BlocProvider<TerminalSettingsBloc>(
+                create: (context) =>
+                    TerminalSettingsBloc(vault: _FakeVaultRepository()),
+              ),
+              BlocProvider<ShellProfileBloc>(
+                create: (context) => ShellProfileBloc(database),
+              ),
+            ],
+            child: MaterialApp(
+              localizationsDelegates: AppLocale.localizationsDelegates,
+              supportedLocales: AppLocale.supportedLocales,
+              home: const TerminalScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+      final state = tabBloc.state as TerminalTabLoaded;
+      expect(state.activeTab, same(grouped));
+      expect(state.grouping.groupOf(grouped)?.name, 'web');
+      return (tabBloc: tabBloc, grouped: grouped, other: other, spec: spec);
+    }
+
+    testWidgets(
+      'Cmd+Shift+O opens the switcher limited to the current group',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        final setup = await pumpGroupedScreen(tester);
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyO);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+        await tester.pumpAndSettle();
+
+        expect(find.text('web · 1'), findsOneWidget);
+        expect(
+          find.byKey(ValueKey('tab-switcher-card-${setup.grouped.hashCode}')),
+          findsOneWidget,
+        );
+        expect(
+          find.byKey(ValueKey('tab-switcher-card-${setup.other.hashCode}')),
+          findsNothing,
+        );
+      },
+    );
+
+    testWidgets('app bar title shows the group name prefix', (tester) async {
+      await pumpGroupedScreen(tester);
+
+      expect(find.textContaining('web · '), findsOneWidget);
+    });
+
+    testWidgets(
+      'Cmd+T opens an ungrouped tab while the active tab is grouped',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        final setup = await pumpGroupedScreen(tester);
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyT);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+        await tester.pump();
+
+        final state = setup.tabBloc.state as TerminalTabLoaded;
+        expect(state.tabCount, 3);
+        expect(state.activeTab, isNot(same(setup.grouped)));
+        expect(state.grouping.groupIdOf(state.activeTab!), isNull);
+      },
+    );
+  });
 }

@@ -5,13 +5,16 @@ import 'package:flutter/widgets.dart';
 
 part 'event.dart';
 part 'state.dart';
+part 'tab_grouping.dart';
 
 abstract interface class TerminalTabTitleRenamer {
   void renameTitle(String title);
 }
 
 class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
-  TerminalTabBloc() : super(TerminalTabInitial()) {
+  TerminalTabBloc({String Function()? groupIdGenerator})
+      : _groupIdGenerator = groupIdGenerator ?? _defaultGroupIdGenerator,
+        super(TerminalTabInitial()) {
     on<TerminalTabStart>(_onTerminalTabStart);
     on<TerminalTabStop>(_onTerminalTabStop);
     on<TerminalTabOpenTab>(_onTerminalTabOpenTab);
@@ -23,7 +26,22 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabNextTab>(_onTerminalTabNextTab);
     on<TerminalTabPreviousTab>(_onTerminalTabPreviousTab);
     on<TerminalTabGoToTab>(_onTerminalTabGoToTab);
+    on<TerminalTabCreateGroup>(_onCreateGroup);
+    on<TerminalTabMoveToGroup>(_onMoveToGroup);
+    on<TerminalTabUngroup>(_onUngroup);
+    on<TerminalTabRenameGroup>(_onRenameGroup);
+    on<TerminalTabToggleGroupCollapsed>(_onToggleGroupCollapsed);
+    on<TerminalTabMoveTabBefore>(_onMoveTabBefore);
+    on<TerminalTabRestoreGroups>(_onRestoreGroups);
+    on<TerminalTabFinishGroupRestore>(_onFinishGroupRestore);
   }
+
+  final String Function() _groupIdGenerator;
+
+  static int _groupIdCounter = 0;
+
+  static String _defaultGroupIdGenerator() =>
+      'g${DateTime.now().microsecondsSinceEpoch}-${_groupIdCounter++}';
 
   void _onTerminalTabStart(
     TerminalTabStart event,
@@ -62,7 +80,17 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
       if (event.activate) {
         event.tabItem.activate();
       }
-      emit(currentState.copyWith(incrementVersion: true));
+      final groupId = event.groupId;
+      emit(currentState.copyWith(
+        grouping: groupId == null
+            ? null
+            : currentState.grouping.assign(
+                event.tabItem,
+                groupId,
+                keepEmptyGroups: true,
+              ),
+        incrementVersion: true,
+      ));
     }
   }
 
@@ -206,6 +234,139 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     if (targetIdx < 0 || targetIdx >= children.length) return;
     children[targetIdx].activate();
     emit(currentState.copyWith(incrementVersion: true));
+  }
+
+  void _emitGrouping(
+    Emitter<TerminalTabState> emit,
+    TerminalTabLoaded current,
+    TabGrouping grouping,
+  ) {
+    if (identical(grouping, current.grouping)) return;
+    emit(current.copyWith(grouping: grouping, incrementVersion: true));
+  }
+
+  void _onCreateGroup(
+    TerminalTabCreateGroup event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final tab = _findTabById(current.tabs, event.sessionId);
+    if (tab == null) return;
+    _emitGrouping(
+      emit,
+      current,
+      current.grouping.createGroup(
+        id: _groupIdGenerator(),
+        name: event.name,
+        tab: tab,
+      ),
+    );
+  }
+
+  void _onMoveToGroup(
+    TerminalTabMoveToGroup event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final tab = _findTabById(current.tabs, event.sessionId);
+    if (tab == null) return;
+    final grouping = current.grouping.assign(tab, event.groupId);
+    if (identical(grouping, current.grouping)) return;
+
+    final children = current.tabs.children;
+    final oldIndex = children.indexOf(tab);
+    var lastOther = -1;
+    for (var i = 0; i < children.length; i++) {
+      if (i != oldIndex && grouping.groupIdOf(children[i]) == event.groupId) {
+        lastOther = i;
+      }
+    }
+    if (lastOther >= 0) {
+      current.tabs.move(tab, oldIndex < lastOther ? lastOther : lastOther + 1);
+    }
+    _emitGrouping(emit, current, grouping);
+  }
+
+  void _onUngroup(TerminalTabUngroup event, Emitter<TerminalTabState> emit) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final tab = _findTabById(current.tabs, event.sessionId);
+    if (tab == null) return;
+    _emitGrouping(emit, current, current.grouping.assign(tab, null));
+  }
+
+  void _onRenameGroup(
+    TerminalTabRenameGroup event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    _emitGrouping(
+      emit,
+      current,
+      current.grouping.renameGroup(event.groupId, event.name),
+    );
+  }
+
+  void _onToggleGroupCollapsed(
+    TerminalTabToggleGroupCollapsed event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    _emitGrouping(
+      emit,
+      current,
+      current.grouping.toggleCollapsed(event.groupId),
+    );
+  }
+
+  void _onMoveTabBefore(
+    TerminalTabMoveTabBefore event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final tab = _findTabById(current.tabs, event.sessionId);
+    final target = _findTabById(current.tabs, event.targetSessionId);
+    if (tab == null || target == null || identical(tab, target)) return;
+
+    final oldIndex = current.tabs.indexOf(tab);
+    final targetIndex = current.tabs.indexOf(target);
+    current.tabs.move(
+      tab,
+      oldIndex < targetIndex ? targetIndex - 1 : targetIndex,
+    );
+    final grouping = current.grouping.assign(
+      tab,
+      current.grouping.groupIdOf(target),
+    );
+    emit(current.copyWith(grouping: grouping, incrementVersion: true));
+  }
+
+  void _onRestoreGroups(
+    TerminalTabRestoreGroups event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final grouping = TabGrouping(
+      groups: event.groups,
+      membership: current.grouping.membership,
+      ungroupedCollapsed: event.ungroupedCollapsed,
+    );
+    emit(current.copyWith(grouping: grouping, incrementVersion: true));
+  }
+
+  void _onFinishGroupRestore(
+    TerminalTabFinishGroupRestore event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    _emitGrouping(emit, current, current.grouping.dropEmptyGroups());
   }
 
   /// Finds a TabItem by its hashCode string representation.

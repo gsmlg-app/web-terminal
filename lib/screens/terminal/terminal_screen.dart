@@ -230,6 +230,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     ShellProfile? profile, {
     String? workingDirectoryOverride,
     bool activate = true,
+    String? groupId,
   }) {
     final inheritedWorkingDirectory =
         workingDirectoryOverride ?? _getInheritedWorkingDirectory(profile);
@@ -261,7 +262,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
     final manager = PluginManager(hostSpec);
     final tabItem = PluginTab(plugin, manager, shellProfileId: profile?.id);
-    _terminalTabBloc.add(TerminalTabOpenTab(tabItem, activate: activate));
+    _terminalTabBloc.add(
+      TerminalTabOpenTab(tabItem, activate: activate, groupId: groupId),
+    );
     _requestTerminalFocus();
 
     _analytics.trackSessionCreated(
@@ -391,6 +394,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
       final activeIndex = decoded['activeIndex'] is int
           ? decoded['activeIndex'] as int
           : tabData.length - 1;
+      _terminalTabBloc.add(
+        TerminalTabRestoreGroups(
+          _decodeGroups(decoded['groups']),
+          ungroupedCollapsed: decoded['ungroupedCollapsed'] == true,
+        ),
+      );
       var restoredCount = 0;
       for (var i = 0; i < tabData.length; i++) {
         final item = tabData[i];
@@ -399,6 +408,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
         final restored = await _restoreTab(item, activate: activate);
         if (restored) restoredCount++;
       }
+      _terminalTabBloc.add(TerminalTabFinishGroupRestore());
 
       if (restoredCount > 0) {
         _requestTerminalFocus();
@@ -410,11 +420,30 @@ class _TerminalScreenState extends State<TerminalScreen> {
     return false;
   }
 
+  List<TabGroup> _decodeGroups(Object? raw) {
+    if (raw is! List) return const <TabGroup>[];
+    return [
+      for (final entry in raw)
+        if (entry is Map &&
+            entry['id'] is String &&
+            entry['name'] is String &&
+            (entry['name'] as String).trim().isNotEmpty)
+          TabGroup(
+            id: entry['id'] as String,
+            name: (entry['name'] as String).trim(),
+            collapsed: entry['collapsed'] == true,
+          ),
+    ];
+  }
+
   Future<bool> _restoreTab(
     Map<String, dynamic> item, {
     required bool activate,
   }) async {
     final type = item['type'];
+    final groupId = item['groupId'] is String
+        ? item['groupId'] as String
+        : null;
     switch (type) {
       case 'local':
         final profile = _findShellProfile(item['profileId']);
@@ -422,6 +451,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
           profile,
           workingDirectoryOverride: item['workingDirectory'] as String?,
           activate: activate,
+          groupId: groupId,
         );
         return true;
       case 'ssh':
@@ -432,6 +462,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
           hostId,
           activate: activate,
           sftp: item['type'] == 'sftp',
+          groupId: groupId,
         );
       default:
         return false;
@@ -452,6 +483,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     int hostId, {
     required bool activate,
     bool sftp = false,
+    String? groupId,
   }) async {
     try {
       final database = context.read<AppDatabase>();
@@ -474,7 +506,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
           : _createTerminalPlugin();
       final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
-      _terminalTabBloc.add(TerminalTabOpenTab(tabItem, activate: activate));
+      _terminalTabBloc.add(
+        TerminalTabOpenTab(tabItem, activate: activate, groupId: groupId),
+      );
       return true;
     } catch (_) {
       return false;
@@ -513,11 +547,14 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final tabState = _terminalTabBloc.state;
     if (tabState is! TerminalTabLoaded) return;
 
+    final grouping = tabState.grouping;
     final tabs = <PluginTab>[];
     final descriptors = <Map<String, Object?>>[];
     for (final tab in tabState.allTabs.whereType<PluginTab>()) {
       final descriptor = _encodeTab(tab);
       if (descriptor == null) continue;
+      final groupId = grouping.groupIdOf(tab);
+      if (groupId != null) descriptor['groupId'] = groupId;
       tabs.add(tab);
       descriptors.add(descriptor);
     }
@@ -528,9 +565,19 @@ class _TerminalScreenState extends State<TerminalScreen> {
 
     final activeTab = tabState.activeTab;
     final activeIndex = tabs.indexWhere((tab) => identical(tab, activeTab));
+    final savedGroupIds = {
+      for (final descriptor in descriptors) descriptor['groupId'],
+    };
+    final groups = [
+      for (final group in grouping.groups)
+        if (savedGroupIds.contains(group.id))
+          {'id': group.id, 'name': group.name, 'collapsed': group.collapsed},
+    ];
     final payload = <String, Object?>{
       'activeIndex': activeIndex >= 0 ? activeIndex : 0,
       'tabs': descriptors,
+      if (groups.isNotEmpty) 'groups': groups,
+      if (grouping.ungroupedCollapsed) 'ungroupedCollapsed': true,
     };
     await prefs.setString(_persistedTabsKey, jsonEncode(payload));
   }
@@ -593,25 +640,94 @@ class _TerminalScreenState extends State<TerminalScreen> {
     }
   }
 
-  Future<void> _showTabSwitcher() async {
+  TabSwitcherData _buildSwitcherData(
+    TerminalTabLoaded state,
+    Set<TabItem> busyTabs,
+  ) {
+    return TabSwitcherData(
+      sessions: _buildSessionList(state, busyTabs: busyTabs),
+      currentSessionId: state.activeTab?.hashCode.toString(),
+      groups: [
+        for (final group in state.grouping.groups)
+          TabSwitcherGroup(
+            id: group.id,
+            name: group.name,
+            collapsed: group.collapsed,
+          ),
+      ],
+      ungroupedCollapsed: state.grouping.ungroupedCollapsed,
+    );
+  }
+
+  Future<void> _closeGroup(String groupId) async {
+    final state = _terminalTabBloc.state;
+    if (state is! TerminalTabLoaded) return;
+    final tabs = [
+      for (final tab in state.allTabs)
+        if (state.grouping.groupIdOf(tab) == groupId) tab,
+    ];
+    if (tabs.isEmpty) return;
+    if (!await confirmCloseGroup(context, tabs) || !mounted) return;
+    final current = _terminalTabBloc.state;
+    if (current is! TerminalTabLoaded) return;
+    for (final tab in tabs) {
+      if (!current.allTabs.contains(tab)) continue;
+      _terminalTabBloc.add(TerminalTabCloseSession(tab.hashCode.toString()));
+    }
+  }
+
+  Future<void> _showTabSwitcher({bool currentGroupOnly = false}) async {
     final state = _terminalTabBloc.state;
     if (state is! TerminalTabLoaded) return;
     final busyTabs = (await findBusyTabs(state.allTabs)).toSet();
     if (!mounted) return;
-    final sessions = _buildSessionList(state, busyTabs: busyTabs);
-    if (sessions.isEmpty) return;
-    final currentId = state.activeTab?.hashCode.toString();
-    final result = await showTabSwitcher(
-      context,
-      sessions: sessions,
-      currentSessionId: currentId,
-      onReorder: (sessionIds) {
-        _terminalTabBloc.add(TerminalTabReorderSessions(sessionIds));
-      },
-      onRename: (sessionId, title) {
-        _terminalTabBloc.add(TerminalTabRenameSession(sessionId, title));
-      },
+    final latest = _terminalTabBloc.state;
+    if (latest is! TerminalTabLoaded || latest.allTabs.isEmpty) return;
+    final data = ValueNotifier<TabSwitcherData>(
+      _buildSwitcherData(latest, busyTabs),
     );
+    final subscription = _terminalTabBloc.stream.listen((next) {
+      if (next is TerminalTabLoaded) {
+        data.value = _buildSwitcherData(next, busyTabs);
+      }
+    });
+    final TabSwitcherResult? result;
+    try {
+      result = await showTabSwitcher(
+        context,
+        data: data,
+        currentGroupOnly: currentGroupOnly,
+        callbacks: TabSwitcherCallbacks(
+          onRename: (sessionId, title) {
+            _terminalTabBloc.add(TerminalTabRenameSession(sessionId, title));
+          },
+          onMoveBefore: (sessionId, targetSessionId) {
+            _terminalTabBloc.add(
+              TerminalTabMoveTabBefore(sessionId, targetSessionId),
+            );
+          },
+          onCreateGroup: (sessionId, name) {
+            _terminalTabBloc.add(TerminalTabCreateGroup(sessionId, name));
+          },
+          onMoveToGroup: (sessionId, groupId) {
+            _terminalTabBloc.add(TerminalTabMoveToGroup(sessionId, groupId));
+          },
+          onUngroup: (sessionId) {
+            _terminalTabBloc.add(TerminalTabUngroup(sessionId));
+          },
+          onRenameGroup: (groupId, name) {
+            _terminalTabBloc.add(TerminalTabRenameGroup(groupId, name));
+          },
+          onToggleCollapsed: (groupId) {
+            _terminalTabBloc.add(TerminalTabToggleGroupCollapsed(groupId));
+          },
+          onCloseGroup: (groupId) => unawaited(_closeGroup(groupId)),
+        ),
+      );
+    } finally {
+      await subscription.cancel();
+      data.dispose();
+    }
     if (!mounted || result == null) return;
     switch (result) {
       case TabSwitcherSelect(:final sessionId):
@@ -715,6 +831,12 @@ class _TerminalScreenState extends State<TerminalScreen> {
       return KeyEventResult.handled;
     }
 
+    // Current group only: Ctrl+Shift+O (Linux/Win) / Cmd+Shift+O (macOS)
+    if (key == LogicalKeyboardKey.keyO && shift) {
+      _showTabSwitcher(currentGroupOnly: true);
+      return KeyEventResult.handled;
+    }
+
     // Next tab: Ctrl+Shift+] (Linux/Win) / Cmd+Shift+] (macOS)
     // Shift+] produces } (braceRight)
     if (key == LogicalKeyboardKey.braceRight && shift) {
@@ -769,6 +891,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
         id: tab.hashCode.toString(),
         name: name,
         isRunning: isRunning,
+        groupId: state.grouping.groupIdOf(tab),
         onClose: () {
           _terminalTabBloc.add(
             TerminalTabCloseSession(tab.hashCode.toString()),
@@ -781,10 +904,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
   String _getCurrentSessionName(TerminalTabLoaded state) {
     final activeTab = state.activeTab;
     if (activeTab == null) return 'Terminal';
-    if (activeTab is PluginTab) {
-      return activeTab.displayTitle;
-    }
-    return 'Terminal';
+    final name = activeTab is PluginTab ? activeTab.displayTitle : 'Terminal';
+    final group = state.grouping.groupOf(activeTab);
+    return group == null ? name : '${group.name} · $name';
   }
 
   @override

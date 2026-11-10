@@ -213,4 +213,42 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get quit => 'Quit';
+
+  @override
+  String get tabGroupUngrouped => 'Ohne Gruppe';
+
+  @override
+  String get tabGroupMoveTo => 'In Gruppe verschieben';
+
+  @override
+  String get tabGroupNew => 'Neue Gruppe…';
+
+  @override
+  String get tabGroupRemove => 'Aus Gruppe entfernen';
+
+  @override
+  String get tabGroupRename => 'Gruppe umbenennen…';
+
+  @override
+  String get tabGroupClose => 'Gruppe schließen';
+
+  @override
+  String get tabGroupNameHint => 'Gruppenname';
+
+  @override
+  String get tabRename => 'Umbenennen…';
+
+  @override
+  String get tabGroupCloseConfirmTitle => 'Gruppe schließen?';
+
+  @override
+  String tabGroupCloseConfirmMessage(int count, String titles) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'In $count Tabs dieser Gruppe laufen Programme:',
+      one: 'In 1 Tab dieser Gruppe läuft ein Programm:',
+    );
+    return '$_temp0\n$titles\n\nBeim Schließen der Gruppe werden sie beendet.';
+  }
 }

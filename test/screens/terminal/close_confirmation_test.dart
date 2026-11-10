@@ -207,6 +207,78 @@ void main() {
     });
   });
 
+  group('confirmCloseGroup', () {
+    Future<ValueNotifier<bool?>> pumpGroupCloser(
+      WidgetTester tester,
+      List<PluginTab> tabs,
+    ) async {
+      final result = ValueNotifier<bool?>(null);
+      await tester.pumpWidget(
+        MaterialApp(
+          localizationsDelegates: AppLocale.localizationsDelegates,
+          supportedLocales: AppLocale.supportedLocales,
+          home: Builder(
+            builder: (BuildContext context) => TextButton(
+              onPressed: () async {
+                result.value = await confirmCloseGroup(context, tabs);
+              },
+              child: const Text('close group'),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('close group'));
+      await tester.pumpAndSettle();
+      return result;
+    }
+
+    testWidgets('returns true without a dialog when no tab is busy', (
+      tester,
+    ) async {
+      final tabs = [_tabWithSession(busy: false), _tabWithSession(busy: false)];
+      addTearDown(() => tabs.forEach(_disposeTab));
+
+      final result = await pumpGroupCloser(tester, tabs);
+
+      expect(find.byType(AlertDialog), findsNothing);
+      expect(result.value, isTrue);
+    });
+
+    testWidgets('lists busy tabs once and returns false on Cancel', (
+      tester,
+    ) async {
+      final tabs = [
+        _tabWithSession(busy: true),
+        _tabWithSession(busy: false),
+        _tabWithSession(busy: true),
+      ];
+      addTearDown(() => tabs.forEach(_disposeTab));
+
+      final result = await pumpGroupCloser(tester, tabs);
+
+      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.text('Close Group?'), findsOneWidget);
+      expect(
+        find.textContaining('2 tabs in this group have running programs'),
+        findsOneWidget,
+      );
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(result.value, isFalse);
+    });
+
+    testWidgets('returns true once confirmed', (tester) async {
+      final tabs = [_tabWithSession(busy: true)];
+      addTearDown(() => tabs.forEach(_disposeTab));
+
+      final result = await pumpGroupCloser(tester, tabs);
+
+      await tester.tap(find.widgetWithText(TextButton, 'Close'));
+      await tester.pumpAndSettle();
+      expect(result.value, isTrue);
+    });
+  });
+
   group('AppExitGuard', () {
     late TerminalTabBloc tabBloc;
     late List<PluginTab> tabs;

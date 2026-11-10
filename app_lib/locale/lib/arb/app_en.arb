@@ -99,5 +99,53 @@
         }
     },
     "quit": "Quit",
+    "tabGroupUngrouped": "Ungrouped",
+    "@tabGroupUngrouped": {
+        "description": "Tab switcher section label for tabs not in any group."
+    },
+    "tabGroupMoveTo": "Move to group",
+    "@tabGroupMoveTo": {
+        "description": "Tab card menu item: submenu listing groups to move the tab into."
+    },
+    "tabGroupNew": "New group…",
+    "@tabGroupNew": {
+        "description": "Tab card menu item: create a new group containing this tab."
+    },
+    "tabGroupRemove": "Remove from group",
+    "@tabGroupRemove": {
+        "description": "Tab card menu item: remove the tab from its group."
+    },
+    "tabGroupRename": "Rename group…",
+    "@tabGroupRename": {
+        "description": "Group header menu item and dialog title for renaming a group."
+    },
+    "tabGroupClose": "Close group",
+    "@tabGroupClose": {
+        "description": "Group header menu item that closes every tab in the group."
+    },
+    "tabGroupNameHint": "Group name",
+    "@tabGroupNameHint": {
+        "description": "Hint text for the group name input."
+    },
+    "tabRename": "Rename…",
+    "@tabRename": {
+        "description": "Tab card menu item for renaming the tab."
+    },
+    "tabGroupCloseConfirmTitle": "Close Group?",
+    "@tabGroupCloseConfirmTitle": {
+        "description": "Title of the confirmation shown before closing a group with running programs."
+    },
+    "tabGroupCloseConfirmMessage": "{count, plural, =1{1 tab in this group has a running program:} other{{count} tabs in this group have running programs:}}\n{titles}\n\nClosing the group will terminate them.",
+    "@tabGroupCloseConfirmMessage": {
+        "description": "Shown before closing a tab group whose tabs have foreground programs running.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "titles": {
+                "type": "String"
+            }
+        }
+    },
     "@@description": "Web Terminal Client Tools"
 }
