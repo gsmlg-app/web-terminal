@@ -371,6 +371,48 @@ void main() {
       expect(header('g1'), findsNothing);
     });
 
+    testWidgets('cards keep a maximum size with few tabs', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1200, 1000);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      await pumpTabSwitcher(tester);
+
+      for (final id in ['1', '2', '3']) {
+        final size = tester.getSize(card(id));
+        expect(size.width, lessThanOrEqualTo(160));
+        expect(size.height, lessThanOrEqualTo(100));
+      }
+      expect(tester.getTopLeft(card('3')).dy, tester.getTopLeft(card('1')).dy);
+    });
+
+    testWidgets('down arrow moves by the rendered column count', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(1200, 1000);
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final many = [
+        for (var i = 1; i <= 8; i++) SessionInfo(id: '$i', name: 'tab $i'),
+      ];
+      final result = await pumpTabSwitcher(tester, tabSessions: many);
+
+      final first = tester.getTopLeft(card('1'));
+      final rowStarts = [
+        for (var i = 2; i <= 8; i++)
+          if (tester.getTopLeft(card('$i')).dy > first.dy) i,
+      ];
+      final belowFirst = rowStarts.first;
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
+      await tester.pumpAndSettle();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      expect((result.value as TabSwitcherSelect).sessionId, '$belowFirst');
+    });
+
     testWidgets('arrow keys skip collapsed sections', (tester) async {
       final result = await pumpTabSwitcher(
         tester,

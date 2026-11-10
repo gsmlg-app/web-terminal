@@ -222,12 +222,20 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
     for (final section in _openSections()) ...section.sessions,
   ];
 
-  int _colsFor(List<TabSwitcherSection> sections) {
-    var largest = 1;
-    for (final section in sections) {
-      largest = max(largest, section.sessions.length);
-    }
-    return max(1, sqrt(largest).ceil());
+  static const double _maxCardWidth = 160;
+  static const double _cardSpacing = 6;
+  static const double _gridPadding = 8;
+
+  /// Column count of the rendered grid, kept for keyboard navigation.
+  int _gridCols = 1;
+
+  /// Enough columns that no card is wider than [_maxCardWidth].
+  static int _colsForWidth(double width) {
+    final available = width - _gridPadding * 2;
+    return max(
+      1,
+      ((available + _cardSpacing) / (_maxCardWidth + _cardSpacing)).ceil(),
+    );
   }
 
   SessionInfo? get _focusedSession {
@@ -517,7 +525,7 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
       return;
     }
 
-    final cols = _colsFor(sections);
+    final cols = _gridCols;
     var sectionIndex = 0;
     var index = flatIndex;
     while (index >= sections[sectionIndex].sessions.length) {
@@ -626,7 +634,6 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
         defaultTargetPlatform == TargetPlatform.iOS;
     final deleteHint = isApple ? '⌘⌫ Close' : 'Ctrl+⌫ Close';
     final sections = _sections();
-    final cols = _colsFor(sections.where((s) => !s.collapsed).toList());
     final title = widget.currentGroupOnly && sections.isNotEmpty
         ? sections.first.name
         : null;
@@ -649,35 +656,47 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
                 _buildHeader(context, title: title),
                 const Divider(height: 1),
                 Flexible(
-                  child: CustomScrollView(
-                    shrinkWrap: true,
-                    slivers: [
-                      for (final section in sections) ...[
-                        SliverToBoxAdapter(
-                          child: _buildSectionHeader(context, section),
-                        ),
-                        if (!section.collapsed)
-                          SliverPadding(
-                            padding: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-                            sliver: SliverGrid(
-                              gridDelegate:
-                                  SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: cols,
-                                    mainAxisSpacing: 6,
-                                    crossAxisSpacing: 6,
-                                    childAspectRatio: 1.6,
-                                  ),
-                              delegate: SliverChildBuilderDelegate(
-                                (context, index) => _buildGridItem(
-                                  context,
-                                  section.sessions[index],
-                                ),
-                                childCount: section.sessions.length,
-                              ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final cols = _gridCols = _colsForWidth(
+                        constraints.maxWidth,
+                      );
+                      return CustomScrollView(
+                        shrinkWrap: true,
+                        slivers: [
+                          for (final section in sections) ...[
+                            SliverToBoxAdapter(
+                              child: _buildSectionHeader(context, section),
                             ),
-                          ),
-                      ],
-                    ],
+                            if (!section.collapsed)
+                              SliverPadding(
+                                padding: const EdgeInsets.fromLTRB(
+                                  _gridPadding,
+                                  0,
+                                  _gridPadding,
+                                  _gridPadding,
+                                ),
+                                sliver: SliverGrid(
+                                  gridDelegate:
+                                      SliverGridDelegateWithFixedCrossAxisCount(
+                                        crossAxisCount: cols,
+                                        mainAxisSpacing: _cardSpacing,
+                                        crossAxisSpacing: _cardSpacing,
+                                        childAspectRatio: 1.6,
+                                      ),
+                                  delegate: SliverChildBuilderDelegate(
+                                    (context, index) => _buildGridItem(
+                                      context,
+                                      section.sessions[index],
+                                    ),
+                                    childCount: section.sessions.length,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ),
                 const Divider(height: 1),
@@ -894,7 +913,7 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isCompact = constraints.maxHeight < 80;
+        final isCompact = constraints.maxHeight < 96;
         final padding = isCompact ? 8.0 : 10.0;
         final iconSize = isCompact ? 20.0 : 24.0;
         final iconGap = isCompact ? 4.0 : 6.0;
