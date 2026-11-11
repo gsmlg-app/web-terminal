@@ -315,4 +315,65 @@ void main() {
       ]);
     },
   );
+
+  testWidgets(
+    'Cmd+T on a grouped local tab opens the new tab in that group',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      await pumpScreen(tester, inherit: true, ssh: false);
+      tabs.add(TerminalTabCreateGroup(firstTab.hashCode.toString(), 'proj'));
+      await tester.pump();
+      final groupId = (tabs.state as TerminalTabLoaded).grouping.groupIdOf(
+        firstTab,
+      );
+      expect(groupId, isNotNull);
+
+      await pressCmdT(tester);
+      await tester.pump();
+
+      final state = tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      final newTab = state.activeTab!;
+      expect(newTab, isNot(same(firstTab)));
+      expect(state.grouping.groupIdOf(newTab), groupId);
+    },
+  );
+
+  testWidgets(
+    'Cmd+T on a grouped SSH tab opens the new tab in that group',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      await pumpScreen(tester, inherit: true, ssh: true);
+      tabs.add(TerminalTabCreateGroup(firstTab.hashCode.toString(), 'proj'));
+      await tester.pump();
+      final groupId = (tabs.state as TerminalTabLoaded).grouping.groupIdOf(
+        firstTab,
+      );
+      expect(groupId, isNotNull);
+
+      await pressCmdT(tester);
+      await tester.pump();
+
+      final state = tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      final newTab = state.activeTab!;
+      expect(newTab, isNot(same(firstTab)));
+      expect(state.grouping.groupIdOf(newTab), groupId);
+    },
+  );
+
+  testWidgets(
+    'Cmd+T on an ungrouped tab keeps the new tab ungrouped',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      await pumpScreen(tester, inherit: true, ssh: true);
+
+      await pressCmdT(tester);
+      await tester.pump();
+
+      final state = tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      expect(state.grouping.groupIdOf(state.activeTab!), isNull);
+    },
+  );
 }

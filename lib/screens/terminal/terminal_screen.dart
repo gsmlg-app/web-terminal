@@ -193,14 +193,15 @@ class _TerminalScreenState extends State<TerminalScreen> {
     });
   }
 
-  void _openLocalShell() {
+  /// Opens a local shell after choosing a profile, in [groupId] if given.
+  void _openLocalShell({String? groupId}) {
     if (context.read<ShellProfileBloc>().state is! ShellProfileLoaded) return;
     if (!_checkMaxShellsLimit()) return;
 
     selectProfileAndOpenShell(
       context: context,
       onProfileSelected: (profile) {
-        unawaited(_openLocalShellInLiveDirectory(profile));
+        unawaited(_openLocalShellInLiveDirectory(profile, groupId: groupId));
       },
     );
   }
@@ -294,7 +295,10 @@ class _TerminalScreenState extends State<TerminalScreen> {
   /// Opens a local shell, inheriting the active shell's real directory when
   /// the profile asks for it. The directory comes from the operating system,
   /// so it works even when the shell does not report its directory.
-  Future<void> _openLocalShellInLiveDirectory(ShellProfile? profile) async {
+  Future<void> _openLocalShellInLiveDirectory(
+    ShellProfile? profile, {
+    String? groupId,
+  }) async {
     String? liveDirectory;
     if (profile?.inheritCurrentState == true) {
       liveDirectory = await _activeLiveWorkingDirectory();
@@ -303,6 +307,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     _openLocalShellWithProfile(
       profile,
       workingDirectoryOverride: liveDirectory,
+      groupId: groupId,
     );
   }
 
@@ -847,18 +852,21 @@ class _TerminalScreenState extends State<TerminalScreen> {
   void _openNewTabFromActiveSession() {
     final tabState = _terminalTabBloc.state;
     final activeTab = tabState is TerminalTabLoaded ? tabState.activeTab : null;
+    final groupId = activeTab != null && tabState is TerminalTabLoaded
+        ? tabState.grouping.groupIdOf(activeTab)
+        : null;
     if (activeTab is PluginTab && activeTab.manager.hostSpec is SSHHostSpec) {
       if (!_checkMaxShellsLimit()) return;
-      unawaited(_openSshTabBeside(activeTab));
+      unawaited(_openSshTabBeside(activeTab, groupId: groupId));
       return;
     }
 
-    _openLocalShell();
+    _openLocalShell(groupId: groupId);
   }
 
   /// Opens another shell on [activeTab]'s connection, in the remote
   /// directory its shell is in now.
-  Future<void> _openSshTabBeside(PluginTab activeTab) async {
+  Future<void> _openSshTabBeside(PluginTab activeTab, {String? groupId}) async {
     final activePlugin = activeTab.plugin;
     final directory = activePlugin is TerminalPlugin
         ? await activePlugin.liveWorkingDirectory()
@@ -867,7 +875,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final sshHostSpec = activeTab.manager.hostSpec as SSHHostSpec;
     final plugin = _createTerminalPlugin(null, directory);
     final tabItem = PluginTab(plugin, activeTab.manager);
-    _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+    _terminalTabBloc.add(TerminalTabOpenTab(tabItem, groupId: groupId));
     _requestTerminalFocus();
 
     _analytics.trackSessionCreated(
