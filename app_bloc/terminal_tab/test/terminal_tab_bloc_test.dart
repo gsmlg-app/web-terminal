@@ -1234,6 +1234,54 @@ void main() {
         expect(loaded().grouping.groupIdOf(t[0]), isNull);
       });
 
+      test('MoveSessionsToGroup moves several tabs keeping their order',
+          () async {
+        final t = await openTabs(5);
+        groupBloc.add(TerminalTabCreateGroup(id(t[1]), 'web'));
+        await settle();
+
+        groupBloc.add(
+          TerminalTabMoveSessionsToGroup([id(t[4]), id(t[0])], 'g0'),
+        );
+        await settle();
+
+        final grouping = loaded().grouping;
+        expect(grouping.groupIdOf(t[0]), 'g0');
+        expect(grouping.groupIdOf(t[4]), 'g0');
+        expect(loaded().allTabs, <TabItem>[t[1], t[0], t[4], t[2], t[3]]);
+      });
+
+      test('CreateGroupWithSessions puts every tab in the new group', () async {
+        final t = await openTabs(3);
+
+        groupBloc.add(
+          TerminalTabCreateGroupWithSessions([id(t[0]), id(t[2])], 'api'),
+        );
+        await settle();
+
+        final grouping = loaded().grouping;
+        expect(grouping.groups.single.name, 'api');
+        expect(grouping.groupIdOf(t[0]), 'g0');
+        expect(grouping.groupIdOf(t[2]), 'g0');
+        expect(grouping.groupIdOf(t[1]), isNull);
+        expect(loaded().allTabs, <TabItem>[t[0], t[2], t[1]]);
+      });
+
+      test('UngroupSessions removes several tabs and drops empty groups',
+          () async {
+        final t = await openTabs(3);
+        groupBloc.add(
+          TerminalTabCreateGroupWithSessions([id(t[0]), id(t[1])], 'api'),
+        );
+        await settle();
+
+        groupBloc.add(TerminalTabUngroupSessions([id(t[0]), id(t[1])]));
+        await settle();
+
+        expect(loaded().grouping.groups, isEmpty);
+        expect(loaded().grouping.membership, isEmpty);
+      });
+
       test('GoToTab and NextTab follow global order with groups', () async {
         final t = await openTabs(3);
         groupBloc.add(TerminalTabCreateGroup(id(t[2]), 'web'));

@@ -43,6 +43,9 @@ class TabSwitcherCallbacks {
     this.onRenameGroup,
     this.onToggleCollapsed,
     this.onCloseGroup,
+    this.onMoveSessionsToGroup,
+    this.onCreateGroupWithSessions,
+    this.onUngroupSessions,
   });
 
   final void Function(String sessionId, String title)? onRename;
@@ -53,6 +56,11 @@ class TabSwitcherCallbacks {
   final void Function(String groupId, String name)? onRenameGroup;
   final ValueChanged<String?>? onToggleCollapsed;
   final ValueChanged<String>? onCloseGroup;
+  final void Function(List<String> sessionIds, String groupId)?
+  onMoveSessionsToGroup;
+  final void Function(List<String> sessionIds, String name)?
+  onCreateGroupWithSessions;
+  final ValueChanged<List<String>>? onUngroupSessions;
 }
 
 /// Shows a modal tab switcher grid overlay, sectioned by tab group.
@@ -471,6 +479,70 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
     _focusNode.requestFocus();
   }
 
+  /// Groups every selected tab at once (select mode).
+  Future<void> _showSelectionGroupMenu(Offset position) async {
+    final l10n = context.l10n;
+    final selected = [
+      for (final session in _data.sessions)
+        if (_selectedSessionIds.contains(session.id)) session,
+    ];
+    if (selected.isEmpty) return;
+    final ids = [for (final session in selected) session.id];
+    final anyGrouped = selected.any((s) => _groupIdOf(s) != null);
+    final menuPosition = _menuPosition(position);
+    final action = await showMenu<_CardAction>(
+      context: context,
+      position: menuPosition,
+      items: [
+        if (_data.groups.isNotEmpty)
+          PopupMenuItem(
+            value: _CardAction.moveTo,
+            child: Text(l10n.tabGroupMoveTo),
+          ),
+        PopupMenuItem(
+          value: _CardAction.newGroup,
+          child: Text(l10n.tabGroupNew),
+        ),
+        if (anyGrouped)
+          PopupMenuItem(
+            value: _CardAction.ungroup,
+            child: Text(l10n.tabGroupRemove),
+          ),
+      ],
+    );
+    if (!mounted || action == null) return;
+    var done = false;
+    switch (action) {
+      case _CardAction.moveTo:
+        final target = await showMenu<String>(
+          context: context,
+          position: menuPosition,
+          items: [
+            for (final group in _data.groups)
+              PopupMenuItem(value: group.id, child: Text(group.name)),
+          ],
+        );
+        if (!mounted || target == null) break;
+        _callbacks.onMoveSessionsToGroup?.call(ids, target);
+        done = true;
+      case _CardAction.newGroup:
+        final name = await _askName(
+          title: l10n.tabGroupNew,
+          label: l10n.tabGroupNameHint,
+        );
+        if (name == null) break;
+        _callbacks.onCreateGroupWithSessions?.call(ids, name);
+        done = true;
+      case _CardAction.ungroup:
+        _callbacks.onUngroupSessions?.call(ids);
+        done = true;
+      case _CardAction.rename:
+        break;
+    }
+    if (done && mounted) setState(_selectedSessionIds.clear);
+    _focusNode.requestFocus();
+  }
+
   Future<void> _showGroupMenu(
     TabSwitcherSection section,
     Offset position,
@@ -799,6 +871,23 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
                   tooltip: 'Cancel selection',
                   icon: const Icon(Icons.close),
                   onPressed: _exitMode,
+                ),
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    tooltip: context.l10n.tabGroupSelected,
+                    icon: const Icon(Icons.create_new_folder_outlined),
+                    onPressed: selectedCount == 0
+                        ? null
+                        : () {
+                            final box =
+                                buttonContext.findRenderObject()! as RenderBox;
+                            _showSelectionGroupMenu(
+                              box.localToGlobal(
+                                box.size.bottomLeft(Offset.zero),
+                              ),
+                            );
+                          },
+                  ),
                 ),
                 IconButton(
                   tooltip: 'Close selected tabs',

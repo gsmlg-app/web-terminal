@@ -248,6 +248,74 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0\n$titles\n\n关闭分组将终止这些程序。';
   }
+
+  @override
+  String get zmodemDownloads => '下载 (sz)';
+
+  @override
+  String get zmodemDownloadModeFolder => '保存到文件夹';
+
+  @override
+  String get zmodemDownloadModeAsk => '每次询问保存位置';
+
+  @override
+  String get zmodemDownloadFolder => '下载文件夹';
+
+  @override
+  String get zmodemSystemDownloads => '系统下载文件夹';
+
+  @override
+  String get zmodemChooseFolder => '选择…';
+
+  @override
+  String get zmodemReset => '重置';
+
+  @override
+  String get zmodemCancel => '取消';
+
+  @override
+  String zmodemSavedTo(String path) {
+    return '已保存到 $path';
+  }
+
+  @override
+  String zmodemSavedFiles(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已保存 $count 个文件到 $folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String zmodemUploaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已上传 $count 个文件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get zmodemCancelled => '传输已取消';
+
+  @override
+  String zmodemFailed(String reason) {
+    return '传输失败：$reason';
+  }
+
+  @override
+  String get zmodemShowInFinder => '在访达中显示';
+
+  @override
+  String zmodemFileOf(int index, int count) {
+    return '第 $index/$count 个';
+  }
+
+  @override
+  String get tabGroupSelected => '分组所选标签页';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -359,6 +427,74 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
     );
     return '$_temp0\n$titles\n\n关闭分组将终止这些程序。';
   }
+
+  @override
+  String get zmodemDownloads => '下载 (sz)';
+
+  @override
+  String get zmodemDownloadModeFolder => '保存到文件夹';
+
+  @override
+  String get zmodemDownloadModeAsk => '每次询问保存位置';
+
+  @override
+  String get zmodemDownloadFolder => '下载文件夹';
+
+  @override
+  String get zmodemSystemDownloads => '系统下载文件夹';
+
+  @override
+  String get zmodemChooseFolder => '选择…';
+
+  @override
+  String get zmodemReset => '重置';
+
+  @override
+  String get zmodemCancel => '取消';
+
+  @override
+  String zmodemSavedTo(String path) {
+    return '已保存到 $path';
+  }
+
+  @override
+  String zmodemSavedFiles(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已保存 $count 个文件到 $folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String zmodemUploaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已上传 $count 个文件',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get zmodemCancelled => '传输已取消';
+
+  @override
+  String zmodemFailed(String reason) {
+    return '传输失败：$reason';
+  }
+
+  @override
+  String get zmodemShowInFinder => '在访达中显示';
+
+  @override
+  String zmodemFileOf(int index, int count) {
+    return '第 $index/$count 个';
+  }
+
+  @override
+  String get tabGroupSelected => '分组所选标签页';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -470,4 +606,72 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
     );
     return '$_temp0\n$titles\n\n關閉分組將終止這些程式。';
   }
+
+  @override
+  String get zmodemDownloads => '下載 (sz)';
+
+  @override
+  String get zmodemDownloadModeFolder => '儲存到資料夾';
+
+  @override
+  String get zmodemDownloadModeAsk => '每次詢問儲存位置';
+
+  @override
+  String get zmodemDownloadFolder => '下載資料夾';
+
+  @override
+  String get zmodemSystemDownloads => '系統下載資料夾';
+
+  @override
+  String get zmodemChooseFolder => '選擇…';
+
+  @override
+  String get zmodemReset => '重設';
+
+  @override
+  String get zmodemCancel => '取消';
+
+  @override
+  String zmodemSavedTo(String path) {
+    return '已儲存到 $path';
+  }
+
+  @override
+  String zmodemSavedFiles(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已儲存 $count 個檔案到 $folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String zmodemUploaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已上傳 $count 個檔案',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get zmodemCancelled => '傳輸已取消';
+
+  @override
+  String zmodemFailed(String reason) {
+    return '傳輸失敗：$reason';
+  }
+
+  @override
+  String get zmodemShowInFinder => '在 Finder 中顯示';
+
+  @override
+  String zmodemFileOf(int index, int count) {
+    return '第 $index/$count 個';
+  }
+
+  @override
+  String get tabGroupSelected => '分組所選分頁';
 }

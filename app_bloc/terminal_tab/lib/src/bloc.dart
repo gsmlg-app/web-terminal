@@ -29,6 +29,9 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabCreateGroup>(_onCreateGroup);
     on<TerminalTabMoveToGroup>(_onMoveToGroup);
     on<TerminalTabUngroup>(_onUngroup);
+    on<TerminalTabMoveSessionsToGroup>(_onMoveSessionsToGroup);
+    on<TerminalTabCreateGroupWithSessions>(_onCreateGroupWithSessions);
+    on<TerminalTabUngroupSessions>(_onUngroupSessions);
     on<TerminalTabRenameGroup>(_onRenameGroup);
     on<TerminalTabToggleGroupCollapsed>(_onToggleGroupCollapsed);
     on<TerminalTabMoveTabBefore>(_onMoveTabBefore);
@@ -272,19 +275,89 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     if (current is! TerminalTabLoaded) return;
     final tab = _findTabById(current.tabs, event.sessionId);
     if (tab == null) return;
-    final grouping = current.grouping.assign(tab, event.groupId);
-    if (identical(grouping, current.grouping)) return;
+    _emitGrouping(
+      emit,
+      current,
+      _moveIntoGroup(current, current.grouping, tab, event.groupId),
+    );
+  }
 
+  /// Assigns [tab] to [groupId] and moves it, in the global tab order, to
+  /// just after the group's last other member.
+  TabGrouping _moveIntoGroup(
+    TerminalTabLoaded current,
+    TabGrouping grouping,
+    TabItem tab,
+    String groupId,
+  ) {
+    final next = grouping.assign(tab, groupId);
+    if (identical(next, grouping)) return grouping;
     final children = current.tabs.children;
     final oldIndex = children.indexOf(tab);
     var lastOther = -1;
     for (var i = 0; i < children.length; i++) {
-      if (i != oldIndex && grouping.groupIdOf(children[i]) == event.groupId) {
+      if (i != oldIndex && next.groupIdOf(children[i]) == groupId) {
         lastOther = i;
       }
     }
     if (lastOther >= 0) {
       current.tabs.move(tab, oldIndex < lastOther ? lastOther : lastOther + 1);
+    }
+    return next;
+  }
+
+  /// Tabs for [sessionIds] in global tab order.
+  List<TabItem> _tabsInOrder(TerminalTabLoaded current, List<String> ids) {
+    final wanted = ids.toSet();
+    return [
+      for (final tab in current.tabs.children)
+        if (wanted.contains(tab.hashCode.toString())) tab,
+    ];
+  }
+
+  void _onMoveSessionsToGroup(
+    TerminalTabMoveSessionsToGroup event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    var grouping = current.grouping;
+    for (final tab in _tabsInOrder(current, event.sessionIds)) {
+      grouping = _moveIntoGroup(current, grouping, tab, event.groupId);
+    }
+    _emitGrouping(emit, current, grouping);
+  }
+
+  void _onCreateGroupWithSessions(
+    TerminalTabCreateGroupWithSessions event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final tabs = _tabsInOrder(current, event.sessionIds);
+    if (tabs.isEmpty) return;
+    final groupId = _groupIdGenerator();
+    var grouping = current.grouping.createGroup(
+      id: groupId,
+      name: event.name,
+      tab: tabs.first,
+    );
+    if (identical(grouping, current.grouping)) return;
+    for (final tab in tabs.skip(1)) {
+      grouping = _moveIntoGroup(current, grouping, tab, groupId);
+    }
+    _emitGrouping(emit, current, grouping);
+  }
+
+  void _onUngroupSessions(
+    TerminalTabUngroupSessions event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    var grouping = current.grouping;
+    for (final tab in _tabsInOrder(current, event.sessionIds)) {
+      grouping = grouping.assign(tab, null);
     }
     _emitGrouping(emit, current, grouping);
   }

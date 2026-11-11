@@ -251,4 +251,74 @@ class AppLocalizationsJa extends AppLocalizations {
     );
     return '$_temp0\n$titles\n\nClosing the group will terminate them.';
   }
+
+  @override
+  String get zmodemDownloads => 'Downloads (sz)';
+
+  @override
+  String get zmodemDownloadModeFolder => 'Save to folder';
+
+  @override
+  String get zmodemDownloadModeAsk => 'Ask where to save';
+
+  @override
+  String get zmodemDownloadFolder => 'Download folder';
+
+  @override
+  String get zmodemSystemDownloads => 'System Downloads';
+
+  @override
+  String get zmodemChooseFolder => 'Choose…';
+
+  @override
+  String get zmodemReset => 'Reset';
+
+  @override
+  String get zmodemCancel => 'Cancel';
+
+  @override
+  String zmodemSavedTo(String path) {
+    return 'Saved to $path';
+  }
+
+  @override
+  String zmodemSavedFiles(int count, String folder) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Saved $count files to $folder',
+      one: 'Saved 1 file to $folder',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String zmodemUploaded(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Uploaded $count files',
+      one: 'Uploaded 1 file',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get zmodemCancelled => 'Transfer cancelled';
+
+  @override
+  String zmodemFailed(String reason) {
+    return 'Transfer failed: $reason';
+  }
+
+  @override
+  String get zmodemShowInFinder => 'Show in Finder';
+
+  @override
+  String zmodemFileOf(int index, int count) {
+    return '$index of $count';
+  }
+
+  @override
+  String get tabGroupSelected => 'Group selected tabs';
 }

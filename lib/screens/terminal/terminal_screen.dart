@@ -224,6 +224,19 @@ class _TerminalScreenState extends State<TerminalScreen> {
             TerminalCursorType.values.length - 1,
           )],
       scrollbackLines: effectiveProfile?.scrollbackLines ?? 10000,
+      fileAccess: IoZmodemFileAccess(settings: _zmodemDownloadSettings),
+    );
+  }
+
+  /// Current `sz` download settings, read when a transfer starts.
+  ZmodemDownloadSettings _zmodemDownloadSettings() {
+    final state = _terminalSettingsBloc.state;
+    if (state is! TerminalSettingsLoaded) {
+      return (mode: ZmodemDownloadMode.saveToFolder, directory: null);
+    }
+    return (
+      mode: ZmodemDownloadMode.values.byName(state.downloadMode.name),
+      directory: state.downloadDirectory,
     );
   }
 
@@ -756,6 +769,19 @@ class _TerminalScreenState extends State<TerminalScreen> {
             _terminalTabBloc.add(TerminalTabToggleGroupCollapsed(groupId));
           },
           onCloseGroup: (groupId) => unawaited(_closeGroup(groupId)),
+          onMoveSessionsToGroup: (sessionIds, groupId) {
+            _terminalTabBloc.add(
+              TerminalTabMoveSessionsToGroup(sessionIds, groupId),
+            );
+          },
+          onCreateGroupWithSessions: (sessionIds, name) {
+            _terminalTabBloc.add(
+              TerminalTabCreateGroupWithSessions(sessionIds, name),
+            );
+          },
+          onUngroupSessions: (sessionIds) {
+            _terminalTabBloc.add(TerminalTabUngroupSessions(sessionIds));
+          },
         ),
       );
     } finally {

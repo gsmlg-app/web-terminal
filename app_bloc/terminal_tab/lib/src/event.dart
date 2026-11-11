@@ -127,3 +127,30 @@ class TerminalTabRestoreGroups extends TerminalTabEvent {
 
 /// Ends tab restore: removes restored groups whose tabs did not come back.
 class TerminalTabFinishGroupRestore extends TerminalTabEvent {}
+
+/// Moves several tabs into the existing group [groupId], keeping their
+/// relative order, after the group's last other member.
+class TerminalTabMoveSessionsToGroup extends TerminalTabEvent {
+  final List<String> sessionIds;
+  final String groupId;
+
+  TerminalTabMoveSessionsToGroup(List<String> sessionIds, this.groupId)
+      : sessionIds = List.unmodifiable(sessionIds);
+}
+
+/// Creates a group named [name] containing all [sessionIds].
+class TerminalTabCreateGroupWithSessions extends TerminalTabEvent {
+  final List<String> sessionIds;
+  final String name;
+
+  TerminalTabCreateGroupWithSessions(List<String> sessionIds, this.name)
+      : sessionIds = List.unmodifiable(sessionIds);
+}
+
+/// Removes several tabs from their groups.
+class TerminalTabUngroupSessions extends TerminalTabEvent {
+  final List<String> sessionIds;
+
+  TerminalTabUngroupSessions(List<String> sessionIds)
+      : sessionIds = List.unmodifiable(sessionIds);
+}

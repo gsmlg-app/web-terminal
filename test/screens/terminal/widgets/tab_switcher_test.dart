@@ -294,6 +294,112 @@ void main() {
       expect(ungrouped, ['2']);
     });
 
+    testWidgets('select mode moves the selected tabs to a group', (
+      tester,
+    ) async {
+      final moves = <(List<String>, String)>[];
+      await pumpTabSwitcher(
+        tester,
+        data: ValueNotifier<TabSwitcherData>(grouped),
+        callbacks: TabSwitcherCallbacks(
+          onMoveSessionsToGroup: (ids, groupId) => moves.add((ids, groupId)),
+        ),
+      );
+
+      await tester.tap(find.byTooltip('Select tabs'));
+      await tester.pumpAndSettle();
+      await tester.tap(card('1'));
+      await tester.tap(card('3'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Group selected tabs'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Move to group'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('api').last);
+      await tester.pumpAndSettle();
+
+      expect(moves.single.$1, ['1', '3']);
+      expect(moves.single.$2, 'g1');
+      expect(find.text('Select Tabs'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle), findsNothing);
+    });
+
+    testWidgets('select mode puts the selected tabs into a new group', (
+      tester,
+    ) async {
+      final created = <(List<String>, String)>[];
+      await pumpTabSwitcher(
+        tester,
+        data: ValueNotifier<TabSwitcherData>(grouped),
+        callbacks: TabSwitcherCallbacks(
+          onCreateGroupWithSessions: (ids, name) => created.add((ids, name)),
+        ),
+      );
+
+      await tester.tap(find.byTooltip('Select tabs'));
+      await tester.pumpAndSettle();
+      await tester.tap(card('1'));
+      await tester.tap(card('2'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Group selected tabs'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('New group…'));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField), 'web');
+      await tester.tap(find.widgetWithText(TextButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(created.single.$1, ['1', '2']);
+      expect(created.single.$2, 'web');
+    });
+
+    testWidgets('select mode removes the selected tabs from their groups', (
+      tester,
+    ) async {
+      final ungrouped = <List<String>>[];
+      await pumpTabSwitcher(
+        tester,
+        data: ValueNotifier<TabSwitcherData>(grouped),
+        callbacks: TabSwitcherCallbacks(onUngroupSessions: ungrouped.add),
+      );
+
+      await tester.tap(find.byTooltip('Select tabs'));
+      await tester.pumpAndSettle();
+      await tester.tap(card('3'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Group selected tabs'));
+      await tester.pumpAndSettle();
+      expect(find.text('Remove from group'), findsNothing);
+      await tester.tapAt(Offset.zero);
+      await tester.pumpAndSettle();
+
+      await tester.tap(card('2'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Group selected tabs'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove from group'));
+      await tester.pumpAndSettle();
+
+      expect(ungrouped.single, ['2', '3']);
+    });
+
+    testWidgets('group button is disabled with nothing selected', (
+      tester,
+    ) async {
+      await pumpTabSwitcher(
+        tester,
+        data: ValueNotifier<TabSwitcherData>(grouped),
+      );
+
+      await tester.tap(find.byTooltip('Select tabs'));
+      await tester.pumpAndSettle();
+
+      final button = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, Icons.create_new_folder_outlined),
+      );
+      expect(button.onPressed, isNull);
+    });
+
     testWidgets('group header menu renames and closes the group', (
       tester,
     ) async {

@@ -558,6 +558,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 tab in this group has a running program:} other{{count} tabs in this group have running programs:}}\n{titles}\n\nClosing the group will terminate them.'**
   String tabGroupCloseConfirmMessage(int count, String titles);
+
+  /// Settings tile title for ZMODEM (sz) download options.
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads (sz)'**
+  String get zmodemDownloads;
+
+  /// Download mode: save into the download folder without asking.
+  ///
+  /// In en, this message translates to:
+  /// **'Save to folder'**
+  String get zmodemDownloadModeFolder;
+
+  /// Download mode: ask for a folder each time.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask where to save'**
+  String get zmodemDownloadModeAsk;
+
+  /// Settings tile title for the sz download folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Download folder'**
+  String get zmodemDownloadFolder;
+
+  /// Shown when the download folder is the system Downloads folder.
+  ///
+  /// In en, this message translates to:
+  /// **'System Downloads'**
+  String get zmodemSystemDownloads;
+
+  /// Button that opens a folder chooser for the download folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose…'**
+  String get zmodemChooseFolder;
+
+  /// Button that resets the download folder to the system Downloads folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get zmodemReset;
+
+  /// Button that cancels a running file transfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get zmodemCancel;
+
+  /// Snackbar after a single file was downloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved to {path}'**
+  String zmodemSavedTo(String path);
+
+  /// Snackbar after several files were downloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Saved 1 file to {folder}} other{Saved {count} files to {folder}}}'**
+  String zmodemSavedFiles(int count, String folder);
+
+  /// Snackbar after files were uploaded with rz.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Uploaded 1 file} other{Uploaded {count} files}}'**
+  String zmodemUploaded(int count);
+
+  /// Snackbar after a file transfer was cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer cancelled'**
+  String get zmodemCancelled;
+
+  /// Snackbar after a file transfer failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer failed: {reason}'**
+  String zmodemFailed(String reason);
+
+  /// Snackbar action that reveals the downloaded file.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in Finder'**
+  String get zmodemShowInFinder;
+
+  /// Transfer progress: which file of how many.
+  ///
+  /// In en, this message translates to:
+  /// **'{index} of {count}'**
+  String zmodemFileOf(int index, int count);
+
+  /// Tab switcher select-mode button that groups the selected tabs.
+  ///
+  /// In en, this message translates to:
+  /// **'Group selected tabs'**
+  String get tabGroupSelected;
 }
 
 class _AppLocalizationsDelegate

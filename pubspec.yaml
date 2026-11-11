@@ -50,6 +50,7 @@ workspace:
   - app_lib/ssh
   - app_lib/utils
   - third_party/flex_tabs
+  - third_party/zmodem
 
 dependencies:
   flutter:
