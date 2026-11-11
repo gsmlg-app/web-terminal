@@ -370,7 +370,14 @@ class _TerminalTabViewState extends State<TerminalTabView>
           l10n.zmodemSavedFiles(paths.length, p.dirname(paths.first)),
           p.dirname(paths.first),
         ),
-      ZmodemUploadCompleted(:final count) => (l10n.zmodemUploaded(count), null),
+      ZmodemUploadCompleted(:final count, :final skipped) => (
+          [
+            if (count > 0) l10n.zmodemUploaded(count),
+            if (skipped.isNotEmpty)
+              l10n.zmodemSkippedExisting(skipped.length, skipped.first),
+          ].join(' · '),
+          null,
+        ),
       ZmodemTransferCancelled() => (l10n.zmodemCancelled, null),
       ZmodemTransferFailed(:final reason) => (l10n.zmodemFailed(reason), null),
     };

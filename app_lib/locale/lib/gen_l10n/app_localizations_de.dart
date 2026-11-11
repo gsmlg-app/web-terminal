@@ -304,6 +304,19 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String zmodemSkippedExisting(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count Dateien existieren bereits auf dem Zielsystem und wurden übersprungen (rz -y zum Überschreiben)',
+      one:
+          '$name existiert bereits auf dem Zielsystem und wurde übersprungen (rz -y zum Überschreiben)',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get zmodemCancelled => 'Übertragung abgebrochen';
 
   @override

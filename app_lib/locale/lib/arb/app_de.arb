@@ -133,6 +133,7 @@
     "zmodemSavedTo": "Gespeichert unter {path}",
     "zmodemSavedFiles": "{count, plural, =1{1 Datei in {folder} gespeichert} other{{count} Dateien in {folder} gespeichert}}",
     "zmodemUploaded": "{count, plural, =1{1 Datei hochgeladen} other{{count} Dateien hochgeladen}}",
+    "zmodemSkippedExisting": "{count, plural, =1{{name} existiert bereits auf dem Zielsystem und wurde übersprungen (rz -y zum Überschreiben)} other{{count} Dateien existieren bereits auf dem Zielsystem und wurden übersprungen (rz -y zum Überschreiben)}}",
     "zmodemCancelled": "Übertragung abgebrochen",
     "zmodemFailed": "Übertragung fehlgeschlagen: {reason}",
     "zmodemShowInFinder": "Im Finder zeigen",

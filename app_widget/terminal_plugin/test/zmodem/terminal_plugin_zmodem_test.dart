@@ -206,6 +206,30 @@ void main() {
     await tester.pump(const Duration(seconds: 6));
   }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
+  testWidgets('rz skipping an existing file says so', (tester) async {
+    await pumpView(tester);
+    final source = io.File('${tmp.path}/e.bin')..writeAsBytesSync([1, 2, 3]);
+    files.uploads = [
+      ZmodemLocalFile(path: source.path, name: 'e.bin', length: 3),
+    ];
+    final peer = FakePeer.receiver()..refuse.add('e.bin');
+    connect(peer);
+
+    await tester.runAsync(() async => peer.start());
+    await waitFor(
+      tester,
+      () => find.textContaining('e.bin').evaluate().isNotEmpty,
+    );
+
+    expect(
+      find.text('e.bin already exists on the remote and was skipped '
+          '(run rz -y to overwrite)'),
+      findsOneWidget,
+    );
+    expect(find.text('Transfer cancelled'), findsNothing);
+    await tester.pump(const Duration(seconds: 6));
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
   test('ZmodemTransferController is exported for the screen', () {
     expect(ZmodemTransferCancelled(), isA<ZmodemTransferResult>());
   });

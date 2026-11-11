@@ -38,9 +38,12 @@ final class ZmodemDownloadCompleted extends ZmodemTransferResult {
 }
 
 final class ZmodemUploadCompleted extends ZmodemTransferResult {
-  ZmodemUploadCompleted(this.count);
+  ZmodemUploadCompleted(this.count, {this.skipped = const []});
 
   final int count;
+
+  /// Names the receiver declined, such as files that already exist.
+  final List<String> skipped;
 }
 
 final class ZmodemTransferCancelled extends ZmodemTransferResult {}
@@ -451,6 +454,7 @@ class _Transfer {
   List<ZmodemLocalFile>? _uploads;
   int _uploadIndex = -1;
   final _uploadedFiles = <int>{};
+  final _skippedUploads = <String>[];
   Future<void>? _uploading;
   bool _uploadActive = false;
   int? _repositionTo;
@@ -589,6 +593,10 @@ class _Transfer {
           _startUpload(offset, announce: true);
         }
       case ZFileSkippedEvent():
+        final uploads = _uploads;
+        if (uploads != null && _uploadIndex < uploads.length) {
+          _skippedUploads.add(uploads[_uploadIndex].name);
+        }
         await _offerNext();
       case ZSessionFinishedEvent():
         await _uploading;
@@ -608,9 +616,12 @@ class _Transfer {
           ? ZmodemTransferCancelled()
           : ZmodemDownloadCompleted(List.unmodifiable(_paths));
     }
-    return _uploadedFiles.isEmpty
+    return _uploadedFiles.isEmpty && _skippedUploads.isEmpty
         ? ZmodemTransferCancelled()
-        : ZmodemUploadCompleted(_uploadedFiles.length);
+        : ZmodemUploadCompleted(
+            _uploadedFiles.length,
+            skipped: List.unmodifiable(_skippedUploads),
+          );
   }
 
   // Downloads.

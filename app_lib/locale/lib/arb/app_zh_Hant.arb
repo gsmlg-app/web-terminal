@@ -136,6 +136,7 @@
     "zmodemSavedTo": "已儲存到 {path}",
     "zmodemSavedFiles": "{count, plural, other{已儲存 {count} 個檔案到 {folder}}}",
     "zmodemUploaded": "{count, plural, other{已上傳 {count} 個檔案}}",
+    "zmodemSkippedExisting": "{count, plural, =1{遠端已存在 {name}，已略過（使用 rz -y 覆寫）} other{遠端已存在 {count} 個檔案，已略過（使用 rz -y 覆寫）}}",
     "zmodemCancelled": "傳輸已取消",
     "zmodemFailed": "傳輸失敗：{reason}",
     "zmodemShowInFinder": "在 Finder 中顯示",

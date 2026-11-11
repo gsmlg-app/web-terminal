@@ -304,6 +304,19 @@ class AppLocalizationsKo extends AppLocalizations {
   }
 
   @override
+  String zmodemSkippedExisting(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count files already exist on the remote and were skipped (run rz -y to overwrite)',
+      one:
+          '$name already exists on the remote and was skipped (run rz -y to overwrite)',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get zmodemCancelled => 'Transfer cancelled';
 
   @override

@@ -75,6 +75,9 @@ class FakePeer {
   late void Function(Uint8List bytes) toController;
 
   final skipped = <String>[];
+
+  /// Offered files a receiving peer declines, like rz for existing files.
+  final refuse = <String>{};
   final finished = Completer<void>();
   final cancelled = Completer<void>();
   late final Iterator<MapEntry<String, Uint8List>> _pending =
@@ -127,9 +130,13 @@ class FakePeer {
           core.finishSession();
         }
       } else if (event is ZFileOfferedEvent) {
-        _receiving = event.fileInfo.pathname;
-        received[_receiving!] = BytesBuilder();
-        core.acceptFile(0);
+        if (refuse.contains(event.fileInfo.pathname)) {
+          core.skipFile();
+        } else {
+          _receiving = event.fileInfo.pathname;
+          received[_receiving!] = BytesBuilder();
+          core.acceptFile(0);
+        }
       } else if (event is ZFileDataEvent) {
         received[_receiving!]!.add(event.data);
       } else if (event is ZSessionFinishedEvent) {

@@ -136,6 +136,7 @@
     "zmodemSavedTo": "已保存到 {path}",
     "zmodemSavedFiles": "{count, plural, other{已保存 {count} 个文件到 {folder}}}",
     "zmodemUploaded": "{count, plural, other{已上传 {count} 个文件}}",
+    "zmodemSkippedExisting": "{count, plural, =1{远端已存在 {name}，已跳过（使用 rz -y 覆盖）} other{远端已存在 {count} 个文件，已跳过（使用 rz -y 覆盖）}}",
     "zmodemCancelled": "传输已取消",
     "zmodemFailed": "传输失败：{reason}",
     "zmodemShowInFinder": "在访达中显示",

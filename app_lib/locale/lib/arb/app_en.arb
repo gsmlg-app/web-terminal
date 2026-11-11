@@ -209,6 +209,18 @@
             }
         }
     },
+    "zmodemSkippedExisting": "{count, plural, =1{{name} already exists on the remote and was skipped (run rz -y to overwrite)} other{{count} files already exist on the remote and were skipped (run rz -y to overwrite)}}",
+    "@zmodemSkippedExisting": {
+        "description": "Snackbar when rz declined uploaded files because they already exist.",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
     "zmodemCancelled": "Transfer cancelled",
     "@zmodemCancelled": {
         "description": "Snackbar after a file transfer was cancelled."

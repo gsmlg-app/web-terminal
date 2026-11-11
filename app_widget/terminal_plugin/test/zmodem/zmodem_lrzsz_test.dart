@@ -140,6 +140,32 @@ void main() {
     await run.controller.dispose();
   }, skip: skip);
 
+  test('rz skipping an existing file reports it as skipped', () async {
+    final data = _random(5000, 6);
+    final upload = File('${downloads.path}/up.bin')..writeAsBytesSync(data);
+    File('${source.path}/up.bin').writeAsStringSync('old');
+    final files = FakeFileAccess(downloads)
+      ..uploads = [
+        ZmodemLocalFile(path: upload.path, name: 'up.bin', length: data.length),
+      ];
+
+    final run = await _Run.start(
+      'rz',
+      ['--binary'],
+      files,
+      workingDirectory: source.path,
+    );
+    final result = await run.result();
+    await run.process.exitCode.timeout(const Duration(seconds: 10));
+
+    expect(result, isA<ZmodemUploadCompleted>());
+    result as ZmodemUploadCompleted;
+    expect(result.count, 0);
+    expect(result.skipped, ['up.bin']);
+    expect(File('${source.path}/up.bin').readAsStringSync(), 'old');
+    await run.controller.dispose();
+  }, skip: skip);
+
   test('cancel during a large sz stops it and leaves no partial file',
       () async {
     File('${source.path}/big.bin').writeAsBytesSync(_random(20 << 20, 4));

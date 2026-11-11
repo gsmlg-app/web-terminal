@@ -299,6 +299,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String zmodemSkippedExisting(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '远端已存在 $count 个文件，已跳过（使用 rz -y 覆盖）',
+      one: '远端已存在 $name，已跳过（使用 rz -y 覆盖）',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get zmodemCancelled => '传输已取消';
 
   @override
@@ -478,6 +489,17 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
   }
 
   @override
+  String zmodemSkippedExisting(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '远端已存在 $count 个文件，已跳过（使用 rz -y 覆盖）',
+      one: '远端已存在 $name，已跳过（使用 rz -y 覆盖）',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get zmodemCancelled => '传输已取消';
 
   @override
@@ -652,6 +674,17 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
       count,
       locale: localeName,
       other: '已上傳 $count 個檔案',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String zmodemSkippedExisting(int count, String name) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '遠端已存在 $count 個檔案，已略過（使用 rz -y 覆寫）',
+      one: '遠端已存在 $name，已略過（使用 rz -y 覆寫）',
     );
     return '$_temp0';
   }

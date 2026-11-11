@@ -625,6 +625,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Uploaded 1 file} other{Uploaded {count} files}}'**
   String zmodemUploaded(int count);
 
+  /// Snackbar when rz declined uploaded files because they already exist.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{{name} already exists on the remote and was skipped (run rz -y to overwrite)} other{{count} files already exist on the remote and were skipped (run rz -y to overwrite)}}'**
+  String zmodemSkippedExisting(int count, String name);
+
   /// Snackbar after a file transfer was cancelled.
   ///
   /// In en, this message translates to:
