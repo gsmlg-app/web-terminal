@@ -687,4 +687,71 @@ void main() {
       );
     }
   });
+
+  group('keyboard navigation scrolling', () {
+    final many = [
+      for (var i = 1; i <= 40; i++) SessionInfo(id: '$i', name: '$i ~'),
+    ];
+
+    void expectFullyVisible(WidgetTester tester, String id) {
+      final viewport = tester.getRect(find.byType(CustomScrollView));
+      final rect = tester.getRect(card(id));
+      expect(
+        rect.top >= viewport.top - 0.5 && rect.bottom <= viewport.bottom + 0.5,
+        isTrue,
+        reason: 'card $id at $rect is outside the list viewport $viewport',
+      );
+    }
+
+    Future<void> press(WidgetTester tester, LogicalKeyboardKey key) async {
+      await tester.sendKeyEvent(key);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('j and l keep the focused card in view going down', (
+      tester,
+    ) async {
+      await pumpTabSwitcher(tester, tabSessions: many);
+
+      for (var i = 0; i < 39; i++) {
+        await press(tester, LogicalKeyboardKey.keyL);
+      }
+
+      expectFullyVisible(tester, '40');
+      for (var i = 0; i < 3; i++) {
+        await press(tester, LogicalKeyboardKey.keyK);
+      }
+      await press(tester, LogicalKeyboardKey.keyJ);
+    });
+
+    testWidgets('k and h keep the focused card in view going up', (
+      tester,
+    ) async {
+      await pumpTabSwitcher(tester, tabSessions: many);
+      for (var i = 0; i < 39; i++) {
+        await press(tester, LogicalKeyboardKey.keyL);
+      }
+
+      for (var i = 0; i < 20; i++) {
+        await press(tester, LogicalKeyboardKey.keyK);
+      }
+      await press(tester, LogicalKeyboardKey.keyH);
+
+      expect(find.byType(CustomScrollView), findsOneWidget);
+      expectFullyVisible(tester, '1');
+    });
+
+    testWidgets('opening with the current tab far down scrolls to it', (
+      tester,
+    ) async {
+      await pumpTabSwitcher(
+        tester,
+        data: ValueNotifier(
+          TabSwitcherData(sessions: many, currentSessionId: '38'),
+        ),
+      );
+
+      expectFullyVisible(tester, '38');
+    });
+  });
 }

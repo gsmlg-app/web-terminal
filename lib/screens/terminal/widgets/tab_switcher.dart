@@ -150,6 +150,11 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
   String? _focusedId;
   final _selectedSessionIds = <String>{};
   final _focusNode = FocusNode();
+  final _scrollController = ScrollController();
+  final _cardKeys = <String, GlobalKey>{};
+
+  /// The focused card the list was last scrolled to.
+  String? _revealedId;
   _TabSwitcherMode _mode = _TabSwitcherMode.switcher;
 
   /// The section containing the current tab when the switcher opened is shown
@@ -170,6 +175,7 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
   void dispose() {
     widget.data.removeListener(_onDataChanged);
     _focusNode.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -180,6 +186,7 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
       _data = widget.data.value;
       final ids = {for (final s in _data.sessions) s.id};
       _selectedSessionIds.retainAll(ids);
+      _cardKeys.removeWhere((id, _) => !ids.contains(id));
       final visible = _visibleSessions();
       if (visible.any((s) => s.id == _focusedId)) return;
       _focusedId = visible.isEmpty
@@ -579,6 +586,49 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
     _focusNode.requestFocus();
   }
 
+  /// Scrolls the list so the focused card is fully visible.
+  ///
+  /// Cards are built lazily, so a card far from the viewport may not exist
+  /// yet; the list then steps toward it a viewport at a time.
+  void _revealFocused({int attempts = 50}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final id = _focusedId;
+      if (id == null || id != _revealedId) return;
+      final cardContext = _cardKeys[id]?.currentContext;
+      if (cardContext != null) {
+        Scrollable.ensureVisible(
+          cardContext,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtEnd,
+        );
+        Scrollable.ensureVisible(
+          cardContext,
+          alignmentPolicy: ScrollPositionAlignmentPolicy.keepVisibleAtStart,
+        );
+        return;
+      }
+      if (attempts == 0 || !_scrollController.hasClients) return;
+      final visible = _visibleSessions();
+      final target = visible.indexWhere((s) => s.id == id);
+      final built = [
+        for (final (index, s) in visible.indexed)
+          if (_cardKeys[s.id]?.currentContext != null) index,
+      ];
+      if (target < 0 || built.isEmpty) return;
+      final position = _scrollController.position;
+      final step = target > built.last
+          ? position.viewportDimension
+          : -position.viewportDimension;
+      final next = (position.pixels + step).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      );
+      if (next == position.pixels) return;
+      position.jumpTo(next);
+      _revealFocused(attempts: attempts - 1);
+    });
+  }
+
   /// Moves focus by grid position across the open sections.
   void _moveFocus({int dx = 0, int dy = 0}) {
     final sections = _openSections();
@@ -706,6 +756,10 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
         defaultTargetPlatform == TargetPlatform.iOS;
     final deleteHint = isApple ? '⌘⌫ Close' : 'Ctrl+⌫ Close';
     final sections = _sections();
+    if (_focusedId != _revealedId) {
+      _revealedId = _focusedId;
+      _revealFocused();
+    }
     final title = widget.currentGroupOnly && sections.isNotEmpty
         ? sections.first.name
         : null;
@@ -734,6 +788,7 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
                         constraints.maxWidth,
                       );
                       return CustomScrollView(
+                        controller: _scrollController,
                         shrinkWrap: true,
                         slivers: [
                           for (final section in sections) ...[
@@ -913,6 +968,27 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
     final isCurrent = session.id == _data.currentSessionId;
     final isMarkedForClose = _selectedSessionIds.contains(session.id);
 
+    return KeyedSubtree(
+      key: _cardKeys.putIfAbsent(session.id, GlobalKey.new),
+      child: _buildCardTarget(
+        context,
+        session: session,
+        index: index,
+        isFocused: isFocused,
+        isCurrent: isCurrent,
+        isMarkedForClose: isMarkedForClose,
+      ),
+    );
+  }
+
+  Widget _buildCardTarget(
+    BuildContext context, {
+    required SessionInfo session,
+    required int index,
+    required bool isFocused,
+    required bool isCurrent,
+    required bool isMarkedForClose,
+  }) {
     return DragTarget<String>(
       onWillAcceptWithDetails: (details) =>
           _mode == _TabSwitcherMode.reorder && details.data != session.id,
