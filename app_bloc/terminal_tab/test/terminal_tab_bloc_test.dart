@@ -1282,6 +1282,31 @@ void main() {
         expect(loaded().grouping.membership, isEmpty);
       });
 
+      test('NextTab and PreviousTab stay inside the active group', () async {
+        final t = await openTabs(4);
+        groupBloc.add(
+          TerminalTabCreateGroupWithSessions([id(t[1]), id(t[2])], 'api'),
+        );
+        await settle();
+        final group = loaded()
+            .allTabs
+            .where((TabItem tab) => loaded().grouping.groupIdOf(tab) != null)
+            .toList();
+        group.first.activate();
+
+        groupBloc.add(TerminalTabNextTab());
+        await settle();
+        expect(loaded().activeTab, same(group.last));
+
+        groupBloc.add(TerminalTabNextTab());
+        await settle();
+        expect(loaded().activeTab, same(group.first));
+
+        groupBloc.add(TerminalTabPreviousTab());
+        await settle();
+        expect(loaded().activeTab, same(group.last));
+      });
+
       test('GoToTab and NextTab follow global order with groups', () async {
         final t = await openTabs(3);
         groupBloc.add(TerminalTabCreateGroup(id(t[2]), 'web'));

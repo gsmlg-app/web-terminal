@@ -197,31 +197,34 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     TerminalTabNextTab event,
     Emitter<TerminalTabState> emit,
   ) {
-    if (state is! TerminalTabLoaded) return;
-    final currentState = state as TerminalTabLoaded;
-    final children = currentState.tabs.children;
-    if (children.isEmpty) return;
-    final activeTab = currentState.tabs.activeTab;
-    if (activeTab == null) return;
-    final idx = children.indexOf(activeTab);
-    final nextIdx = (idx + 1) % children.length;
-    children[nextIdx].activate();
-    emit(currentState.copyWith(incrementVersion: true));
+    _cycleTab(emit, 1);
   }
 
   void _onTerminalTabPreviousTab(
     TerminalTabPreviousTab event,
     Emitter<TerminalTabState> emit,
   ) {
+    _cycleTab(emit, -1);
+  }
+
+  /// Activates the tab [step] places away, wrapping within the active tab's
+  /// group, or across all tabs when the active tab is ungrouped.
+  void _cycleTab(Emitter<TerminalTabState> emit, int step) {
     if (state is! TerminalTabLoaded) return;
     final currentState = state as TerminalTabLoaded;
-    final children = currentState.tabs.children;
-    if (children.isEmpty) return;
     final activeTab = currentState.tabs.activeTab;
     if (activeTab == null) return;
-    final idx = children.indexOf(activeTab);
-    final prevIdx = (idx - 1 + children.length) % children.length;
-    children[prevIdx].activate();
+    final grouping = currentState.grouping;
+    final groupId = grouping.groupIdOf(activeTab);
+    final candidates = groupId == null
+        ? currentState.tabs.children
+        : currentState.tabs.children
+            .where((TabItem tab) => grouping.groupIdOf(tab) == groupId)
+            .toList();
+    final idx = candidates.indexOf(activeTab);
+    if (idx < 0) return;
+    final length = candidates.length;
+    candidates[(idx + step + length) % length].activate();
     emit(currentState.copyWith(incrementVersion: true));
   }
 
