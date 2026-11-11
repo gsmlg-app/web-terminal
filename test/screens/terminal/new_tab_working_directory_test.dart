@@ -109,7 +109,11 @@ void main() {
   late PluginTab firstTab;
   late _ShellSession shell;
 
-  Future<void> pumpScreen(WidgetTester tester, {required bool inherit}) async {
+  Future<void> pumpScreen(
+    WidgetTester tester, {
+    required bool inherit,
+    bool ssh = false,
+  }) async {
     SharedPreferences.setMockInitialValues({});
     preferences = await SharedPreferences.getInstance();
     database = AppDatabase.forTesting();
@@ -124,7 +128,13 @@ void main() {
     plugin.session = shell;
     firstTab = PluginTab(
       plugin,
-      PluginManager(LocalHostSpec(workingDirectory: '/Users/me')),
+      PluginManager(
+        ssh
+            ? SSHHostSpec(
+                SshHost(id: 3, hostname: 'example.invalid', username: 'me'),
+              )
+            : LocalHostSpec(workingDirectory: '/Users/me'),
+      ),
       shellProfileId: 1,
     );
     tabs.add(TerminalTabOpenTab(firstTab));
@@ -262,5 +272,47 @@ void main() {
       );
     },
     skip: !Platform.isMacOS && !Platform.isLinux,
+  );
+
+  testWidgets(
+    'Cmd+T on an SSH tab opens the same host in the remote directory',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      await pumpScreen(tester, inherit: false, ssh: true);
+      shell.directory = '/srv/app/releases';
+
+      await pressCmdT(tester);
+      await tester.pump();
+
+      final state = tabs.state as TerminalTabLoaded;
+      expect(state.tabCount, 2);
+      final newTab = state.activeTab as PluginTab;
+      expect(newTab, isNot(same(firstTab)));
+      expect(identical(newTab.manager, firstTab.manager), isTrue);
+      expect(
+        (newTab.plugin as TerminalPlugin).startDirectory,
+        '/srv/app/releases',
+      );
+    },
+  );
+
+  testWidgets(
+    'SSH tabs save the remote directory',
+    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+    (tester) async {
+      await pumpScreen(tester, inherit: false, ssh: true);
+      shell.directory = '/srv/app';
+
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+      await tester.pump();
+      await tester.pump();
+
+      final saved =
+          jsonDecode(preferences.getString(_tabsKey)!) as Map<String, dynamic>;
+      expect(saved['tabs'], [
+        {'type': 'ssh', 'hostId': 3, 'workingDirectory': '/srv/app'},
+      ]);
+    },
   );
 }

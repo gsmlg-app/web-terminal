@@ -1,10 +1,19 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app_ssh/app_ssh.dart';
 import 'package:terminal_core/terminal_core.dart';
 import 'package:terminal_hosts/src/ssh_fs.dart';
+import 'package:terminal_hosts/src/ssh_shell_wrapper.dart';
 
-class SSHHost implements Host {
+/// How long a wrapped shell may take to report its pid.
+const _wrapperStartTimeout = Duration(seconds: 10);
+
+/// How long a working directory lookup may take.
+const _workingDirectoryTimeout = Duration(seconds: 2);
+
+class SSHHost implements Host, DirectoryShellHost {
   SSHHost(this.client);
 
   final SSHClient client;
@@ -38,12 +47,45 @@ class SSHHost implements Host {
     int width = 80,
     int height = 25,
     Map<String, String>? environment,
+  }) => shellIn(null, width: width, height: height, environment: environment);
+
+  /// Starts the login shell through [wrappedShellCommand] so its pid, and
+  /// with it the working directory, can be looked up later. Falls back to a
+  /// plain shell when the wrapper cannot run on the server.
+  @override
+  Future<ExecutionSession> shellIn(
+    String? workingDirectory, {
+    int width = 80,
+    int height = 25,
+    Map<String, String>? environment,
   }) async {
-    final session = await client.shell(
-      environment: environment,
-      pty: SSHPtyConfig(height: height, width: width),
+    final pty = SSHPtyConfig(height: height, width: width);
+    try {
+      final wrapped = _SSHExecutionSession(
+        await client.execute(
+          wrappedShellCommand(workingDirectory: workingDirectory),
+          pty: pty,
+          environment: environment,
+        ),
+        client: client,
+        filter: ShellPidFilter(),
+      );
+      if (await wrapped.started.timeout(
+        _wrapperStartTimeout,
+        onTimeout: () => true,
+      )) {
+        return wrapped;
+      }
+      wrapped.discard();
+    } on SSHChannelOpenError {
+      rethrow;
+    } catch (_) {
+      // The server refused the command; use a plain shell.
+    }
+    return _SSHExecutionSession(
+      await client.shell(environment: environment, pty: pty),
+      client: client,
     );
-    return _SSHExecutionSession(session);
   }
 
   @override
@@ -97,10 +139,67 @@ class _SSHExecutionResult implements ExecutionResult {
   final String stdout;
 }
 
-class _SSHExecutionSession implements ExecutionSession {
-  _SSHExecutionSession(this.session);
+class _SSHExecutionSession implements ExecutionSession, WorkingDirectoryAware {
+  _SSHExecutionSession(this.session, {required this.client, this.filter}) {
+    final filter = this.filter;
+    if (filter == null) _started.complete(true);
+    _subscription = session.stdout.listen(
+      (data) {
+        if (filter == null) {
+          _output.add(data);
+          return;
+        }
+        final visible = filter.process(data);
+        if (visible.isNotEmpty) _output.add(visible);
+        if (filter.pid != null && !_started.isCompleted) {
+          _started.complete(true);
+        }
+      },
+      onDone: () {
+        final rest = filter?.flush();
+        if (rest != null && rest.isNotEmpty) _output.add(rest);
+        if (!_started.isCompleted) _started.complete(false);
+        _output.close();
+      },
+    );
+  }
 
   final SSHSession session;
+  final SSHClient client;
+
+  /// Strips the wrapper's pid marker; null for a plain shell.
+  final ShellPidFilter? filter;
+
+  final _output = StreamController<Uint8List>();
+  final _started = Completer<bool>();
+  late final StreamSubscription<Uint8List> _subscription;
+  String? _lastWorkingDirectory;
+
+  /// Completes with true once the shell is running, or false when the
+  /// session ended before the wrapper reported the shell's pid.
+  Future<bool> get started => _started.future;
+
+  /// Drops a session that is not used, with its buffered output.
+  void discard() {
+    _subscription.cancel();
+    session.close();
+  }
+
+  @override
+  Future<String?> currentWorkingDirectory() async {
+    final pid = filter?.pid;
+    if (pid == null) return null;
+    try {
+      final output = await client
+          .run(workingDirectoryQueryCommand(pid), stderr: false)
+          .timeout(_workingDirectoryTimeout);
+      final directory = parseWorkingDirectoryQuery(utf8.decode(output));
+      if (directory != null) _lastWorkingDirectory = directory;
+    } catch (_) {
+      // Keep the last known directory.
+    }
+    return _lastWorkingDirectory;
+  }
 
   @override
   Future<void> close() async {
@@ -114,7 +213,7 @@ class _SSHExecutionSession implements ExecutionSession {
   }
 
   @override
-  Stream<Uint8List> get output => session.stdout;
+  Stream<Uint8List> get output => _output.stream;
 
   @override
   Future<void> write(Uint8List data) async {

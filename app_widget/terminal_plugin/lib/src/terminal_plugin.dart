@@ -27,6 +27,7 @@ class TerminalPlugin extends Plugin {
     this.profileCursorType = TerminalCursorType.block,
     int scrollbackLines = 10000,
     ZmodemFileAccess? fileAccess,
+    this.startDirectory,
   })  : fileAccess = fileAccess ??
             IoZmodemFileAccess(
               settings: () =>
@@ -98,6 +99,9 @@ class TerminalPlugin extends Plugin {
     return true;
   }
 
+  /// Directory the shell starts in, on hosts that support choosing one.
+  final String? startDirectory;
+
   /// The shell's current working directory as reported by the operating
   /// system, or null when the session cannot report it.
   Future<String?> liveWorkingDirectory() async {
@@ -163,10 +167,18 @@ class TerminalPlugin extends Plugin {
     try {
       final initialWidth = terminal.viewWidth;
       final initialHeight = terminal.viewHeight;
-      final openedSession = await connectedHost.shell(
-        width: initialWidth,
-        height: initialHeight,
-      );
+      final directory = startDirectory;
+      final openedSession =
+          directory != null && connectedHost is DirectoryShellHost
+              ? await (connectedHost as DirectoryShellHost).shellIn(
+                  directory,
+                  width: initialWidth,
+                  height: initialHeight,
+                )
+              : await connectedHost.shell(
+                  width: initialWidth,
+                  height: initialHeight,
+                );
       if (!mounted || !connected || generation != _sessionGeneration) {
         await openedSession.close();
         return;

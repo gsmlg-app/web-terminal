@@ -424,4 +424,37 @@ void main() {
     expect(jsonEncode(saved), isNot(contains('fixture-password')));
     expect(jsonEncode(saved), isNot(contains('vault:ssh:')));
   });
+
+  testWidgets('restored SSH tab starts in its saved remote directory', (
+    tester,
+  ) async {
+    final f = await _fixture(tester, restore: true);
+    await tester.runAsync(
+      () => f.prefs.setString(
+        'terminal.open_tabs.v1',
+        jsonEncode({
+          'activeIndex': 0,
+          'tabs': [
+            {
+              'type': 'ssh',
+              'hostId': f.host.id,
+              'workingDirectory': '/srv/app',
+            },
+          ],
+        }),
+      ),
+    );
+
+    await f.show(tester);
+    for (var i = 0; i < 5 && f.tabs.opened.isEmpty; i++) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+
+    final tab = f.tabs.opened.single;
+    expect(tab.manager.hostSpec, isA<SSHHostSpec>());
+    expect((tab.plugin as TerminalPlugin).startDirectory, '/srv/app');
+  });
 }

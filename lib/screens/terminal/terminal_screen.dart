@@ -213,7 +213,10 @@ class _TerminalScreenState extends State<TerminalScreen> {
     return null;
   }
 
-  TerminalPlugin _createTerminalPlugin([ShellProfile? profile]) {
+  TerminalPlugin _createTerminalPlugin([
+    ShellProfile? profile,
+    String? startDirectory,
+  ]) {
     final effectiveProfile = profile ?? _getDefaultShellProfile();
     return TerminalPlugin(
       profileFontSize: effectiveProfile?.fontSize ?? 14.0,
@@ -225,6 +228,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
           )],
       scrollbackLines: effectiveProfile?.scrollbackLines ?? 10000,
       fileAccess: IoZmodemFileAccess(settings: _zmodemDownloadSettings),
+      startDirectory: startDirectory,
     );
   }
 
@@ -496,11 +500,15 @@ class _TerminalScreenState extends State<TerminalScreen> {
       case 'sftp':
         final hostId = item['hostId'];
         if (hostId is! int) return false;
+        final workingDirectory = item['workingDirectory'];
         return _restoreSshSession(
           hostId,
           activate: activate,
           sftp: item['type'] == 'sftp',
           groupId: groupId,
+          workingDirectory: workingDirectory is String
+              ? workingDirectory
+              : null,
         );
       default:
         return false;
@@ -522,6 +530,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
     required bool activate,
     bool sftp = false,
     String? groupId,
+    String? workingDirectory,
   }) async {
     try {
       final database = context.read<AppDatabase>();
@@ -541,7 +550,7 @@ class _TerminalScreenState extends State<TerminalScreen> {
       if (!mounted) return false;
       final Plugin plugin = sftp
           ? FileManagerPlugin()
-          : _createTerminalPlugin();
+          : _createTerminalPlugin(null, workingDirectory);
       final manager = PluginManager(_sshHostSpec(host, keyData: keyData));
       final tabItem = PluginTab(plugin, manager);
       _terminalTabBloc.add(
@@ -588,17 +597,21 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final grouping = tabState.grouping;
     final tabs = <PluginTab>[];
     final descriptors = <Map<String, Object?>>[];
-    for (final tab in tabState.allTabs.whereType<PluginTab>()) {
+    final pluginTabs = tabState.allTabs.whereType<PluginTab>().toList();
+    final liveDirectories = await Future.wait([
+      for (final tab in pluginTabs)
+        if (tab.plugin case final TerminalPlugin plugin)
+          plugin.liveWorkingDirectory()
+        else
+          Future<String?>.value(),
+    ]);
+    for (final (index, tab) in pluginTabs.indexed) {
       final descriptor = _encodeTab(tab);
       if (descriptor == null) continue;
-      if (descriptor['type'] == 'local') {
-        final plugin = tab.plugin;
-        final liveDirectory = plugin is TerminalPlugin
-            ? await plugin.liveWorkingDirectory()
-            : null;
-        if (liveDirectory != null) {
-          descriptor['workingDirectory'] = liveDirectory;
-        }
+      final liveDirectory = liveDirectories[index];
+      if (liveDirectory != null &&
+          (descriptor['type'] == 'local' || descriptor['type'] == 'ssh')) {
+        descriptor['workingDirectory'] = liveDirectory;
       }
       final groupId = grouping.groupIdOf(tab);
       if (groupId != null) descriptor['groupId'] = groupId;
@@ -836,23 +849,34 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final activeTab = tabState is TerminalTabLoaded ? tabState.activeTab : null;
     if (activeTab is PluginTab && activeTab.manager.hostSpec is SSHHostSpec) {
       if (!_checkMaxShellsLimit()) return;
-      final sshHostSpec = activeTab.manager.hostSpec as SSHHostSpec;
-      final plugin = _createTerminalPlugin();
-      final tabItem = PluginTab(plugin, activeTab.manager);
-      _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
-      _requestTerminalFocus();
-
-      _analytics.trackSessionCreated(
-        SessionType.ssh,
-        metadata: {
-          'host': sshHostSpec.record.hostname ?? 'unknown',
-          'auth_type': sshHostSpec.keyData != null ? 'key' : 'password',
-        },
-      );
+      unawaited(_openSshTabBeside(activeTab));
       return;
     }
 
     _openLocalShell();
+  }
+
+  /// Opens another shell on [activeTab]'s connection, in the remote
+  /// directory its shell is in now.
+  Future<void> _openSshTabBeside(PluginTab activeTab) async {
+    final activePlugin = activeTab.plugin;
+    final directory = activePlugin is TerminalPlugin
+        ? await activePlugin.liveWorkingDirectory()
+        : null;
+    if (!mounted) return;
+    final sshHostSpec = activeTab.manager.hostSpec as SSHHostSpec;
+    final plugin = _createTerminalPlugin(null, directory);
+    final tabItem = PluginTab(plugin, activeTab.manager);
+    _terminalTabBloc.add(TerminalTabOpenTab(tabItem));
+    _requestTerminalFocus();
+
+    _analytics.trackSessionCreated(
+      SessionType.ssh,
+      metadata: {
+        'host': sshHostSpec.record.hostname ?? 'unknown',
+        'auth_type': sshHostSpec.keyData != null ? 'key' : 'password',
+      },
+    );
   }
 
   /// Handles tab management shortcuts at the TerminalView level.
