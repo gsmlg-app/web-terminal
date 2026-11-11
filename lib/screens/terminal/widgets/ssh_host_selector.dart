@@ -123,7 +123,9 @@ class _SshHostSelectorState extends State<SshHostSelector> {
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
-                      const Text('Add SSH hosts in Settings > SSH Host Management'),
+                      const Text(
+                        'Add SSH hosts in Settings > SSH Host Management',
+                      ),
                     ],
                   ),
                 ),
@@ -131,7 +133,8 @@ class _SshHostSelectorState extends State<SshHostSelector> {
             }
 
             return Semantics(
-              label: '${hosts.length} SSH host${hosts.length == 1 ? '' : 's'} available',
+              label:
+                  '${hosts.length} SSH host${hosts.length == 1 ? '' : 's'} available',
               child: ListView.builder(
                 shrinkWrap: true,
                 itemCount: hosts.length,

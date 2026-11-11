@@ -50,16 +50,16 @@ void showProfileSelector({
               ),
               const Divider(),
               // Profile list
-              ...profiles.map((profile) => ListTile(
-                    leading: profile.isDefault
-                        ? const Icon(Icons.star, color: Colors.amber)
-                        : const Icon(Icons.person),
-                    title: Text(profile.name),
-                    subtitle: Text(
-                      _getProfileDescription(profile),
-                    ),
-                    onTap: () => Navigator.of(dialogContext).pop(profile),
-                  )),
+              ...profiles.map(
+                (profile) => ListTile(
+                  leading: profile.isDefault
+                      ? const Icon(Icons.star, color: Colors.amber)
+                      : const Icon(Icons.person),
+                  title: Text(profile.name),
+                  subtitle: Text(_getProfileDescription(profile)),
+                  onTap: () => Navigator.of(dialogContext).pop(profile),
+                ),
+              ),
             ],
           ),
         ),
@@ -134,16 +134,18 @@ void selectProfileAndOpenShell({
                 ),
                 const Divider(height: 1),
                 // Profile options
-                ...state.profiles.map((profile) => _ProfileTile(
-                      icon: profile.isDefault
-                          ? const Icon(Icons.star, color: Colors.amber)
-                          : const Icon(Icons.person),
-                      title: profile.name,
-                      subtitle: _getProfileDescription(profile),
-                      onTap: () {
-                        Navigator.of(dialogContext).pop(profile);
-                      },
-                    )),
+                ...state.profiles.map(
+                  (profile) => _ProfileTile(
+                    icon: profile.isDefault
+                        ? const Icon(Icons.star, color: Colors.amber)
+                        : const Icon(Icons.person),
+                    title: profile.name,
+                    subtitle: _getProfileDescription(profile),
+                    onTap: () {
+                      Navigator.of(dialogContext).pop(profile);
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -201,14 +203,8 @@ class _ProfileTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                  Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodySmall),
                 ],
               ),
             ),
