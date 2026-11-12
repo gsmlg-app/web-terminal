@@ -17,6 +17,7 @@ import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:web_terminal/screens/terminal/close_confirmation.dart';
 import 'package:web_terminal/screens/terminal/terminal_screen.dart';
+import 'package:window_manager/window_manager.dart';
 
 class _FakeVaultRepository implements VaultRepository {
   final Map<String, String> _storage = <String, String>{};
@@ -125,6 +126,37 @@ void _disposeTab(PluginTab tab) {
   final plugin = tab.plugin as TerminalPlugin;
   tab.dispose();
   plugin.terminal.dispose();
+}
+
+class _FakeEventRequest extends Fake implements EventRequest {
+  var cancelled = false;
+
+  @override
+  bool cancel() => cancelled = true;
+}
+
+class _FakeWindow extends Fake implements Window {
+  final listeners = <ListenerId, FutureOr<void> Function(WindowEvent)>{};
+  var _nextId = 0;
+
+  @override
+  WindowId get id => 7;
+
+  @override
+  ListenerId addListener(FutureOr<void> Function(WindowEvent) callback) {
+    listeners[++_nextId] = callback;
+    return _nextId;
+  }
+
+  @override
+  bool removeListener(ListenerId listenerId) =>
+      listeners.remove(listenerId) != null;
+
+  Future<void> emit(WindowEvent event) async {
+    for (final listener in listeners.values.toList()) {
+      await listener(event);
+    }
+  }
 }
 
 Future<AppExitResponse> _requestAppExit(WidgetTester tester) async {
@@ -351,6 +383,55 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
       expect(await response, AppExitResponse.cancel);
+    });
+
+    testWidgets('holds a window close and removes its listener on dispose', (
+      tester,
+    ) async {
+      final window = _FakeWindow();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          home: AppExitGuard(
+            navigatorKey: navigatorKey,
+            interceptWindowClose: true,
+            window: window,
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      );
+      expect(window.listeners, hasLength(1));
+
+      await window.emit(WindowFocusedEvent(windowId: window.id));
+      final request = _FakeEventRequest();
+      await window.emit(
+        WindowCloseRequestedEvent(windowId: window.id, request: request),
+      );
+      await tester.pump();
+      expect(request.cancelled, isTrue);
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      expect(window.listeners, isEmpty);
+    });
+
+    testWidgets('leaves window closes alone unless asked to intercept', (
+      tester,
+    ) async {
+      final window = _FakeWindow();
+      final navigatorKey = GlobalKey<NavigatorState>();
+      await tester.pumpWidget(
+        MaterialApp(
+          navigatorKey: navigatorKey,
+          home: AppExitGuard(
+            navigatorKey: navigatorKey,
+            window: window,
+            child: const SizedBox.shrink(),
+          ),
+        ),
+      );
+
+      expect(window.listeners, isEmpty);
     });
 
     testWidgets('quits once the user confirms', (tester) async {

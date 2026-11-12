@@ -136,11 +136,16 @@ class AppExitGuard extends StatefulWidget {
     required this.navigatorKey,
     required this.child,
     this.interceptWindowClose = false,
+    this.window,
   });
 
   final GlobalKey<NavigatorState> navigatorKey;
 
   final bool interceptWindowClose;
+
+  /// The window whose close requests are intercepted; defaults to the
+  /// app's current window.
+  final Window? window;
 
   final Widget child;
 
@@ -148,9 +153,11 @@ class AppExitGuard extends StatefulWidget {
   State<AppExitGuard> createState() => _AppExitGuardState();
 }
 
-class _AppExitGuardState extends State<AppExitGuard> with WindowListener {
+class _AppExitGuardState extends State<AppExitGuard> {
   late final AppLifecycleListener _lifecycleListener;
   Future<AppExitResponse>? _pendingExit;
+  Window? _window;
+  ListenerId? _windowListenerId;
 
   @override
   void initState() {
@@ -158,31 +165,29 @@ class _AppExitGuardState extends State<AppExitGuard> with WindowListener {
     _lifecycleListener = AppLifecycleListener(
       onExitRequested: _onExitRequested,
     );
-    if (widget.interceptWindowClose) {
-      windowManager.addListener(this);
-      unawaited(_preventWindowClose());
-    }
+    if (widget.interceptWindowClose) _interceptWindowClose();
   }
 
   @override
   void dispose() {
-    if (widget.interceptWindowClose) {
-      windowManager.removeListener(this);
-    }
+    final listenerId = _windowListenerId;
+    if (listenerId != null) _window?.removeListener(listenerId);
     _lifecycleListener.dispose();
     super.dispose();
   }
 
-  Future<void> _preventWindowClose() async {
+  void _interceptWindowClose() {
     try {
-      await windowManager.setPreventClose(true);
+      _window = widget.window ?? WindowManager.instance.getCurrent();
+      _windowListenerId = _window?.addListener(_onWindowEvent);
     } catch (error, stackTrace) {
       AppLogger().e('Failed to intercept window close', error, stackTrace);
     }
   }
 
-  @override
-  void onWindowClose() {
+  void _onWindowEvent(WindowEvent event) {
+    if (event is! WindowCloseRequestedEvent) return;
+    event.request.cancel();
     unawaited(_requestExit());
   }
 

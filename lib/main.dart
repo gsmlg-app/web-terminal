@@ -147,24 +147,14 @@ Future<void> main() async {
 }
 
 Future<void> initWindow() async {
-  await windowManager.ensureInitialized();
-  // await windowManager.setTitle('Web Terminal');
-
-  if (defaultTargetPlatform != TargetPlatform.macOS) {
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
-  }
-
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(800, 600),
-    center: true,
-    // backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.normal,
-    minimumSize: Size(360, 720),
-  );
-
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  final window = WindowManager.instance.getCurrent();
+  if (window == null) return;
+  window
+    ..titleBarStyle = TitleBarStyle.normal
+    ..isVisibleInTaskbar = true
+    ..minimumSize = const Size(360, 720).toNative()
+    ..setSize(const Size(800, 600).toNative(), false)
+    ..center()
+    ..show()
+    ..focus();
 }
