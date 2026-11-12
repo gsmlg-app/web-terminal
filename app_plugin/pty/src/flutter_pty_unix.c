@@ -13,6 +13,7 @@
 #include <sys/ioctl.h>
 #include <sys/wait.h>
 #ifdef __APPLE__
+#include <crt_externs.h>
 #include <TargetConditionals.h>
 #if TARGET_OS_OSX
 #include <libproc.h>
@@ -176,10 +177,18 @@ static void *wait_exit_thread(void *arg)
     return NULL;
 }
 
+#ifndef __APPLE__
+extern char **environ;
+#endif
+
 static void set_environment(char **environment)
 {
     if (environment == NULL) return;
-    while (*environment != NULL) putenv(*environment++);
+#ifdef __APPLE__
+    *_NSGetEnviron() = environment;
+#else
+    environ = environment;
+#endif
 }
 
 static const char *child_stage_name(int stage)
