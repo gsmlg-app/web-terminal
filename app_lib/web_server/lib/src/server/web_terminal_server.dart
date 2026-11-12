@@ -100,7 +100,8 @@ class WebTerminalServer {
         .addHandler(Cascade().add(router.call).add(staticHandler).handler);
 
     // Start server
-    final bindAddress = config.bindAddress ?? InternetAddress.anyIPv4.address;
+    final bindAddress =
+        config.bindAddress ?? InternetAddress.loopbackIPv4.address;
     final securityContext =
         config.useSsl ? await _createSecurityContext() : null;
     _server = await shelf_io.serve(
@@ -272,6 +273,7 @@ class WebTerminalServer {
   /// Build session cookie header value.
   String _buildSessionCookie(String sessionId) {
     return '$_sessionCookieName=$sessionId; '
+        '${config.useSsl ? 'Secure; ' : ''}'
         'HttpOnly; '
         'SameSite=Strict; '
         'Path=/; '

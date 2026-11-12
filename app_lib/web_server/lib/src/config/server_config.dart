@@ -3,7 +3,7 @@ class ServerConfig {
   /// Port to listen on.
   final int port;
 
-  /// Address to bind to. Null means all interfaces (0.0.0.0).
+  /// Address to bind to. Null means loopback only (127.0.0.1).
   final String? bindAddress;
 
   /// Allowed origins for CORS. Use ['*'] to allow all.

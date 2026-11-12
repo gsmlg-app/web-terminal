@@ -26,7 +26,7 @@ class _WebServerScreenState extends State<WebServerScreen> {
   static const String _sslKey = 'web_server_ssl';
 
   bool _loaded = false;
-  String _listenIp = '0.0.0.0';
+  String _listenIp = '127.0.0.1';
   int _port = 8080;
   bool _useSsl = false;
 
@@ -36,7 +36,7 @@ class _WebServerScreenState extends State<WebServerScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_loaded) return;
-    _listenIp = _prefs.getString(_listenIpKey) ?? '0.0.0.0';
+    _listenIp = _prefs.getString(_listenIpKey) ?? '127.0.0.1';
     _port = _prefs.getInt(_portKey) ?? 8080;
     _useSsl = _prefs.getBool(_sslKey) ?? false;
     _loaded = true;
@@ -124,7 +124,7 @@ class _WebServerScreenState extends State<WebServerScreen> {
         title: const Text('Listen IP'),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(hintText: '0.0.0.0'),
+          decoration: const InputDecoration(hintText: '127.0.0.1'),
         ),
         actions: [
           TextButton(

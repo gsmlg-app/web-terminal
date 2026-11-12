@@ -74,7 +74,7 @@ class WebTerminalScreen extends StatelessWidget {
     final listenIp =
         prefs.getString('web_server_listen_ip') ??
         state.serverAddress ??
-        '0.0.0.0';
+        '127.0.0.1';
     final port = prefs.getInt('web_server_port') ?? state.serverPort ?? 8080;
     final useSsl = prefs.getBool('web_server_ssl') ?? false;
     final scheme = useSsl ? 'https' : 'http';
