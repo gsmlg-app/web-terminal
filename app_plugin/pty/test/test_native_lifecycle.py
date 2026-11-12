@@ -21,7 +21,7 @@ class NativeLifecycleTest(unittest.TestCase):
 
     def test_real_native_lifecycle(self):
         for scenario in [
-            'natural', 'ack', 'exec', 'cwd', 'close',
+            'natural', 'ack', 'exec', 'cwd', 'ctty-denied', 'close',
             'reader-failure', 'waiter-failure', 'fd-failure',
             'background-output', 'slow-background-output', 'full-write',
             'group-ownership', 'foreground', 'working-directory',

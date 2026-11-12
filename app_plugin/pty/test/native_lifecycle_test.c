@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/ioctl.h>
 #include <sys/resource.h>
 #ifdef __APPLE__
 #include <mach/mach.h>
@@ -23,8 +24,20 @@ static int create_thread(pthread_t *thread, const pthread_attr_t *attributes,
     return pthread_create(thread, attributes, entry, argument);
 }
 
+static int deny_controlling_terminal;
+
+static int checked_ioctl(int descriptor, unsigned long request, const void *argument) {
+    if (deny_controlling_terminal && request == TIOCSCTTY) {
+        errno = EPERM;
+        return -1;
+    }
+    return ioctl(descriptor, request, (void *)argument);
+}
+
 #define pthread_create create_thread
+#define ioctl checked_ioctl
 #include "../src/flutter_pty.c"
+#undef ioctl
 #undef pthread_create
 
 static atomic_int exits;
@@ -248,6 +261,16 @@ int main(int argc, char **argv) {
                                       args, false, cwd ? "/missing-pty-directory" : NULL);
             assert(handle == NULL);
             assert(pty_error() != NULL && strlen(pty_error()) > 0);
+        }
+        assert_resources_released(before_fds, before_threads);
+        assert(waitpid(-1, NULL, WNOHANG) == -1 && errno == ECHILD);
+    } else if (strcmp(argv[1], "ctty-denied") == 0) {
+        deny_controlling_terminal = 1;
+        for (int i = 0; i < 16; i++) {
+            char *args[] = {"sh", "-c", "exit 0", NULL};
+            PtyHandle *handle = spawn("/bin/sh", args, false, NULL);
+            assert(handle == NULL);
+            assert(strcmp(pty_error(), "TIOCSCTTY: Operation not permitted") == 0);
         }
         assert_resources_released(before_fds, before_threads);
         assert(waitpid(-1, NULL, WNOHANG) == -1 && errno == ECHILD);

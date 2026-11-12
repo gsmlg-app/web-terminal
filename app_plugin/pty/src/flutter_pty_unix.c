@@ -182,11 +182,17 @@ static void set_environment(char **environment)
     while (*environment != NULL) putenv(*environment++);
 }
 
-static void fail_child(int error_fd, int error)
+static const char *child_stage_name(int stage)
 {
-    ssize_t result;
-    do { result = write(error_fd, &error, sizeof(error)); } while (result < 0 && errno == EINTR);
-    _exit(127);
+    switch (stage)
+    {
+    case PTY_CHILD_SETSID: return "setsid";
+    case PTY_CHILD_CONTROLLING_TERMINAL: return "TIOCSCTTY";
+    case PTY_CHILD_STDIO: return "dup2";
+    case PTY_CHILD_WORKING_DIRECTORY: return "chdir";
+    case PTY_CHILD_EXEC: return "execvp";
+    default: return "PTY startup";
+    }
 }
 
 FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
@@ -209,16 +215,16 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
 
     struct winsize size = {.ws_row = options->rows, .ws_col = options->cols};
     int master = -1;
-    pid_t pid = pty_forkpty(&master, NULL, NULL, &size);
+    pid_t pid = pty_forkpty(&master, NULL, NULL, &size, startup[1]);
     if (pid == 0)
     {
         close(startup[0]);
         set_environment(options->environment);
         if (options->working_directory != NULL && options->working_directory[0] != '\0' &&
             chdir(options->working_directory) != 0)
-            fail_child(startup[1], errno);
+            pty_child_fail(startup[1], PTY_CHILD_WORKING_DIRECTORY, errno);
         execvp(options->executable, options->arguments);
-        fail_child(startup[1], errno);
+        pty_child_fail(startup[1], PTY_CHILD_EXEC, errno);
     }
 
     close(startup[1]);
@@ -229,14 +235,17 @@ FFI_PLUGIN_EXPORT PtyHandle *pty_create(PtyOptions *options)
         return NULL;
     }
 
-    int child_error = 0;
+    int report[2] = {0, 0};
     ssize_t length;
-    do { length = read(startup[0], &child_error, sizeof(child_error)); } while (length < 0 && errno == EINTR);
+    do { length = read(startup[0], report, sizeof(report)); } while (length < 0 && errno == EINTR);
     int startup_error = errno;
     close(startup[0]);
     if (length != 0)
     {
-        record_error("PTY startup", length > 0 ? child_error : startup_error);
+        if (length == (ssize_t)sizeof(report))
+            record_error(child_stage_name(report[0]), report[1]);
+        else
+            record_error("PTY startup", length < 0 ? startup_error : EIO);
         kill(-pid, SIGKILL);
         while (waitpid(pid, NULL, 0) < 0 && errno == EINTR) {}
         close(master);
