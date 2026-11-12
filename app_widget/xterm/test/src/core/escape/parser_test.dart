@@ -28,6 +28,25 @@ void main() {
       });
     });
 
+    group('SGR', () {
+      test('parses plain SGR underline and faint', () {
+        parser.write('\x1b[4;2m');
+        verify(handler.setCursorUnderline());
+        verify(handler.setCursorFaint());
+      });
+
+      test('ignores XTMODKEYS (CSI > 4 ; 2 m) instead of applying SGR', () {
+        parser.write('\x1b[>4;2m');
+        verifyNever(handler.setCursorUnderline());
+        verifyNever(handler.setCursorFaint());
+      });
+
+      test('ignores private-prefixed SGR-like sequences', () {
+        parser.write('\x1b[?4m');
+        verifyNever(handler.setCursorUnderline());
+      });
+    });
+
     group('cursor positioning', () {
       test('parses cursor position (CUP)', () {
         parser.write('\x1b[5;10H');

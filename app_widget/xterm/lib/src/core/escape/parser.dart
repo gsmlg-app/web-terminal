@@ -408,6 +408,10 @@ class EscapeParser {
   ///
   /// https://terminalguide.namepad.de/seq/csi_sm/
   void _csiHandleSgr() {
+    if (_csi.prefix != null) {
+      return;
+    }
+
     final params = _csi.params;
 
     if (params.isEmpty) {
