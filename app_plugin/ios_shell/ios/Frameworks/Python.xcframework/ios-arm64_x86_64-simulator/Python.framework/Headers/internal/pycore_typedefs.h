@@ -1,3 +1,18 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:19d1d586037872d1f140ac29787ff62038b53b47bde1ce3d6823650082e603fb
-size 353
+#ifndef Py_INTERNAL_TYPEDEFS_H
+#define Py_INTERNAL_TYPEDEFS_H
+
+#ifndef Py_BUILD_CORE
+#  error "this header requires Py_BUILD_CORE define"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct _PyInterpreterFrame _PyInterpreterFrame;
+typedef struct pyruntimestate _PyRuntimeState;
+
+#ifdef __cplusplus
+}
+#endif
+#endif  // !Py_INTERNAL_TYPEDEFS_H

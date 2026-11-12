@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:9b10b0d47ad459e118a2eb1166046904cc6520135db553cb3362dd7883e5a2fd
-size 499
+//
+//  lua_ios.h
+//  lua_ios
+//
+//  Created by Nicolas Holzschuch on 04/12/2017.
+//  Copyright © 2017 Nicolas Holzschuch. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+//! Project version number for lua_ios.
+FOUNDATION_EXPORT double lua_iosVersionNumber;
+
+//! Project version string for lua_ios.
+FOUNDATION_EXPORT const unsigned char lua_iosVersionString[];
+
+// In this header, you should import all the public headers of your framework using statements like #import <lua_ios/PublicHeader.h>
+
+

@@ -1,3 +1,48 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:24a52c4127c6ee3b239720135037c55cc8740426e175ea06144c4c2990d4d385
-size 1152
+"""turtledemo/paint.py
+
+A simple  event-driven paint program.
+- Left mouse button moves turtle.
+- Middle mouse button changes color.
+- Right mouse button toggles between pen up
+(no line drawn when the turtle moves) and
+pen down (line is drawn). If pen up follows
+at least two pen-down moves, the polygon that
+includes the starting point is filled.
+ -------------------------------------------
+ Play around by clicking into the canvas
+ using all three mouse buttons.
+ -------------------------------------------
+"""
+from turtle import *
+
+def switchupdown(x=0, y=0):
+    if pen()["pendown"]:
+        end_fill()
+        up()
+    else:
+        down()
+        begin_fill()
+
+def changecolor(x=0, y=0):
+    global colors
+    colors = colors[1:]+colors[:1]
+    color(colors[0])
+
+def main():
+    global colors
+    shape("circle")
+    resizemode("user")
+    shapesize(.5)
+    width(3)
+    colors=["red", "green", "blue", "yellow"]
+    color(colors[0])
+    switchupdown()
+    onscreenclick(goto,1)
+    onscreenclick(changecolor,2)
+    onscreenclick(switchupdown,3)
+    return "EVENTLOOP"
+
+if __name__ == "__main__":
+    msg = main()
+    print(msg)
+    mainloop()

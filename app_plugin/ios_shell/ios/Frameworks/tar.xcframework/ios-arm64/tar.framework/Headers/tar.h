@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:79fda704cd8bf6db6243b143c690aaa663b93d02052700f8b3e4cf4a3caeb89d
-size 471
+//
+//  tar.h
+//  tar
+//
+//  Created by Nicolas Holzschuch on 25/03/2018.
+//  Copyright © 2018 Nicolas Holzschuch. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+//! Project version number for tar.
+FOUNDATION_EXPORT double tarVersionNumber;
+
+//! Project version string for tar.
+FOUNDATION_EXPORT const unsigned char tarVersionString[];
+
+// In this header, you should import all the public headers of your framework using statements like #import <tar/PublicHeader.h>
+
+

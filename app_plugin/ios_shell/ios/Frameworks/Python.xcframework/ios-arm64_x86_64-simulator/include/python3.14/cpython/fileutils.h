@@ -1,3 +1,16 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:56caafdc38d2f5190b43e0cb64f43792572449d6a126e0cdefcc28773e9daad3
-size 386
+#ifndef Py_CPYTHON_FILEUTILS_H
+#  error "this header file must not be included directly"
+#endif
+
+PyAPI_FUNC(FILE*) Py_fopen(
+    PyObject *path,
+    const char *mode);
+
+// Deprecated alias kept for backward compatibility
+Py_DEPRECATED(3.14) static inline FILE*
+_Py_fopen_obj(PyObject *path, const char *mode)
+{
+    return Py_fopen(path, mode);
+}
+
+PyAPI_FUNC(int) Py_fclose(FILE *file);

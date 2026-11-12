@@ -1,3 +1,12 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:dd1067a4fc49212d10583e0a340cd87eb638a7d70725203d40834b70272fa675
-size 262
+"""
+This module exists so that pathlib objects pickled under Python 3.13 can be
+unpickled in 3.14+.
+"""
+
+from pathlib import *
+
+__all__ = [
+    "UnsupportedOperation",
+    "PurePath", "PurePosixPath", "PureWindowsPath",
+    "Path", "PosixPath", "WindowsPath",
+]

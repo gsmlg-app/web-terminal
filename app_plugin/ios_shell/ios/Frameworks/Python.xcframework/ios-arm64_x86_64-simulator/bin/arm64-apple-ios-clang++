@@ -1,3 +1,2 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:c8286539c455ec7537e994c9bc28b73125133a21b5ecba0b3d5eb1493bc3f6c9
-size 115
+#!/bin/sh
+xcrun --sdk iphoneos${IOS_SDK_VERSION} clang++ -target arm64-apple-ios${IPHONEOS_DEPLOYMENT_TARGET} "$@"

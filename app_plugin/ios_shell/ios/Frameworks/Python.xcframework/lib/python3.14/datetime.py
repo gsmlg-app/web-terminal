@@ -1,3 +1,13 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:742884b0c8e7dc69911858245db4f34d42e8ec0f769d580c570bd56032b0866c
-size 331
+"""Specific date/time and related types.
+
+See https://data.iana.org/time-zones/tz-link.html for
+time zone and DST data sources.
+"""
+
+try:
+    from _datetime import *
+except ImportError:
+    from _pydatetime import *
+
+__all__ = ("date", "datetime", "time", "timedelta", "timezone", "tzinfo",
+           "MINYEAR", "MAXYEAR", "UTC")

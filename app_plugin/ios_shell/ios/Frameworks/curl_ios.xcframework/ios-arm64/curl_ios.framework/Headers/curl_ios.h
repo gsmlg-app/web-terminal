@@ -1,3 +1,19 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:f975165b44088b11c7bf0cc563922d9ed852f738b0fd44df50fc6a6b9823e4cc
-size 506
+//
+//  curl_ios.h
+//  curl_ios
+//
+//  Created by Nicolas Holzschuch on 05/12/2017.
+//  Copyright © 2017 Nicolas Holzschuch. All rights reserved.
+//
+
+#import <UIKit/UIKit.h>
+
+//! Project version number for curl_ios.
+FOUNDATION_EXPORT double curl_iosVersionNumber;
+
+//! Project version string for curl_ios.
+FOUNDATION_EXPORT const unsigned char curl_iosVersionString[];
+
+// In this header, you should import all the public headers of your framework using statements like #import <curl_ios/PublicHeader.h>
+
+

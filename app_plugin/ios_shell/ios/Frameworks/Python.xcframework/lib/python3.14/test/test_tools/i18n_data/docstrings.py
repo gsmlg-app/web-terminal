@@ -1,3 +1,43 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:67f593c4fde85615fc8842d2db83dd3d97ed7e4c05993b779052782413c42217
-size 656
+"""Module docstring"""
+
+# Test docstring extraction
+from gettext import gettext as _
+
+
+# Empty docstring
+def test(x):
+    """"""
+
+
+# Leading empty line
+def test2(x):
+
+    """docstring"""
+
+
+# Multiline docstrings are cleaned with `inspect.cleandoc`.
+def test3(x):
+    """multiline
+    docstring
+    """
+
+
+# Multiple docstrings - only the first should be extracted
+def test4(x):
+    """docstring1"""
+    """docstring2"""
+
+
+def test5(x):
+    """Hello, {}!""".format("world!")  # This should not be extracted.
+
+
+# Nested docstrings
+def test6(x):
+    def inner(y):
+        """nested docstring"""
+
+
+class Outer:
+    class Inner:
+        "nested class docstring"

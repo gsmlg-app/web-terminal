@@ -1,3 +1,6 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:036329e06be4cee14ad277b03d0f1a64e8a79f456ad7ce89dbd7485375b822f5
-size 203
+option -%s not recognized
+option -%s requires argument
+option --%s must not have an argument
+option --%s not a unique prefix; possible options: %s
+option --%s not recognized
+option --%s requires argument

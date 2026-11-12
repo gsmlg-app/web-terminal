@@ -1,3 +1,23 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:fd79fa2ad429a7fd47db46dd01d0b47a94831a32afa1627342c46368712b0556
-size 341
+# Fuzzy translations are not written to the .mo file.
+#, fuzzy
+msgid "foo"
+msgstr "bar"
+
+# comment
+#, fuzzy
+msgctxt "abc"
+msgid "foo"
+msgstr "bar"
+
+#, fuzzy
+# comment
+msgctxt "xyz"
+msgid "foo"
+msgstr "bar"
+
+#, fuzzy
+msgctxt "abc"
+msgid "One email sent."
+msgid_plural "%d emails sent."
+msgstr[0] "One email sent."
+msgstr[1] "%d emails sent."

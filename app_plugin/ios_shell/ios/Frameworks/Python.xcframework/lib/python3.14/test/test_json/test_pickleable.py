@@ -1,3 +1,14 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:22cb0bcd3241fb45982948c82d44110a718ef77e9694a6455b546018aa562526
-size 417
+import json
+import pickle
+import unittest
+
+class TestPickleable(unittest.TestCase):
+    def test_json_decode_error_is_pickleable(self):
+        e = json.JSONDecodeError(msg="abc", doc="def", pos=7)
+
+        pickled = pickle.dumps(e)
+        unpickled = pickle.loads(pickled)
+
+        self.assertEqual(unpickled.msg, e.msg)
+        self.assertEqual(unpickled.doc, e.doc)
+        self.assertEqual(unpickled.pos, e.pos)

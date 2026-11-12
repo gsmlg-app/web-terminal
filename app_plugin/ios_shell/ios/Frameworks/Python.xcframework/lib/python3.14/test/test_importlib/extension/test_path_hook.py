@@ -1,3 +1,33 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b785dafd42fe534348fa822416ad7072d30e3c8f8eca48e88a8fa1e4425bcb74
-size 1030
+from test.test_importlib import util
+
+machinery = util.import_importlib('importlib.machinery')
+
+import unittest
+
+
+@unittest.skipIf(util.EXTENSIONS is None or util.EXTENSIONS.filename is None,
+                 'dynamic loading not supported or test module not available')
+class PathHookTests:
+
+    """Test the path hook for extension modules."""
+    # XXX Should it only succeed for pre-existing directories?
+    # XXX Should it only work for directories containing an extension module?
+
+    def hook(self, entry):
+        return self.machinery.FileFinder.path_hook(
+                (self.machinery.ExtensionFileLoader,
+                 self.machinery.EXTENSION_SUFFIXES))(entry)
+
+    def test_success(self):
+        # Path hook should handle a directory where a known extension module
+        # exists.
+        self.assertHasAttr(self.hook(util.EXTENSIONS.path), 'find_spec')
+
+
+(Frozen_PathHooksTests,
+ Source_PathHooksTests
+ ) = util.test_both(PathHookTests, machinery=machinery)
+
+
+if __name__ == '__main__':
+    unittest.main()

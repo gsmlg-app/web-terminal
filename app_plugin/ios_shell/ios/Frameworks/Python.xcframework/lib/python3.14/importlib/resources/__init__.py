@@ -1,3 +1,43 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:dc9fb6eb542ace0fb59017a7315b0eb2f268d7d11b52662a8c792b6568851ce3
-size 703
+"""
+Read resources contained within a package.
+
+This codebase is shared between importlib.resources in the stdlib
+and importlib_resources in PyPI. See
+https://github.com/python/importlib_metadata/wiki/Development-Methodology
+for more detail.
+"""
+
+from ._common import (
+    as_file,
+    files,
+    Package,
+    Anchor,
+)
+
+from ._functional import (
+    contents,
+    is_resource,
+    open_binary,
+    open_text,
+    path,
+    read_binary,
+    read_text,
+)
+
+from .abc import ResourceReader
+
+
+__all__ = [
+    'Package',
+    'Anchor',
+    'ResourceReader',
+    'as_file',
+    'files',
+    'contents',
+    'is_resource',
+    'open_binary',
+    'open_text',
+    'path',
+    'read_binary',
+    'read_text',
+]

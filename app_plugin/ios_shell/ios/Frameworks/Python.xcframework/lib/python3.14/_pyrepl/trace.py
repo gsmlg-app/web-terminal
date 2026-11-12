@@ -1,3 +1,34 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:41bbca51aff4922b3f5d5146648e23411c866d61b3b92025f60d98fcafb6bde3
-size 767
+from __future__ import annotations
+
+import os
+import sys
+
+# types
+if False:
+    from typing import IO
+
+
+trace_file: IO[str] | None = None
+if trace_filename := os.environ.get("PYREPL_TRACE"):
+    trace_file = open(trace_filename, "a")
+
+
+
+if sys.platform == "emscripten":
+    from posix import _emscripten_log
+
+    def trace(line: str, *k: object, **kw: object) -> None:
+        if "PYREPL_TRACE" not in os.environ:
+            return
+        if k or kw:
+            line = line.format(*k, **kw)
+        _emscripten_log(line)
+
+else:
+    def trace(line: str, *k: object, **kw: object) -> None:
+        if trace_file is None:
+            return
+        if k or kw:
+            line = line.format(*k, **kw)
+        trace_file.write(line + "\n")
+        trace_file.flush()

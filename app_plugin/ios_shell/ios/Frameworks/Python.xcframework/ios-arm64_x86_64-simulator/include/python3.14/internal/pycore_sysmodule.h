@@ -1,3 +1,32 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b641c63ccd38e643154ee18071d96a9f3eb7d0e9890c617561c82850dee7597c
-size 1003
+#ifndef Py_INTERNAL_SYSMODULE_H
+#define Py_INTERNAL_SYSMODULE_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef Py_BUILD_CORE
+#  error "this header requires Py_BUILD_CORE define"
+#endif
+
+PyAPI_FUNC(int) _PySys_GetOptionalAttr(PyObject *, PyObject **);
+PyAPI_FUNC(int) _PySys_GetOptionalAttrString(const char *, PyObject **);
+PyAPI_FUNC(PyObject *) _PySys_GetRequiredAttr(PyObject *);
+PyAPI_FUNC(PyObject *) _PySys_GetRequiredAttrString(const char *);
+
+// Export for '_pickle' shared extension
+PyAPI_FUNC(size_t) _PySys_GetSizeOf(PyObject *);
+
+extern int _PySys_SetAttr(PyObject *, PyObject *);
+
+extern int _PySys_ClearAttrString(PyInterpreterState *interp,
+                                  const char *name, int verbose);
+
+extern int _PySys_SetFlagObj(Py_ssize_t pos, PyObject *new_value);
+extern int _PySys_SetIntMaxStrDigits(int maxdigits);
+
+extern int _PySysRemoteDebug_SendExec(int pid, int tid, const char *debugger_script_path);
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* !Py_INTERNAL_SYSMODULE_H */

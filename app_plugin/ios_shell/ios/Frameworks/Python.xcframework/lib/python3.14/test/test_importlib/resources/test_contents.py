@@ -1,3 +1,38 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:860a70d9d41569379185ff514b38fb3624248c1aa8fa961a81a26cbb2c4188b5
-size 829
+import unittest
+from importlib import resources
+
+from . import util
+
+
+class ContentsTests:
+    expected = {
+        '__init__.py',
+        'binary.file',
+        'subdirectory',
+        'utf-16.file',
+        'utf-8.file',
+    }
+
+    def test_contents(self):
+        contents = {path.name for path in resources.files(self.data).iterdir()}
+        assert self.expected <= contents
+
+
+class ContentsDiskTests(ContentsTests, util.DiskSetup, unittest.TestCase):
+    pass
+
+
+class ContentsZipTests(ContentsTests, util.ZipSetup, unittest.TestCase):
+    pass
+
+
+class ContentsNamespaceTests(ContentsTests, util.DiskSetup, unittest.TestCase):
+    MODULE = 'namespacedata01'
+
+    expected = {
+        # no __init__ because of namespace design
+        'binary.file',
+        'subdirectory',
+        'utf-16.file',
+        'utf-8.file',
+    }

@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:becc32f82b020f8fb3d70d84a032a0aae5cb20621f5313d0ac56c457d45ecfb6
-size 573
+"""
+Generate zip test data files.
+"""
+
+import zipfile
+
+
+def make_zip_file(tree, dst):
+    """
+    Zip the files in tree into a new zipfile at dst.
+    """
+    with zipfile.ZipFile(dst, 'w') as zf:
+        for name, contents in walk(tree):
+            zf.writestr(name, contents)
+        zipfile._path.CompleteDirs.inject(zf)
+    return dst
+
+
+def walk(tree, prefix=''):
+    for name, contents in tree.items():
+        if isinstance(contents, dict):
+            yield from walk(contents, prefix=f'{prefix}{name}/')
+        else:
+            yield f'{prefix}{name}', contents

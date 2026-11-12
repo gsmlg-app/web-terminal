@@ -1,3 +1,31 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b0b0198a5cc69167c95b266b43e26509a2cfa9e5070ec22f29d4c958705ba5ba
-size 697
+#ifndef Py_INTERNAL_ATEXIT_H
+#define Py_INTERNAL_ATEXIT_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifndef Py_BUILD_CORE
+#  error "this header requires Py_BUILD_CORE define"
+#endif
+
+
+
+#ifdef Py_GIL_DISABLED
+#  define _PyAtExit_LockCallbacks(state) PyMutex_Lock(&state->ll_callbacks_lock);
+#  define _PyAtExit_UnlockCallbacks(state) PyMutex_Unlock(&state->ll_callbacks_lock);
+#else
+#  define _PyAtExit_LockCallbacks(state)
+#  define _PyAtExit_UnlockCallbacks(state)
+#endif
+
+// Export for '_interpchannels' shared extension
+PyAPI_FUNC(int) _Py_AtExit(
+    PyInterpreterState *interp,
+    atexit_datacallbackfunc func,
+    void *data);
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* !Py_INTERNAL_ATEXIT_H */

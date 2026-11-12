@@ -1,3 +1,26 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b9d9fdee1b62d76fc3fa2e9787d45fded39867db4a9d325488226a3ff962e0a1
-size 583
+import unittest
+from test.support import threading_helper
+
+threading_helper.requires_working_threading(module=True)
+
+
+class TestRlock(unittest.TestCase):
+    def test_repr_race(self):
+        # gh-153292
+        import _thread
+        r = _thread.RLock()
+
+        def repr_thread():
+            for _ in range(2000):
+                repr(r)
+
+        def mutate_thread():
+            for _ in range(2000):
+                r.acquire()
+                r.release()
+
+        threading_helper.run_concurrently([repr_thread, mutate_thread])
+
+
+if __name__ == "__main__":
+    unittest.main()

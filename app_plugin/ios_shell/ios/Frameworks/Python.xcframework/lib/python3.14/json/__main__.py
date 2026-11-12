@@ -1,3 +1,20 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:2135d18ded78bcb96b7b96e144b822039c90c37609fe6311ee239af2424a003a
-size 421
+"""Command-line tool to validate and pretty-print JSON
+
+Usage::
+
+    $ echo '{"json":"obj"}' | python -m json
+    {
+        "json": "obj"
+    }
+    $ echo '{ 1.2:3.4}' | python -m json
+    Expecting property name enclosed in double quotes: line 1 column 3 (char 2)
+
+"""
+import json.tool
+
+
+if __name__ == '__main__':
+    try:
+        json.tool.main()
+    except BrokenPipeError as exc:
+        raise SystemExit(exc.errno)

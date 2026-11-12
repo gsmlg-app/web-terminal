@@ -1,3 +1,34 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:fb18d7bf223cb0698e48367d480201f44e4907c532e8024d1c22c613bf96e18a
-size 613
+from gettext import (
+    gettext as foo,
+    ngettext as nfoo,
+    pgettext as pfoo,
+    npgettext as npfoo,
+    gettext as bar,
+    gettext as _,
+)
+
+foo('bar')
+foo('bar', 'baz')
+
+nfoo('cat', 'cats', 1)
+nfoo('dog', 'dogs')
+
+pfoo('context', 'bar')
+
+npfoo('context', 'cat', 'cats', 1)
+
+# This is an unknown keyword and should be ignored
+bar('baz')
+
+# 'nfoo' requires at least 2 arguments
+nfoo('dog')
+
+# 'pfoo' requires at least 2 arguments
+pfoo('context')
+
+# 'npfoo' requires at least 3 arguments
+npfoo('context')
+npfoo('context', 'cat')
+
+# --keyword should override the default keyword
+_('overridden', 'default')

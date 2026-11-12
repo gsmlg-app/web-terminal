@@ -1,3 +1,31 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:584d4ccce5142ae3a19e96476c0c9d025a50dab1ce6f03e9ebb3cd2d3585e9f0
-size 699
+"Test , coverage %."
+
+from idlelib import zzdummy  # Replace with the module to test.
+import unittest
+from test.support import requires
+from tkinter import Tk
+
+
+class Test(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        requires('gui')
+        cls.root = Tk()
+        cls.root.withdraw()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.root.update_idletasks()
+##        for id in cls.root.after_info():
+##            cls.root.after_cancel(id)  # Need for EditorWindow.
+        cls.root.destroy()
+        del cls.root
+
+    @unittest.skip('Dummy test')
+    def test_init(self):
+        self.assertTrue(True)
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

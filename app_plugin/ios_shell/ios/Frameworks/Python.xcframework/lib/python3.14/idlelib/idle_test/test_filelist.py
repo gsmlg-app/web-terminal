@@ -1,3 +1,33 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:ae0a779e13099f8ab23d165144747353ae029d723b02df58a680870e666a3fcc
-size 783
+"Test filelist, coverage 19%."
+
+from idlelib import filelist
+import unittest
+from test.support import requires
+from tkinter import Tk
+
+class FileListTest(unittest.TestCase):
+
+    @classmethod
+    def setUpClass(cls):
+        requires('gui')
+        cls.root = Tk()
+        cls.root.withdraw()
+
+    @classmethod
+    def tearDownClass(cls):
+        cls.root.update_idletasks()
+        for id in cls.root.after_info():
+            cls.root.after_cancel(id)
+        cls.root.destroy()
+        del cls.root
+
+    def test_new_empty(self):
+        flist = filelist.FileList(self.root)
+        self.assertEqual(flist.root, self.root)
+        e = flist.new()
+        self.assertEqual(type(e), flist.EditorWindow)
+        e._close()
+
+
+if __name__ == '__main__':
+    unittest.main(verbosity=2)

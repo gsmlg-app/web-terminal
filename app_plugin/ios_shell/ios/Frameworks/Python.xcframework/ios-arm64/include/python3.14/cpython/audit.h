@@ -1,3 +1,8 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:b189331eb99656a5005725a56b27f309626e378232af97ca5e5978960178502a
-size 231
+#ifndef _Py_CPYTHON_AUDIT_H
+#  error "this header file must not be included directly"
+#endif
+
+
+typedef int(*Py_AuditHookFunction)(const char *, PyObject *, void *);
+
+PyAPI_FUNC(int) PySys_AddAuditHook(Py_AuditHookFunction, void*);

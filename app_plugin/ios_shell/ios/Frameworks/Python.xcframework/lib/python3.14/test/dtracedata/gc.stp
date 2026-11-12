@@ -1,3 +1,27 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:6af3ccb455e29be60406ba1b4a91817948cc1de4c6a344181317b5b7183bd5fd
-size 498
+global tracing
+
+probe @PYTHON_SYSTEMTAP_PROBE@("function__entry")
+{
+    funcname = user_string($arg2);
+
+    if (funcname == "start") {
+        tracing = 1;
+    }
+}
+
+probe @PYTHON_SYSTEMTAP_PROBE@("gc__start"),
+      @PYTHON_SYSTEMTAP_PROBE@("gc__done")
+{
+    if (tracing) {
+        printf("%d\t%s:%ld\n", gettimeofday_us(), $$name, $arg1);
+    }
+}
+
+probe @PYTHON_SYSTEMTAP_PROBE@("function__return")
+{
+    funcname = user_string($arg2);
+
+    if (funcname == "start") {
+        tracing = 0;
+    }
+}
