@@ -929,17 +929,19 @@ class _TerminalScreenState extends State<TerminalScreen> {
       return KeyEventResult.handled;
     }
 
-    // Next tab: Ctrl+Shift+] (Linux/Win) / Cmd+Shift+] (macOS)
-    // Shift+] produces } (braceRight)
-    if (key == LogicalKeyboardKey.braceRight && shift) {
+    // Next tab: Cmd+] / Cmd+Shift+] (Apple), Ctrl+Shift+] elsewhere.
+    if ((isApple || shift) &&
+        (key == LogicalKeyboardKey.bracketRight ||
+            (shift && key == LogicalKeyboardKey.braceRight))) {
       _terminalTabBloc.add(TerminalTabNextTab());
       _requestTerminalFocus();
       return KeyEventResult.handled;
     }
 
-    // Previous tab: Ctrl+Shift+[ (Linux/Win) / Cmd+Shift+[ (macOS)
-    // Shift+[ produces { (braceLeft)
-    if (key == LogicalKeyboardKey.braceLeft && shift) {
+    // Previous tab: Cmd+[ / Cmd+Shift+[ (Apple), Ctrl+Shift+[ elsewhere.
+    if ((isApple || shift) &&
+        (key == LogicalKeyboardKey.bracketLeft ||
+            (shift && key == LogicalKeyboardKey.braceLeft))) {
       _terminalTabBloc.add(TerminalTabPreviousTab());
       _requestTerminalFocus();
       return KeyEventResult.handled;

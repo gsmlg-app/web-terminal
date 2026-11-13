@@ -475,6 +475,104 @@ void main() {
       return (tabBloc: tabBloc, grouped: grouped, other: other, spec: spec);
     }
 
+    for (final shortcut in [
+      (
+        platform: TargetPlatform.macOS,
+        modifier: LogicalKeyboardKey.metaLeft,
+        shift: false,
+        previous: LogicalKeyboardKey.bracketLeft,
+        next: LogicalKeyboardKey.bracketRight,
+        label: 'Cmd+[ / ]',
+      ),
+      (
+        platform: TargetPlatform.macOS,
+        modifier: LogicalKeyboardKey.metaLeft,
+        shift: true,
+        previous: LogicalKeyboardKey.bracketLeft,
+        next: LogicalKeyboardKey.bracketRight,
+        label: 'Cmd+Shift+[ / ] with bracket keys',
+      ),
+      (
+        platform: TargetPlatform.macOS,
+        modifier: LogicalKeyboardKey.metaLeft,
+        shift: true,
+        previous: LogicalKeyboardKey.braceLeft,
+        next: LogicalKeyboardKey.braceRight,
+        label: 'Cmd+Shift+[ / ] with brace keys',
+      ),
+      (
+        platform: TargetPlatform.linux,
+        modifier: LogicalKeyboardKey.controlLeft,
+        shift: true,
+        previous: LogicalKeyboardKey.bracketLeft,
+        next: LogicalKeyboardKey.bracketRight,
+        label: 'Ctrl+Shift+[ / ] with bracket keys',
+      ),
+    ]) {
+      testWidgets(
+        '${shortcut.label} switches focused terminal tabs in global order',
+        variant: TargetPlatformVariant.only(shortcut.platform),
+        (tester) async {
+          final setup = await pumpGroupedScreen(tester);
+          setup.tabBloc.add(
+            TerminalTabUngroup(setup.grouped.hashCode.toString()),
+          );
+          await tester.pump();
+          final third = PluginTab(TerminalPlugin(), setup.grouped.manager);
+          setup.tabBloc.add(TerminalTabOpenTab(third, activate: false));
+          await tester.pump();
+
+          final output = <String>[];
+          for (final tab in [setup.other, setup.grouped, third]) {
+            (tab.plugin as TerminalPlugin).terminal.onOutput = output.add;
+          }
+
+          Future<void> pressShortcut(LogicalKeyboardKey key) async {
+            final view = tester.widget<TerminalView>(find.byType(TerminalView));
+            view.focusNode!.requestFocus();
+            await tester.pump();
+            expect(view.focusNode!.hasFocus, isTrue);
+
+            await tester.sendKeyDownEvent(shortcut.modifier);
+            if (shortcut.shift) {
+              await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+            }
+            await tester.sendKeyEvent(
+              key,
+              physicalKey: key == shortcut.previous
+                  ? PhysicalKeyboardKey.bracketLeft
+                  : PhysicalKeyboardKey.bracketRight,
+            );
+            if (shortcut.shift) {
+              await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+            }
+            await tester.sendKeyUpEvent(shortcut.modifier);
+            await tester.pump();
+            await tester.pump();
+          }
+
+          await pressShortcut(shortcut.next);
+          expect((setup.tabBloc.state as TerminalTabLoaded).activeTab, third);
+
+          await pressShortcut(shortcut.next);
+          expect(
+            (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+            setup.other,
+          );
+
+          await pressShortcut(shortcut.previous);
+          expect((setup.tabBloc.state as TerminalTabLoaded).activeTab, third);
+
+          await pressShortcut(shortcut.previous);
+          expect(
+            (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+            setup.grouped,
+          );
+          expect(output, isEmpty);
+        },
+      );
+    }
+
     testWidgets(
       'Cmd+Shift+O opens the switcher limited to the current group',
       variant: TargetPlatformVariant.only(TargetPlatform.macOS),
