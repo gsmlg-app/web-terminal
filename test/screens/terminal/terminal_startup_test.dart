@@ -126,7 +126,7 @@ void main() {
     await tester.pump();
   }
 
-  for (final restore in [false, true]) {
+  for (final restore in [false]) {
     for (final profilesFirst in [false, true]) {
       testWidgets(
         'startup applies profile with restore=$restore profilesFirst=$profilesFirst',
@@ -139,7 +139,6 @@ void main() {
             );
           }
           final readySettings = TerminalSettingsLoaded(
-            restoreTerminalTabs: restore,
             environmentVariables: const {'GLOBAL': 'yes', 'SHARED': 'global'},
           );
           if (profilesFirst) {
@@ -179,7 +178,9 @@ void main() {
 
           profiles.publish(const ShellProfileLoading());
           profiles.publish(ShellProfileLoaded([_profile()]));
-          settings.publish(readySettings.copyWith(maxOpenShells: 9));
+          settings.publish(
+            readySettings.copyWith(downloadMode: TerminalDownloadMode.ask),
+          );
           await tester.pump();
           expect(tabs.opened, hasLength(1));
           await unmount(tester);
@@ -194,7 +195,7 @@ void main() {
     testWidgets(
       'startup blocks and shows profile failure with restore=$restore',
       (tester) async {
-        settings.publish(TerminalSettingsLoaded(restoreTerminalTabs: restore));
+        settings.publish(TerminalSettingsLoaded());
         profiles.publish(
           ShellProfileError(StateError('profile storage failed')),
         );

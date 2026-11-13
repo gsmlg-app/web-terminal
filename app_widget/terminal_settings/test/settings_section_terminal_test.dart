@@ -73,6 +73,14 @@ Future<void> _pumpSection(
 }
 
 void main() {
+  testWidgets('obsolete session limit and restore toggle are absent',
+      (tester) async {
+    final bloc = _RecordingTerminalSettingsBloc();
+    addTearDown(bloc.close);
+    await _pumpSection(tester, bloc);
+    expect(find.text('Max Open Sessions'), findsNothing);
+    expect(find.text('Restore Open Tabs'), findsNothing);
+  });
   group('SettingsSectionTerminal', () {
     group('construction', () {
       test('can be instantiated', () {

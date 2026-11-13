@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:app_locale/app_locale.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 
@@ -19,6 +20,9 @@ class TerminalAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.onNewLocalShell,
     required this.onNewSshSession,
     required this.onNewSftpSession,
+    this.onSaveWorkspace,
+    this.onSaveGroup,
+    this.onManageSnapshots,
   });
 
   /// Name of the currently active session
@@ -38,6 +42,9 @@ class TerminalAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   /// Called when user requests a new SFTP session
   final VoidCallback onNewSftpSession;
+  final VoidCallback? onSaveWorkspace;
+  final VoidCallback? onSaveGroup;
+  final VoidCallback? onManageSnapshots;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -49,6 +56,28 @@ class TerminalAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: _buildSessionSelector(context),
       centerTitle: true,
       actions: [
+        if (onManageSnapshots != null)
+          PopupMenuButton<VoidCallback>(
+            tooltip: context.l10n.sessionSnapshots,
+            icon: const Icon(Icons.bookmarks_outlined),
+            onSelected: (callback) => callback(),
+            itemBuilder: (context) => [
+              if (onSaveWorkspace != null)
+                PopupMenuItem(
+                  value: onSaveWorkspace,
+                  child: Text(context.l10n.sessionSaveWorkspace),
+                ),
+              if (onSaveGroup != null)
+                PopupMenuItem(
+                  value: onSaveGroup,
+                  child: Text(context.l10n.sessionSaveGroup),
+                ),
+              PopupMenuItem(
+                value: onManageSnapshots,
+                child: Text(context.l10n.sessionSnapshots),
+              ),
+            ],
+          ),
         SessionMenu(
           onNewLocalShell: onNewLocalShell,
           onNewSshSession: onNewSshSession,

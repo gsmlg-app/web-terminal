@@ -10,7 +10,9 @@ import 'package:web_terminal/router.dart';
 import 'package:web_terminal/screens/terminal/close_confirmation.dart';
 
 class App extends StatelessWidget {
-  const App({super.key});
+  const App({super.key, this.onBeforeExit});
+
+  final Future<void> Function()? onBeforeExit;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class App extends StatelessWidget {
           builder: (context, child) {
             return AppExitGuard(
               navigatorKey: navigatorKey,
+              onBeforeExit: onBeforeExit,
               interceptWindowClose:
                   !kIsWeb && defaultTargetPlatform == TargetPlatform.macOS,
               child: ContextMenuOverlay(

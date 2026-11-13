@@ -137,6 +137,7 @@ class AppExitGuard extends StatefulWidget {
     required this.child,
     this.interceptWindowClose = false,
     this.window,
+    this.onBeforeExit,
   });
 
   final GlobalKey<NavigatorState> navigatorKey;
@@ -148,6 +149,7 @@ class AppExitGuard extends StatefulWidget {
   final Window? window;
 
   final Widget child;
+  final Future<void> Function()? onBeforeExit;
 
   @override
   State<AppExitGuard> createState() => _AppExitGuardState();
@@ -207,15 +209,33 @@ class _AppExitGuardState extends State<AppExitGuard> {
 
   Future<AppExitResponse> _confirmExit() async {
     final state = context.read<TerminalTabBloc>().state;
-    if (state is! TerminalTabLoaded) return AppExitResponse.exit;
-    final busyTabs = await findBusyTabs(state.allTabs);
-    if (busyTabs.isEmpty) return AppExitResponse.exit;
-    final navigatorContext = widget.navigatorKey.currentContext;
-    if (navigatorContext == null || !navigatorContext.mounted) {
-      return AppExitResponse.exit;
+    if (state is TerminalTabLoaded) {
+      final busyTabs = await findBusyTabs(state.allTabs);
+      if (busyTabs.isNotEmpty) {
+        final navigatorContext = widget.navigatorKey.currentContext;
+        if (navigatorContext == null || !navigatorContext.mounted) {
+          return AppExitResponse.cancel;
+        }
+        if (!await confirmQuitWithBusyTabs(navigatorContext, busyTabs)) {
+          return AppExitResponse.cancel;
+        }
+      }
     }
-    final confirmed = await confirmQuitWithBusyTabs(navigatorContext, busyTabs);
-    return confirmed ? AppExitResponse.exit : AppExitResponse.cancel;
+    try {
+      await widget.onBeforeExit?.call();
+      return AppExitResponse.exit;
+    } catch (error, stackTrace) {
+      AppLogger().e('Failed to finish app shutdown', error, stackTrace);
+      final navigatorContext = widget.navigatorKey.currentContext;
+      if (navigatorContext != null && navigatorContext.mounted) {
+        ScaffoldMessenger.of(navigatorContext).showSnackBar(
+          SnackBar(
+            content: Text(navigatorContext.l10n.sessionPersistenceError),
+          ),
+        );
+      }
+      return AppExitResponse.cancel;
+    }
   }
 
   @override

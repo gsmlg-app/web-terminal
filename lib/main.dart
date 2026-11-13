@@ -1,12 +1,19 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:terminal_tabs/terminal_tabs.dart';
+import 'package:app_locale/app_locale.dart';
+import 'package:hive_ce/hive_ce.dart';
+
+import 'services/session_store.dart';
+import 'services/session_controller.dart';
+import 'services/desktop_instance.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:app_security/app_security.dart';
-import 'package:theme_bloc/theme_bloc.dart';
 import 'package:app_utils/app_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web_terminal/app.dart';
@@ -29,11 +36,55 @@ import 'package:path/path.dart' as path;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  final appDir = await getApplicationSupportDirectory();
+  DesktopInstance? instance;
   if (PlatformExt.isDesktop) {
+    instance = await DesktopInstance.acquire(
+      appDir,
+      onActivate: () async {
+        final window = WindowManager.instance.getCurrent();
+        window?.show();
+        window?.focus();
+      },
+    );
+    if (instance == null) exit(0);
     await initWindow();
   }
-
   final sharedPrefs = await SharedPreferences.getInstance();
+  final SessionStore store;
+  final Box<dynamic> configuration;
+  try {
+    configuration = await Hive.openBox<dynamic>(
+      'preferences',
+      path: appDir.path,
+    );
+    store = await SessionStore.open(
+      Directory(path.join(appDir.path, 'sessions')),
+      legacy: sharedPrefs.getString('terminal.open_tabs.v1'),
+    );
+  } catch (error) {
+    runApp(
+      MaterialApp(
+        localizationsDelegates: AppLocale.localizationsDelegates,
+        supportedLocales: AppLocale.supportedLocales,
+        home: Scaffold(
+          body: Builder(
+            builder: (context) => Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: SelectableText(
+                  '${context.l10n.sessionStorageUnavailable}\n$error',
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    return;
+  }
+  final tabs = TerminalTabBloc();
+  final sessions = SessionController(store: store, tabs: tabs);
   final savedRailExtended = sharedPrefs.getBool('app_navigation_rail_extended');
   if (savedRailExtended != null) {
     AppAdaptiveScaffold.navigationRailExtendedNotifier.value =
@@ -69,6 +120,7 @@ Future<void> main() async {
   runApp(
     MultiRepositoryProvider(
       providers: [
+        ChangeNotifierProvider<SessionController>.value(value: sessions),
         RepositoryProvider<SharedPreferences>(
           create: (BuildContext context) => sharedPrefs,
         ),
@@ -111,11 +163,11 @@ Future<void> main() async {
             create: (BuildContext context) =>
                 SshHostFormBloc(context.read<SshHostBloc>()),
           ),
-          BlocProvider<TerminalTabBloc>(
-            create: (BuildContext context) => TerminalTabBloc(),
-          ),
+          BlocProvider<TerminalTabBloc>.value(value: tabs),
           BlocProvider<TerminalSettingsBloc>(
             create: (BuildContext context) => TerminalSettingsBloc(
+              preferences: sharedPrefs,
+              configuration: configuration,
               vault: SecureStorageVaultRepository(
                 storage: context.read<FlutterSecureStorage>(),
                 namespace: 'terminal',
@@ -140,7 +192,53 @@ Future<void> main() async {
                 ShellProfileBloc(database)..add(const EnsureDefaultProfile()),
           ),
         ],
-        child: const App(),
+        child: Builder(
+          builder: (context) {
+            Future<void>? closing;
+            return App(
+              onBeforeExit: () {
+                final web = context.read<WebSessionBloc>();
+                final hostForm = context.read<SshHostFormBloc>();
+                final keyForm = context.read<SshKeyFormBloc>();
+                final hosts = context.read<SshHostBloc>();
+                final keys = context.read<SshKeyBloc>();
+                final profiles = context.read<ShellProfileBloc>();
+                final settings = context.read<TerminalSettingsBloc>();
+                return closing ??= () async {
+                  try {
+                    await sessions.prepareExit();
+                    await sessions.finishExit();
+                  } catch (_) {
+                    sessions.resumeAfterCanceledExit();
+                    closing = null;
+                    rethrow;
+                  }
+                  await _closeForExit(web.close);
+                  final state = tabs.state;
+                  if (state is TerminalTabLoaded) {
+                    final managers = state.allTabs
+                        .whereType<PluginTab>()
+                        .map((tab) => tab.manager)
+                        .toSet();
+                    for (final manager in managers) {
+                      await _closeForExit(manager.closeForAppExit);
+                    }
+                  }
+                  await _closeForExit(hostForm.close);
+                  await _closeForExit(keyForm.close);
+                  await _closeForExit(hosts.close);
+                  await _closeForExit(keys.close);
+                  await _closeForExit(profiles.close);
+                  await _closeForExit(settings.close);
+                  await _closeForExit(database.close);
+                  await _closeForExit(store.close);
+                  await _closeForExit(configuration.close);
+                  await instance?.close();
+                }();
+              },
+            );
+          },
+        ),
       ),
     ),
   );
@@ -157,4 +255,12 @@ Future<void> initWindow() async {
     ..center()
     ..show()
     ..focus();
+}
+
+Future<void> _closeForExit(Future<void> Function() close) async {
+  try {
+    await close();
+  } catch (error, stack) {
+    debugPrint('Failed to close app resource: $error\n$stack');
+  }
 }

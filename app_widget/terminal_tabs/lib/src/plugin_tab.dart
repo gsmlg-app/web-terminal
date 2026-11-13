@@ -18,6 +18,8 @@ class PluginTab extends TabItem implements TerminalTabTitleRenamer {
 
   String? _customTitle;
 
+  String? get customTitle => _customTitle;
+
   PluginTab(this.plugin, this.manager, {this.shellProfileId})
     : tabNumber = _nextTabNumber++ {
     manager.add(plugin);

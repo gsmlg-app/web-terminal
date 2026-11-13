@@ -36,6 +36,7 @@ class RootSettingListConfig {
 
   /// Screen name for the shell profiles settings screen (optional).
   final String? shellProfilesScreenName;
+  final String? sessionSnapshotsScreenName;
 
   const RootSettingListConfig({
     required this.terminalEnvScreenName,
@@ -47,6 +48,7 @@ class RootSettingListConfig {
     required this.selectThemeScreenName,
     required this.webServerScreenName,
     this.shellProfilesScreenName,
+    this.sessionSnapshotsScreenName,
   });
 }
 
@@ -70,6 +72,11 @@ class RootSettingList extends StatelessWidget {
           return SettingsList(
             sections: [
               SettingsSectionTerminal(
+                onSessionSnapshotsPressed:
+                    config.sessionSnapshotsScreenName == null
+                        ? null
+                        : (context) =>
+                            context.goNamed(config.sessionSnapshotsScreenName!),
                 envSettingsScreenName: config.terminalEnvScreenName,
                 onEnvSettingsPressed: (context) {
                   context.goNamed(config.terminalEnvScreenName);

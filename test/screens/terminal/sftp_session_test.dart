@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:app_database/app_database.dart';
@@ -46,12 +45,7 @@ class _Vault extends Fake implements VaultRepository {
 class _Settings extends TerminalSettingsBloc {
   _Settings(VaultRepository vault, {int limit = 10, bool restore = false})
     : super(vault: vault) {
-    emit(
-      TerminalSettingsLoaded(
-        maxOpenShells: limit,
-        restoreTerminalTabs: restore,
-      ),
-    );
+    emit(TerminalSettingsLoaded());
   }
 }
 
@@ -257,7 +251,7 @@ void main() {
     expect(f.tabs.opened, isEmpty);
   });
 
-  testWidgets('session limit is rechecked after asynchronous host selection', (
+  testWidgets('host selection opens a tab even after another session opens', (
     tester,
   ) async {
     final f = await _fixture(tester, limit: 2);
@@ -270,23 +264,25 @@ void main() {
     await tester.pump();
     await tester.tap(find.text('fixture-host'));
     await tester.pumpAndSettle();
-    expect(f.tabs.opened, isEmpty);
-    expect(find.textContaining('Maximum of 2'), findsOneWidget);
+    expect(f.tabs.opened, hasLength(1));
+    expect(find.textContaining('Maximum of'), findsNothing);
   });
 
-  testWidgets('session limit prevents opening the selector', (tester) async {
+  testWidgets('existing tabs do not prevent opening the selector', (
+    tester,
+  ) async {
     final f = await _fixture(tester, limit: 1);
     await f.show(tester);
     tester
         .widget<TerminalAppBar>(find.byType(TerminalAppBar))
         .onNewSftpSession();
     await tester.pumpAndSettle();
-    expect(find.text('Select SSH Host'), findsNothing);
-    expect(find.textContaining('Maximum of 1'), findsOneWidget);
+    expect(find.text('Select SSH Host'), findsOneWidget);
+    expect(find.textContaining('Maximum of'), findsNothing);
     expect(f.tabs.opened, isEmpty);
   });
 
-  testWidgets('session limit is rechecked after private key retrieval', (
+  testWidgets('key retrieval opens a tab even after another session opens', (
     tester,
   ) async {
     final f = await _fixture(tester, limit: 2, key: true);
@@ -305,8 +301,8 @@ void main() {
       () => Future<void>.delayed(const Duration(milliseconds: 25)),
     );
     await tester.pumpAndSettle();
-    expect(f.tabs.opened, isEmpty);
-    expect(find.textContaining('Maximum of 2'), findsOneWidget);
+    expect(f.tabs.opened, hasLength(1));
+    expect(find.textContaining('Maximum of'), findsNothing);
   });
 
   testWidgets('missing private key displays an error and opens no tab', (
@@ -389,72 +385,5 @@ void main() {
       ),
       throwsA(isA<SshHostKeyMismatchException>()),
     );
-  });
-
-  testWidgets('SFTP and SSH descriptors retain their distinct plugin types', (
-    tester,
-  ) async {
-    final f = await _fixture(tester, restore: true);
-    await f.prefs.setString(
-      'terminal.open_tabs.v1',
-      jsonEncode({
-        'version': 1,
-        'activeIndex': 0,
-        'tabs': [
-          {'type': 'sftp', 'hostId': f.host.id},
-          {'type': 'ssh', 'hostId': f.host.id},
-        ],
-      }),
-    );
-    await f.show(tester);
-    await tester.runAsync(
-      () => Future<void>.delayed(const Duration(milliseconds: 80)),
-    );
-    await tester.pump();
-    expect(f.tabs.opened, hasLength(2));
-    expect(f.tabs.opened[0].plugin, isA<FileManagerPlugin>());
-    expect(f.tabs.opened[1].plugin, isA<TerminalPlugin>());
-    await tester.pump(const Duration(milliseconds: 350));
-    final saved =
-        jsonDecode(f.prefs.getString('terminal.open_tabs.v1')!) as Map;
-    expect(saved['tabs'], [
-      {'type': 'sftp', 'hostId': f.host.id},
-      {'type': 'ssh', 'hostId': f.host.id},
-    ]);
-    expect(jsonEncode(saved), isNot(contains('fixture-password')));
-    expect(jsonEncode(saved), isNot(contains('vault:ssh:')));
-  });
-
-  testWidgets('restored SSH tab starts in its saved remote directory', (
-    tester,
-  ) async {
-    final f = await _fixture(tester, restore: true);
-    await tester.runAsync(
-      () => f.prefs.setString(
-        'terminal.open_tabs.v1',
-        jsonEncode({
-          'activeIndex': 0,
-          'tabs': [
-            {
-              'type': 'ssh',
-              'hostId': f.host.id,
-              'workingDirectory': '/srv/app',
-            },
-          ],
-        }),
-      ),
-    );
-
-    await f.show(tester);
-    for (var i = 0; i < 5 && f.tabs.opened.isEmpty; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 20)),
-      );
-      await tester.pump();
-    }
-
-    final tab = f.tabs.opened.single;
-    expect(tab.manager.hostSpec, isA<SSHHostSpec>());
-    expect((tab.plugin as TerminalPlugin).startDirectory, '/srv/app');
   });
 }

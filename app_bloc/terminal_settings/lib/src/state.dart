@@ -1,8 +1,5 @@
 part of 'bloc.dart';
 
-/// Default maximum number of open shells.
-const kTerminalDefaultMaxOpenShells = 10;
-
 /// How the Option keys behave in the terminal on macOS.
 enum TerminalOptionKeyBehavior {
   /// Left Option acts as Meta, right Option types special characters.
@@ -47,11 +44,9 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
   /// Custom environment variables to inject into new shell sessions.
   final Map<String, String> environmentVariables;
 
-  /// Maximum number of concurrent shell sessions allowed.
-  final int maxOpenShells;
-
-  /// Whether open terminal tabs should be restored after app restart.
-  final bool restoreTerminalTabs;
+  /// Last error reading environment variables from the secure vault.
+  final Object? secureStorageError;
+  final Object? preferenceError;
 
   /// How the Option keys behave in the terminal on macOS.
   final TerminalOptionKeyBehavior optionKeyBehavior;
@@ -64,8 +59,8 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
 
   const TerminalSettingsLoaded({
     this.environmentVariables = const {},
-    this.maxOpenShells = kTerminalDefaultMaxOpenShells,
-    this.restoreTerminalTabs = false,
+    this.secureStorageError,
+    this.preferenceError,
     this.optionKeyBehavior = kTerminalDefaultOptionKeyBehavior,
     this.downloadMode = TerminalDownloadMode.saveToFolder,
     this.downloadDirectory,
@@ -74,8 +69,8 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
   @override
   List<Object?> get props => [
     environmentVariables,
-    maxOpenShells,
-    restoreTerminalTabs,
+    secureStorageError,
+    preferenceError,
     optionKeyBehavior,
     downloadMode,
     downloadDirectory,
@@ -84,8 +79,9 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
   /// Pass [clearDownloadDirectory] to reset the folder to the default.
   TerminalSettingsLoaded copyWith({
     Map<String, String>? environmentVariables,
-    int? maxOpenShells,
-    bool? restoreTerminalTabs,
+    Object? secureStorageError,
+    Object? preferenceError,
+    bool clearPreferenceError = false,
     TerminalOptionKeyBehavior? optionKeyBehavior,
     TerminalDownloadMode? downloadMode,
     String? downloadDirectory,
@@ -93,8 +89,10 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
   }) {
     return TerminalSettingsLoaded(
       environmentVariables: environmentVariables ?? this.environmentVariables,
-      maxOpenShells: maxOpenShells ?? this.maxOpenShells,
-      restoreTerminalTabs: restoreTerminalTabs ?? this.restoreTerminalTabs,
+      secureStorageError: secureStorageError ?? this.secureStorageError,
+      preferenceError: clearPreferenceError
+          ? null
+          : preferenceError ?? this.preferenceError,
       optionKeyBehavior: optionKeyBehavior ?? this.optionKeyBehavior,
       downloadMode: downloadMode ?? this.downloadMode,
       downloadDirectory: clearDownloadDirectory

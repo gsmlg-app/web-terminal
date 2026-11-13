@@ -315,7 +315,9 @@ void main() {
     late TerminalTabBloc tabBloc;
     late List<PluginTab> tabs;
 
+    var cleanups = 0;
     Future<void> pumpGuard(WidgetTester tester, List<bool> busy) async {
+      cleanups = 0;
       tabBloc = TerminalTabBloc()..add(TerminalTabStart());
       addTearDown(tabBloc.close);
       await tester.pump();
@@ -340,8 +342,13 @@ void main() {
             navigatorKey: navigatorKey,
             localizationsDelegates: AppLocale.localizationsDelegates,
             supportedLocales: AppLocale.supportedLocales,
-            builder: (BuildContext context, Widget? child) =>
-                AppExitGuard(navigatorKey: navigatorKey, child: child!),
+            builder: (BuildContext context, Widget? child) => AppExitGuard(
+              navigatorKey: navigatorKey,
+              onBeforeExit: () async {
+                cleanups++;
+              },
+              child: child!,
+            ),
             home: const SizedBox.shrink(),
           ),
         ),
@@ -358,6 +365,7 @@ void main() {
 
       expect(find.byType(AlertDialog), findsNothing);
       expect(await response, AppExitResponse.exit);
+      expect(cleanups, 1);
     });
 
     testWidgets('lists busy tabs and cancels the quit', (tester) async {
@@ -383,6 +391,7 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
       await tester.pumpAndSettle();
       expect(await response, AppExitResponse.cancel);
+      expect(cleanups, 0);
     });
 
     testWidgets('holds a window close and removes its listener on dispose', (
@@ -443,6 +452,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(await response, AppExitResponse.exit);
+      expect(cleanups, 1);
     });
   });
 

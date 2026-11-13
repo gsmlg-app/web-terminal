@@ -254,5 +254,47 @@
     "@tabGroupSelected": {
         "description": "Tab switcher select-mode button that groups the selected tabs."
     },
-    "@@description": "Web Terminal Client Tools"
+    "@@description": "Web Terminal Client Tools",
+  "sessionSnapshots": "Saved Tabs and History",
+  "sessionSaveWorkspace": "Save Workspace",
+  "sessionSaveGroup": "Save Group",
+  "sessionRestore": "Restore",
+  "sessionReplace": "Replace",
+  "sessionAppend": "Append",
+  "sessionRestorePrompt": "Restore tabs from your last session?",
+  "sessionLater": "Later",
+  "sessionExitHistory": "Recent Exits",
+  "sessionRecovery": "Crash Recovery",
+  "sessionManualSaved": "Manually Saved",
+  "sessionNoSnapshots": "No saved sessions yet.",
+  "sessionSnapshotName": "Name",
+  "sessionTargetGroup": "Target group",
+  "sessionNewGroup": "New group",
+  "sessionRestoreDescription": "Restoration opens new sessions without previous output. Replace closes the selected group, or all tabs for a workspace.",
+  "sessionUnavailable": "This tab could not be restored. Its configuration is preserved.",
+  "sessionDirectory": "Working directory",
+  "sessionProfile": "Shell profile",
+  "sessionHost": "SSH host",
+  "sessionPersistenceError": "Tabs could not be saved. Check storage access and retry.",
+  "sessionDeleteConfirm": "Delete this saved session?",
+  "sessionSaved": "Session saved",
+  "sessionStorageUnavailable": "Session storage could not be opened. Existing files have been preserved.",
+  "sessionSecureStorageUnavailable": "Credentials could not be read. Unlock or repair secure storage, then retry.",
+  "sessionRestoreFailed": "Restore failed",
+  "sessionDetails": "{tabs} tabs · {groups} groups",
+  "sessionMissingProfile": "The saved shell profile is unavailable.",
+  "sessionMissingHost": "The saved SSH host is unavailable.",
+  "sessionMissingDirectory": "The saved working directory does not exist.",
+  "sessionSaveEmpty": "There are no tabs to save.",
+  "@sessionDetails": {
+    "placeholders": {
+      "tabs": {
+        "type": "int"
+      },
+      "groups": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionPreferenceError": "Settings could not be saved. Check storage access and retry."
 }

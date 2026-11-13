@@ -37,9 +37,50 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabMoveTabBefore>(_onMoveTabBefore);
     on<TerminalTabRestoreGroups>(_onRestoreGroups);
     on<TerminalTabFinishGroupRestore>(_onFinishGroupRestore);
+    on<TerminalTabApplySnapshot>(_onApplySnapshot);
   }
 
   final String Function() _groupIdGenerator;
+
+  void _onApplySnapshot(
+    TerminalTabApplySnapshot event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    final originalGrouping = current.grouping;
+    final removed = [
+      for (final tab in current.allTabs)
+        if (event.replaceTab != null
+            ? identical(tab, event.replaceTab)
+            : !event.append &&
+                (!event.groupOnly ||
+                    originalGrouping.groupIdOf(tab) == event.targetGroupId))
+          tab,
+    ];
+    for (final tab in removed) {
+      tab.dispose();
+    }
+    final retained = originalGrouping.retainTabs(current.allTabs);
+    for (final tab in event.tabs) {
+      current.tabs.add(tab);
+    }
+    if (event.tabs.isNotEmpty) {
+      event.tabs[event.activeIndex.clamp(0, event.tabs.length - 1)].activate();
+    }
+    final grouping = TabGrouping(
+      groups: [
+        ...retained.groups.where((group) =>
+            !event.grouping.groups.any((next) => next.id == group.id)),
+        ...event.grouping.groups
+      ],
+      membership: {...retained.membership, ...event.grouping.membership},
+      ungroupedCollapsed: event.append || event.groupOnly
+          ? retained.ungroupedCollapsed
+          : event.grouping.ungroupedCollapsed,
+    ).dropEmptyGroups();
+    emit(current.copyWith(grouping: grouping, incrementVersion: true));
+  }
 
   static int _groupIdCounter = 0;
 

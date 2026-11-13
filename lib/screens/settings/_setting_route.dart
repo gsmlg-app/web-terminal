@@ -1,4 +1,7 @@
 import 'package:go_router/go_router.dart';
+
+import 'session_snapshots_screen.dart';
+
 import 'package:web_terminal/screens/settings/device/device_info_screen.dart';
 import 'package:web_terminal/screens/settings/device/wifi_info_screen.dart';
 import 'package:web_terminal/screens/settings/host_management.dart';
@@ -21,6 +24,11 @@ final settingRoute = GoRoute(
     );
   },
   routes: [
+    GoRoute(
+      name: SessionSnapshotsScreen.name,
+      path: SessionSnapshotsScreen.path,
+      builder: (context, state) => const SessionSnapshotsScreen(),
+    ),
     GoRoute(
       name: TerminalEnvScreen.name,
       path: TerminalEnvScreen.path,

@@ -11,6 +11,7 @@ class SettingsScreenNames {
   static const selectBrightness = 'Select Brightness';
   static const selectTheme = 'Select Theme';
   static const webServer = 'web-server';
+  static const sessionSnapshots = 'Session Snapshots';
   static const shellProfiles = 'Shell Profiles';
   static const shellProfileEdit = 'Shell Profile Edit';
 }
@@ -25,5 +26,6 @@ const rootSettingListConfig = RootSettingListConfig(
   selectBrightnessScreenName: SettingsScreenNames.selectBrightness,
   selectThemeScreenName: SettingsScreenNames.selectTheme,
   webServerScreenName: SettingsScreenNames.webServer,
+  sessionSnapshotsScreenName: SettingsScreenNames.sessionSnapshots,
   shellProfilesScreenName: SettingsScreenNames.shellProfiles,
 );

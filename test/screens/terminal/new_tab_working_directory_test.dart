@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:app_database/app_database.dart';
@@ -19,8 +18,6 @@ import 'package:terminal_tab_bloc/terminal_tab_bloc.dart';
 import 'package:terminal_tabs/terminal_tabs.dart';
 import 'package:web_terminal/screens/terminal/terminal_screen.dart';
 
-const _tabsKey = 'terminal.open_tabs.v1';
-
 class _UnusedVault extends Fake implements VaultRepository {}
 
 class _Profiles extends ShellProfileBloc {
@@ -31,7 +28,7 @@ class _Profiles extends ShellProfileBloc {
 
 class _Settings extends TerminalSettingsBloc {
   _Settings() : super(vault: _UnusedVault()) {
-    emit(const TerminalSettingsLoaded(restoreTerminalTabs: true));
+    emit(const TerminalSettingsLoaded());
   }
 }
 
@@ -221,60 +218,6 @@ void main() {
   );
 
   testWidgets(
-    'saved tabs record the shell directory',
-    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-    (tester) async {
-      await pumpScreen(tester, inherit: true);
-      shell.directory = '/Users/me/other';
-
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pump();
-      await tester.pump();
-
-      final saved =
-          jsonDecode(preferences.getString(_tabsKey)!) as Map<String, dynamic>;
-      final savedTabs = saved['tabs'] as List;
-      expect((savedTabs.single as Map)['workingDirectory'], '/Users/me/other');
-    },
-    skip: !Platform.isMacOS && !Platform.isLinux,
-  );
-
-  testWidgets(
-    'quitting saves the directory the shell moved to',
-    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-    (tester) async {
-      await pumpScreen(tester, inherit: true);
-      await preferences.remove(_tabsKey);
-      shell.directory = '/Users/me/after-cd';
-
-      final response = Completer<Map<String, Object?>>();
-      const codec = JSONMethodCodec();
-      unawaited(
-        tester.binding.defaultBinaryMessenger.handlePlatformMessage(
-          SystemChannels.platform.name,
-          codec.encodeMethodCall(const MethodCall('System.requestAppExit')),
-          (ByteData? reply) => response.complete(
-            codec.decodeEnvelope(reply!) as Map<String, Object?>,
-          ),
-        ),
-      );
-      await tester.pump();
-      await tester.pump();
-
-      expect((await response.future)['response'], 'exit');
-      final saved =
-          jsonDecode(preferences.getString(_tabsKey)!) as Map<String, dynamic>;
-      final savedTabs = saved['tabs'] as List;
-      expect(
-        (savedTabs.single as Map)['workingDirectory'],
-        '/Users/me/after-cd',
-      );
-    },
-    skip: !Platform.isMacOS && !Platform.isLinux,
-  );
-
-  testWidgets(
     'Cmd+T on an SSH tab opens the same host in the remote directory',
     variant: TargetPlatformVariant.only(TargetPlatform.macOS),
     (tester) async {
@@ -293,26 +236,6 @@ void main() {
         (newTab.plugin as TerminalPlugin).startDirectory,
         '/srv/app/releases',
       );
-    },
-  );
-
-  testWidgets(
-    'SSH tabs save the remote directory',
-    variant: TargetPlatformVariant.only(TargetPlatform.macOS),
-    (tester) async {
-      await pumpScreen(tester, inherit: false, ssh: true);
-      shell.directory = '/srv/app';
-
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
-      tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
-      await tester.pump();
-      await tester.pump();
-
-      final saved =
-          jsonDecode(preferences.getString(_tabsKey)!) as Map<String, dynamic>;
-      expect(saved['tabs'], [
-        {'type': 'ssh', 'hostId': 3, 'workingDirectory': '/srv/app'},
-      ]);
     },
   );
 

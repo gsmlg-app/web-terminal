@@ -327,6 +327,105 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tabGroupSelected => '分组所选标签页';
+
+  @override
+  String get sessionSnapshots => '已保存标签页与历史';
+
+  @override
+  String get sessionSaveWorkspace => '保存整个工作区';
+
+  @override
+  String get sessionSaveGroup => '保存分组';
+
+  @override
+  String get sessionRestore => '恢复';
+
+  @override
+  String get sessionReplace => '替换';
+
+  @override
+  String get sessionAppend => '追加';
+
+  @override
+  String get sessionRestorePrompt => '是否恢复上次打开的标签页？';
+
+  @override
+  String get sessionLater => '稍后';
+
+  @override
+  String get sessionExitHistory => '最近退出快照';
+
+  @override
+  String get sessionRecovery => '崩溃恢复';
+
+  @override
+  String get sessionManualSaved => '手动保存';
+
+  @override
+  String get sessionNoSnapshots => '暂无保存的会话。';
+
+  @override
+  String get sessionSnapshotName => '名称';
+
+  @override
+  String get sessionTargetGroup => '目标分组';
+
+  @override
+  String get sessionNewGroup => '新建分组';
+
+  @override
+  String get sessionRestoreDescription =>
+      '恢复会新建会话，不包含历史输出。替换分组仅关闭目标分组，替换工作区会关闭全部标签页。';
+
+  @override
+  String get sessionUnavailable => '此标签页暂时无法恢复，原配置已保留。';
+
+  @override
+  String get sessionDirectory => '工作目录';
+
+  @override
+  String get sessionProfile => 'Shell 配置';
+
+  @override
+  String get sessionHost => 'SSH 主机';
+
+  @override
+  String get sessionPersistenceError => '无法保存标签页，请检查存储权限并重试。';
+
+  @override
+  String get sessionDeleteConfirm => '删除此手动保存的会话？';
+
+  @override
+  String get sessionSaved => '会话已保存';
+
+  @override
+  String get sessionStorageUnavailable => '无法打开会话存储，已有文件已保留。';
+
+  @override
+  String get sessionSecureStorageUnavailable => '无法读取凭据，请解锁或修复安全存储后重试。';
+
+  @override
+  String get sessionRestoreFailed => '恢复失败';
+
+  @override
+  String sessionDetails(int tabs, int groups) {
+    return '$tabs 个标签页 · $groups 个分组';
+  }
+
+  @override
+  String get sessionMissingProfile => '已保存的 Shell 配置不存在。';
+
+  @override
+  String get sessionMissingHost => '已保存的 SSH 主机不存在。';
+
+  @override
+  String get sessionMissingDirectory => '已保存的工作目录不存在。';
+
+  @override
+  String get sessionSaveEmpty => '没有可保存的标签页。';
+
+  @override
+  String get sessionPreferenceError => '无法保存配置，请检查存储权限并重试。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hans`).
@@ -517,6 +616,105 @@ class AppLocalizationsZhHans extends AppLocalizationsZh {
 
   @override
   String get tabGroupSelected => '分组所选标签页';
+
+  @override
+  String get sessionSnapshots => '已保存标签页与历史';
+
+  @override
+  String get sessionSaveWorkspace => '保存整个工作区';
+
+  @override
+  String get sessionSaveGroup => '保存分组';
+
+  @override
+  String get sessionRestore => '恢复';
+
+  @override
+  String get sessionReplace => '替换';
+
+  @override
+  String get sessionAppend => '追加';
+
+  @override
+  String get sessionRestorePrompt => '是否恢复上次打开的标签页？';
+
+  @override
+  String get sessionLater => '稍后';
+
+  @override
+  String get sessionExitHistory => '最近退出快照';
+
+  @override
+  String get sessionRecovery => '崩溃恢复';
+
+  @override
+  String get sessionManualSaved => '手动保存';
+
+  @override
+  String get sessionNoSnapshots => '暂无保存的会话。';
+
+  @override
+  String get sessionSnapshotName => '名称';
+
+  @override
+  String get sessionTargetGroup => '目标分组';
+
+  @override
+  String get sessionNewGroup => '新建分组';
+
+  @override
+  String get sessionRestoreDescription =>
+      '恢复会新建会话，不包含历史输出。替换分组仅关闭目标分组，替换工作区会关闭全部标签页。';
+
+  @override
+  String get sessionUnavailable => '此标签页暂时无法恢复，原配置已保留。';
+
+  @override
+  String get sessionDirectory => '工作目录';
+
+  @override
+  String get sessionProfile => 'Shell 配置';
+
+  @override
+  String get sessionHost => 'SSH 主机';
+
+  @override
+  String get sessionPersistenceError => '无法保存标签页，请检查存储权限并重试。';
+
+  @override
+  String get sessionDeleteConfirm => '删除此手动保存的会话？';
+
+  @override
+  String get sessionSaved => '会话已保存';
+
+  @override
+  String get sessionStorageUnavailable => '无法打开会话存储，已有文件已保留。';
+
+  @override
+  String get sessionSecureStorageUnavailable => '无法读取凭据，请解锁或修复安全存储后重试。';
+
+  @override
+  String get sessionRestoreFailed => '恢复失败';
+
+  @override
+  String sessionDetails(int tabs, int groups) {
+    return '$tabs 个标签页 · $groups 个分组';
+  }
+
+  @override
+  String get sessionMissingProfile => '已保存的 Shell 配置不存在。';
+
+  @override
+  String get sessionMissingHost => '已保存的 SSH 主机不存在。';
+
+  @override
+  String get sessionMissingDirectory => '已保存的工作目录不存在。';
+
+  @override
+  String get sessionSaveEmpty => '没有可保存的标签页。';
+
+  @override
+  String get sessionPreferenceError => '无法保存配置，请检查存储权限并重试。';
 }
 
 /// The translations for Chinese, using the Han script (`zh_Hant`).
@@ -707,4 +905,103 @@ class AppLocalizationsZhHant extends AppLocalizationsZh {
 
   @override
   String get tabGroupSelected => '分組所選分頁';
+
+  @override
+  String get sessionSnapshots => '已保存标签页与历史';
+
+  @override
+  String get sessionSaveWorkspace => '保存整个工作区';
+
+  @override
+  String get sessionSaveGroup => '保存分组';
+
+  @override
+  String get sessionRestore => '恢复';
+
+  @override
+  String get sessionReplace => '替换';
+
+  @override
+  String get sessionAppend => '追加';
+
+  @override
+  String get sessionRestorePrompt => '是否恢复上次打开的标签页？';
+
+  @override
+  String get sessionLater => '稍后';
+
+  @override
+  String get sessionExitHistory => '最近退出快照';
+
+  @override
+  String get sessionRecovery => '崩溃恢复';
+
+  @override
+  String get sessionManualSaved => '手动保存';
+
+  @override
+  String get sessionNoSnapshots => '暂无保存的会话。';
+
+  @override
+  String get sessionSnapshotName => '名称';
+
+  @override
+  String get sessionTargetGroup => '目标分组';
+
+  @override
+  String get sessionNewGroup => '新建分组';
+
+  @override
+  String get sessionRestoreDescription =>
+      '恢复会新建会话，不包含历史输出。替换分组仅关闭目标分组，替换工作区会关闭全部标签页。';
+
+  @override
+  String get sessionUnavailable => '此标签页暂时无法恢复，原配置已保留。';
+
+  @override
+  String get sessionDirectory => '工作目录';
+
+  @override
+  String get sessionProfile => 'Shell 配置';
+
+  @override
+  String get sessionHost => 'SSH 主机';
+
+  @override
+  String get sessionPersistenceError => '无法保存标签页，请检查存储权限并重试。';
+
+  @override
+  String get sessionDeleteConfirm => '删除此手动保存的会话？';
+
+  @override
+  String get sessionSaved => '会话已保存';
+
+  @override
+  String get sessionStorageUnavailable => '无法打开会话存储，已有文件已保留。';
+
+  @override
+  String get sessionSecureStorageUnavailable => '无法读取凭据，请解锁或修复安全存储后重试。';
+
+  @override
+  String get sessionRestoreFailed => '恢复失败';
+
+  @override
+  String sessionDetails(int tabs, int groups) {
+    return '$tabs 个标签页 · $groups 个分组';
+  }
+
+  @override
+  String get sessionMissingProfile => '已保存的 Shell 配置不存在。';
+
+  @override
+  String get sessionMissingHost => '已保存的 SSH 主机不存在。';
+
+  @override
+  String get sessionMissingDirectory => '已保存的工作目录不存在。';
+
+  @override
+  String get sessionSaveEmpty => '没有可保存的标签页。';
+
+  @override
+  String get sessionPreferenceError => '無法儲存設定，請檢查儲存權限後重試。';
 }
