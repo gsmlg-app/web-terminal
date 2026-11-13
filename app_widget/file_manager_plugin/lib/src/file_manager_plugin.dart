@@ -134,6 +134,15 @@ class FileManagerPlugin with Plugin {
     }
   }
 
+  @override
+  Future<void> closeForAppExit() async {
+    _generation++;
+    _navigationGeneration++;
+    final fileSystem = _ownedFileSystem;
+    _ownedFileSystem = null;
+    await fileSystem?.close();
+  }
+
   void _closeFileSystem(FileSystem fileSystem) {
     unawaited(Future<void>.sync(fileSystem.close)
         .catchError((Object exception, StackTrace stack) {

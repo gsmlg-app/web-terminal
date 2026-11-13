@@ -271,6 +271,21 @@ class TerminalPlugin extends Plugin {
     unawaited(zmodem.dispose().whenComplete(() => results?.cancel()));
   }
 
+  @override
+  Future<void> closeForAppExit() async {
+    _sessionGeneration++;
+    final activeSession = session;
+    session = null;
+    await _outputSubscription?.cancel();
+    _outputSubscription = null;
+    final zmodem = _zmodem;
+    _zmodem = null;
+    await zmodem?.dispose();
+    await _zmodemResults?.cancel();
+    _zmodemResults = null;
+    await activeSession?.close();
+  }
+
   void _closeSession() {
     _sessionGeneration++;
     final activeSession = session;
