@@ -138,6 +138,30 @@ void main() {
     });
   });
 
+  group('scroll region line ownership', () {
+    for (final operation in ['\x1b[1S', '\x1b[1T', '\x1b[1M']) {
+      test('retains attached lines after ${operation.substring(2)}', () {
+        final terminal = Terminal();
+        addTearDown(terminal.dispose);
+        terminal.resize(10, 6);
+        terminal.write('one\r\ntwo\r\nthree\r\nfour\r\nfive\r\nsix');
+
+        terminal.write('\x1b[2;5r\x1b[2;1H$operation');
+
+        final expected = switch (operation) {
+          '\x1b[1T' => ['one', '', 'two', 'three', 'four', 'six'],
+          _ => ['one', 'three', 'four', 'five', '', 'six'],
+        };
+        for (var row = 0; row < terminal.buffer.lines.length; row++) {
+          final line = terminal.buffer.lines[row];
+          expect(line.getText(), expected[row]);
+          expect(line.attached, isTrue, reason: 'row $row');
+          expect(line.index, row);
+        }
+      });
+    }
+  });
+
   group('Buffer.insertLines()', () {
     test('works', () {
       final terminal = Terminal();
