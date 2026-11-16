@@ -93,7 +93,26 @@ void main() {
     expect(input, ['\x1b[200~local\rtext\x1b[201~']);
   }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
 
-  testWidgets('session trust requires the global opt in and can be revoked',
+  testWidgets('session trust defaults on and can be revoked and restored',
+      (tester) async {
+    await pumpTerminal(tester);
+    await openMenu(tester);
+    expect(
+        tester
+            .widget<CheckedPopupMenuItem>(
+                checkedItem("Revoke this session's clipboard access"))
+            .checked,
+        isTrue);
+    await tester.tap(checkedItem("Revoke this session's clipboard access"));
+    await tester.pumpAndSettle();
+    expect(plugin.remoteClipboard.trusted, isFalse);
+    await openMenu(tester);
+    await tester.tap(checkedItem('Trust this session for clipboard writes'));
+    await tester.pumpAndSettle();
+    expect(plugin.remoteClipboard.trusted, isTrue);
+  }, variant: TargetPlatformVariant.only(TargetPlatform.macOS));
+
+  testWidgets('global setting blocks session trust until enabled',
       (tester) async {
     await pumpTerminal(tester);
     allowed = false;
@@ -110,10 +129,7 @@ void main() {
 
     allowed = true;
     await openMenu(tester);
-    await tester.tap(checkedItem('Trust this session for clipboard writes'));
-    await tester.pumpAndSettle();
     expect(plugin.remoteClipboard.trusted, isTrue);
-    await openMenu(tester);
     await tester.tap(checkedItem("Revoke this session's clipboard access"));
     await tester.pumpAndSettle();
     expect(plugin.remoteClipboard.trusted, isFalse);

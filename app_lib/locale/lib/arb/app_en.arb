@@ -298,7 +298,7 @@
   },
   "sessionPreferenceError": "Settings could not be saved. Check storage access and retry.",
   "remoteClipboardAllow": "Allow remote clipboard writes",
-  "remoteClipboardDescription": "Allow trusted sessions to replace your clipboard. Also trust each session in its clipboard menu. Remote clipboard reads are always denied.",
+  "remoteClipboardDescription": "Allow terminal sessions to replace your clipboard. Sessions are trusted by default; you can revoke access in each session's clipboard menu. Remote clipboard reads are always denied.",
   "remoteClipboardTrust": "Trust this session for clipboard writes",
   "remoteClipboardRevoke": "Revoke this session's clipboard access",
   "remoteClipboardEnableFirst": "Enable remote clipboard writes in Terminal settings first.",

@@ -862,7 +862,7 @@ abstract class AppLocalizations {
   /// No description provided for @remoteClipboardDescription.
   ///
   /// In en, this message translates to:
-  /// **'Allow trusted sessions to replace your clipboard. Also trust each session in its clipboard menu. Remote clipboard reads are always denied.'**
+  /// **'Allow terminal sessions to replace your clipboard. Sessions are trusted by default; you can revoke access in each session\'s clipboard menu. Remote clipboard reads are always denied.'**
   String get remoteClipboardDescription;
 
   /// No description provided for @remoteClipboardTrust.

@@ -75,7 +75,6 @@ void main() {
     manager.add(plugin);
     session = _Session();
     plugin.debugAttachSession(session);
-    plugin.setRemoteClipboardTrusted(true);
   });
 
   tearDown(() async {
@@ -171,9 +170,35 @@ void main() {
     expect(writes, isEmpty);
   });
 
-  test('new interactive sessions are untrusted until explicitly authorized',
+  test('new interactive sessions allow clipboard writes by default', () async {
+    expect(plugin.remoteClipboard.trusted, isTrue);
+    send(_osc('allowed'));
+    await _settle();
+    expect(writes, ['allowed']);
+  });
+
+  test('sessions follow the global setting even when it loads after connecting',
       () async {
+    plugin.didDisconnected();
+    enabled = false;
+    session = _Session();
+    plugin.debugAttachSession(session);
+    expect(plugin.remoteClipboard.trusted, isFalse);
+    send(_osc('blocked'));
+    await _settle();
+    expect(writes, isEmpty);
+    enabled = true;
+    expect(plugin.remoteClipboard.trusted, isTrue);
+    send(_osc('allowed'));
+    await _settle();
+    expect(writes, ['allowed']);
+  });
+
+  test('manual revocation lasts until trust is explicitly restored', () async {
     plugin.setRemoteClipboardTrusted(false);
+    enabled = false;
+    enabled = true;
+    expect(plugin.remoteClipboard.trusted, isFalse);
     send(_osc('blocked'));
     await _settle();
     expect(writes, isEmpty);
@@ -265,18 +290,16 @@ void main() {
     expect(writes, ['first', 'pending 49']);
   });
 
-  test('reconnect clears trust and incomplete sequences, preserving scrollback',
+  test('reconnect restores default trust and clears incomplete sequences',
       () async {
     send('history\x1b]52;c;aGVs');
+    plugin.setRemoteClipboardTrusted(false);
     plugin.didDisconnected();
+    expect(plugin.remoteClipboard.trusted, isFalse);
     final previous = session;
     session = _Session();
     plugin.debugAttachSession(session);
-    expect(plugin.remoteClipboard.trusted, isFalse);
-    send(_osc('untrusted'));
-    await _settle();
-    expect(writes, isEmpty);
-    plugin.setRemoteClipboardTrusted(true);
+    expect(plugin.remoteClipboard.trusted, isTrue);
     send(_osc('new session'));
     await _settle();
     expect(writes, ['new session']);
@@ -332,7 +355,6 @@ void main() {
       writeClipboard: (text) async => injected.add(text),
     );
     clipboard.startSession();
-    clipboard.setTrusted(true);
     clipboard.handleOSC('52', ['c', 'aGk=']);
     await _settle();
     expect(injected, ['hi']);

@@ -5,8 +5,9 @@ import 'package:flutter/services.dart';
 
 /// Applies local policy to OSC 52 events from a terminal parser.
 ///
-/// This deliberately has no clipboard reader or transport writer. Trust is
-/// granted locally for one interactive session and is never persisted.
+/// This deliberately has no clipboard reader or transport writer. Each session
+/// defaults to trusted, subject to the global write policy. Manual revocation
+/// lasts until the next session.
 class RemoteClipboard {
   RemoteClipboard({
     required this.writesAllowed,
@@ -22,7 +23,7 @@ class RemoteClipboard {
 
   bool get sessionActive => _sessionActive;
   bool _sessionActive = false;
-  bool get trusted => _trusted;
+  bool get trusted => _trusted && writesAllowed();
   bool _trusted = false;
   int _generation = 0;
   (String, int)? _pending;
@@ -31,7 +32,7 @@ class RemoteClipboard {
   void startSession() {
     _generation++;
     _pending = null;
-    _trusted = false;
+    _trusted = true;
     _sessionActive = true;
   }
 
@@ -48,7 +49,7 @@ class RemoteClipboard {
     _trusted = trusted && _sessionActive && writesAllowed();
   }
 
-  bool get _canWrite => _sessionActive && _trusted && writesAllowed();
+  bool get _canWrite => _sessionActive && trusted;
 
   /// Receives parsed OSC arguments; incomplete sequences stay in the parser.
   void handleOSC(String code, List<String> args) {
