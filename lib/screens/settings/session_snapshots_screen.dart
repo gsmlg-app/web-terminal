@@ -1,10 +1,13 @@
+import 'package:app_adaptive_widgets/app_adaptive_widgets.dart';
 import 'package:app_locale/app_locale.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:terminal_settings/terminal_settings.dart';
+import 'package:web_terminal/destinations.dart';
+import 'package:web_terminal/screens/settings/_setting_config.dart';
+import 'package:web_terminal/screens/terminal/terminal_screen.dart';
 import 'package:web_terminal/services/session_controller.dart';
 import 'package:web_terminal/services/session_store.dart';
-import 'package:web_terminal/screens/terminal/terminal_screen.dart';
 
 class SessionSnapshotsScreen extends StatelessWidget {
   const SessionSnapshotsScreen({super.key});
@@ -14,45 +17,77 @@ class SessionSnapshotsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sessions = context.read<SessionController>();
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(context.l10n.sessionSnapshots),
-        leading: BackButton(onPressed: () => context.go('/settings')),
+    return AppAdaptiveScaffold(
+      selectedIndex: Destinations.indexOf(
+        const Key(SettingsScreenNames.settings),
+        context,
       ),
-      body: ListenableBuilder(
-        listenable: sessions,
-        builder: (context, _) {
-          final store = sessions.store;
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(context.l10n.sessionRestoreDescription),
-              if (store.latest == null && store.saved.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Text(context.l10n.sessionNoSnapshots),
-                ),
-              if (store.recovery case final SessionSnapshot recovery)
-                ..._section(context, sessions, context.l10n.sessionRecovery, [
-                  recovery,
-                ]),
-              ..._section(
-                context,
-                sessions,
-                context.l10n.sessionExitHistory,
-                store.history,
-              ),
-              ..._section(
-                context,
-                sessions,
-                context.l10n.sessionManualSaved,
-                store.saved,
-                manual: true,
-              ),
-            ],
-          );
-        },
+      destinations: Destinations.navs(context),
+      onSelectedIndexChange: (idx) => Destinations.changeHandler(idx, context),
+      body: (context) => _buildContent(context),
+      smallSecondaryBody: DmAdaptiveScaffold.emptyBuilder,
+      largeBody: (context) =>
+          const SafeArea(child: RootSettingList(config: rootSettingListConfig)),
+      largeSecondaryBody: (context) =>
+          _buildContent(context, showBackButton: false),
+    );
+  }
+
+  Widget _buildContent(BuildContext context, {bool showBackButton = true}) {
+    final sessions = context.read<SessionController>();
+    return SafeArea(
+      child: Column(
+        children: [
+          AppBar(
+            title: Text(context.l10n.sessionSnapshots),
+            automaticallyImplyLeading: false,
+            leading: showBackButton
+                ? BackButton(
+                    onPressed: () =>
+                        context.goNamed(SettingsScreenNames.settings),
+                  )
+                : null,
+          ),
+          Expanded(
+            child: ListenableBuilder(
+              listenable: sessions,
+              builder: (context, _) {
+                final store = sessions.store;
+                return ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    Text(context.l10n.sessionRestoreDescription),
+                    if (store.latest == null && store.saved.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Text(context.l10n.sessionNoSnapshots),
+                      ),
+                    if (store.recovery case final SessionSnapshot recovery)
+                      ..._section(
+                        context,
+                        sessions,
+                        context.l10n.sessionRecovery,
+                        [recovery],
+                      ),
+                    ..._section(
+                      context,
+                      sessions,
+                      context.l10n.sessionExitHistory,
+                      store.history,
+                    ),
+                    ..._section(
+                      context,
+                      sessions,
+                      context.l10n.sessionManualSaved,
+                      store.saved,
+                      manual: true,
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
