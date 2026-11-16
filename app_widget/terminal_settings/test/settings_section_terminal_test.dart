@@ -78,19 +78,19 @@ Future<void> _pumpSection(
 }
 
 void main() {
-  testWidgets('remote clipboard switch is opt in and updates its policy',
+  testWidgets('remote clipboard switch defaults on and can disable writes',
       (tester) async {
     final bloc = _RecordingTerminalSettingsBloc();
     addTearDown(bloc.close);
     await _pumpSection(tester, bloc);
     final toggle = find.byKey(const Key('remoteClipboardSwitch'));
     await tester.ensureVisible(toggle);
-    expect(tester.widget<Switch>(toggle).value, isFalse);
+    expect(tester.widget<Switch>(toggle).value, isTrue);
     await tester.tap(toggle);
     await tester.pumpAndSettle();
-    expect(tester.widget<Switch>(toggle).value, isTrue);
+    expect(tester.widget<Switch>(toggle).value, isFalse);
     expect(bloc.events.single,
-        const TerminalSettingsUpdateRemoteClipboard(allowed: true));
+        const TerminalSettingsUpdateRemoteClipboard(allowed: false));
   });
   testWidgets('obsolete session limit and restore toggle are absent',
       (tester) async {

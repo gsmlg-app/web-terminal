@@ -161,7 +161,9 @@ class TerminalSettingsBloc
           secureStorageError: secureStorageError,
           optionKeyBehavior: optionKeyBehavior,
           downloadMode: downloadMode,
-          allowRemoteClipboardWrites: options[_remoteClipboardKey] == 'true',
+          allowRemoteClipboardWrites: options[_remoteClipboardKey] == null
+              ? kTerminalDefaultAllowRemoteClipboardWrites
+              : options[_remoteClipboardKey] == 'true',
           downloadDirectory:
               downloadDirectory == null || downloadDirectory.isEmpty
               ? null

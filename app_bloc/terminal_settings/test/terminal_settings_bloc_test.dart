@@ -49,28 +49,13 @@ void main() {
 
   group('remote clipboard policy', () {
     test(
-      'defaults to disabled and persists explicit changes across reloads',
+      'defaults to enabled and preserves explicit choices across reloads',
       () async {
         final vault = MockVaultRepository();
         final bloc = TerminalSettingsBloc(vault: vault);
         addTearDown(bloc.close);
         bloc.add(const TerminalSettingsLoad());
         var loaded = await bloc.stream
-            .where((state) => state is TerminalSettingsLoaded)
-            .cast<TerminalSettingsLoaded>()
-            .first;
-        expect(loaded.allowRemoteClipboardWrites, isFalse);
-
-        bloc.add(const TerminalSettingsUpdateRemoteClipboard(allowed: true));
-        loaded = await bloc.stream
-            .where((state) => state is TerminalSettingsLoaded)
-            .cast<TerminalSettingsLoaded>()
-            .first;
-        expect(loaded.allowRemoteClipboardWrites, isTrue);
-        expect(await vault.readAll(), isEmpty);
-
-        bloc.add(const TerminalSettingsLoad());
-        loaded = await bloc.stream
             .where((state) => state is TerminalSettingsLoaded)
             .cast<TerminalSettingsLoaded>()
             .first;
@@ -82,12 +67,27 @@ void main() {
             .cast<TerminalSettingsLoaded>()
             .first;
         expect(loaded.allowRemoteClipboardWrites, isFalse);
+        expect(await vault.readAll(), isEmpty);
+
         bloc.add(const TerminalSettingsLoad());
         loaded = await bloc.stream
             .where((state) => state is TerminalSettingsLoaded)
             .cast<TerminalSettingsLoaded>()
             .first;
         expect(loaded.allowRemoteClipboardWrites, isFalse);
+
+        bloc.add(const TerminalSettingsUpdateRemoteClipboard(allowed: true));
+        loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isTrue);
+        bloc.add(const TerminalSettingsLoad());
+        loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isTrue);
       },
     );
 

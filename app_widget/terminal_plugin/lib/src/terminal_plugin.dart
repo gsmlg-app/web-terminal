@@ -32,7 +32,8 @@ class TerminalPlugin extends Plugin {
     bool Function()? remoteClipboardWritesAllowed,
     Future<void> Function(String text)? writeClipboard,
   })  : remoteClipboard = RemoteClipboard(
-          writesAllowed: remoteClipboardWritesAllowed ?? () => false,
+          writesAllowed: remoteClipboardWritesAllowed ??
+              () => kTerminalDefaultAllowRemoteClipboardWrites,
           writeClipboard: writeClipboard,
         ),
         fileAccess = fileAccess ??

@@ -15,6 +15,9 @@ enum TerminalOptionKeyBehavior {
 /// Default Option key behavior on macOS.
 const kTerminalDefaultOptionKeyBehavior = TerminalOptionKeyBehavior.leftMeta;
 
+/// Default permission for clipboard writes from explicitly trusted sessions.
+const kTerminalDefaultAllowRemoteClipboardWrites = true;
+
 /// Where files downloaded with `sz` are saved.
 enum TerminalDownloadMode {
   /// Save straight into the download folder.
@@ -67,7 +70,8 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
     this.optionKeyBehavior = kTerminalDefaultOptionKeyBehavior,
     this.downloadMode = TerminalDownloadMode.saveToFolder,
     this.downloadDirectory,
-    this.allowRemoteClipboardWrites = false,
+    this.allowRemoteClipboardWrites =
+        kTerminalDefaultAllowRemoteClipboardWrites,
   });
 
   @override

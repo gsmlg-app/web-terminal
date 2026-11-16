@@ -7,9 +7,9 @@ remote machine or change remote configuration.
 
 ## Enable and trust a session
 
-1. In Settings → Terminal, enable **Allow remote clipboard writes**. The default
-   is off. The preference is stored with ordinary terminal settings, separately
-   from credentials.
+1. **Allow remote clipboard writes** in Settings → Terminal defaults to on.
+   An explicitly saved off setting is preserved. The preference is stored with
+   ordinary terminal settings, separately from credentials.
 2. Open an interactive terminal session. In the top bar's **Terminal clipboard
    and selection** menu, choose **Trust this session for clipboard writes**.
    The terminal context menu provides the same action.
