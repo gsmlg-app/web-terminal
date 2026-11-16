@@ -73,6 +73,10 @@ Select All remain available when remote writes are disabled.
   to the remote application. Scrollback is retained.
 - Native Paste goes through `Terminal.paste`, retaining line-ending conversion
   and bracketed-paste handling. OSC 52 does not synthesize keyboard input.
+- Shift+Left/Right send standard modified cursor sequences (`ESC [ 1 ; 2 D/C`)
+  in both the normal and alternate screens. Applications decide what these keys
+  do. The key table previously required the alternate screen, dropping these
+  keys in normal-screen TUIs.
 
 The top-bar menu is outside the terminal surface and does not cover terminal
 cells. If the top bar is hidden in fullscreen, restore navigation to access it;
@@ -204,6 +208,12 @@ protocol. Check `printf '%s\n' "$TERM" "$TMUX"` and, where available,
 `infocmp "$TERM"`. Avoid recording clipboard payloads or dumping session output
 containing private data into diagnostics.
 
+Consult the remote application's shortcut help when diagnosing a missing answer
+or transcript window. In the locally tested Codex CLI 0.169.0, `?` lists Ctrl+T
+for opening the transcript; `/copy` opens a picker and Enter selects **Whole
+response**. Shortcuts can differ between application versions. Terminal key
+forwarding and an application's chosen shortcut are separate checks.
+
 For manual acceptance, repeat on both remote OSes: the direct printf test,
 Codex copy and ordinary input/fullscreen/mouse interaction, native selection and
 Copy, local Paste, and Vim/Neovim OSC 52 copying. Then repeat the clipboard tests
@@ -219,15 +229,36 @@ session boundaries; tmux envelopes; selection, shortcuts and bracketed paste.
 Desktop widget tests simulate macOS, Linux and Windows key mappings. They do not
 prove OS clipboard behavior on those three operating systems.
 
+The focused keyboard, terminal input and clipboard regression run passed 137
+tests. Shift+Left/Right coverage includes Flutter key events, normal/alternate
+screens, application cursor modes and combined modifiers. Focused static
+analysis and formatting also passed.
+
 The full xterm suite also includes an existing `htop golden test` failure in the
 local Flutter 3.47.9 environment (2 pixels differ). Running that test with the
 original parser and terminal sources from the pre-change commit reproduced the
 same failure. The golden baseline has not been changed.
 
-Real NixOS/macOS SSH sessions, live Codex CLI and Vim/Neovim copies, and live tmux
-were not exercised during implementation. Native OS clipboard integration on
-each supported Flutter device platform remains a manual validation item. The
-native API has no platform-specific command dependency, but availability still
-depends on the OS/Flutter clipboard implementation. Browser clipboard permission
-and embedding behavior belong to the separate browser client and are outside
-this change.
+On 2026-11-16, a native macOS Release probe used the production SSH host,
+`TerminalPlugin`, parser and Flutter Clipboard API against an ephemeral loopback
+OpenSSH server on the same Mac. Actual OS clipboard checks passed for BEL,
+fragmented ST with Unicode/multiline text, and a tmux passthrough envelope.
+Untrusted sessions, the disabled setting and remote read requests left the
+clipboard unchanged. Native selection Copy and terminal input/output passed;
+the remote raw PTY reader received `1b5b313b3244` for Shift+Left.
+
+Codex CLI 0.169.0 also ran interactively over that SSH connection with
+`--no-alt-screen` and a local synthetic model response. `/copy` → **Whole
+response** emitted OSC 52; an injected observer called the real Flutter
+`Clipboard.setData` and confirmed an immediate native readback of
+`webterminal-codex-copy-test`. This observes the Flutter write separately from
+Codex's own clipboard backend on the same Mac. Ctrl+T opened the transcript.
+This does not exercise a real model service or establish that another Codex
+version uses the same shortcuts or emits the same clipboard sequence.
+
+These loopback checks do not validate a separate remote Mac or NixOS host, a
+live tmux server, Vim/Neovim copying, or native OS clipboard integration on other
+Flutter platforms. The native API has no platform-specific command dependency,
+but availability still depends on the OS/Flutter clipboard implementation.
+Browser clipboard permission and embedding behavior belong to the separate
+browser client and are outside this change.

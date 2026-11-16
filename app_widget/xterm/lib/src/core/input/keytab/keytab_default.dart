@@ -90,8 +90,8 @@ key Left  -Shift+Alt-Control+Ansi+Mac  : "\Eb"
 
 key Up    +Shift+AppScreen             : "\E[1;*A"
 key Down  +Shift+AppScreen             : "\E[1;*B"
-key Left  +Shift+AppScreen             : "\E[1;*D"
-key Right +Shift+AppScreen             : "\E[1;*C"
+key Left  +Shift                       : "\E[1;*D"
+key Right +Shift                       : "\E[1;*C"
 
 # Keypad keys with NumLock ON
 # (see https://web.archive.org/web/20070807181942/http://www.nw.com/nw/WWW/products/wizcon/vt100.html
