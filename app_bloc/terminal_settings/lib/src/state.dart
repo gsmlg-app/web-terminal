@@ -57,6 +57,9 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
   /// Download folder; null means the system Downloads folder.
   final String? downloadDirectory;
 
+  /// Allows OSC 52 writes in sessions explicitly trusted by the user.
+  final bool allowRemoteClipboardWrites;
+
   const TerminalSettingsLoaded({
     this.environmentVariables = const {},
     this.secureStorageError,
@@ -64,6 +67,7 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
     this.optionKeyBehavior = kTerminalDefaultOptionKeyBehavior,
     this.downloadMode = TerminalDownloadMode.saveToFolder,
     this.downloadDirectory,
+    this.allowRemoteClipboardWrites = false,
   });
 
   @override
@@ -74,6 +78,7 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
     optionKeyBehavior,
     downloadMode,
     downloadDirectory,
+    allowRemoteClipboardWrites,
   ];
 
   /// Pass [clearDownloadDirectory] to reset the folder to the default.
@@ -86,6 +91,7 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
     TerminalDownloadMode? downloadMode,
     String? downloadDirectory,
     bool clearDownloadDirectory = false,
+    bool? allowRemoteClipboardWrites,
   }) {
     return TerminalSettingsLoaded(
       environmentVariables: environmentVariables ?? this.environmentVariables,
@@ -98,6 +104,8 @@ final class TerminalSettingsLoaded extends TerminalSettingsState {
       downloadDirectory: clearDownloadDirectory
           ? null
           : downloadDirectory ?? this.downloadDirectory,
+      allowRemoteClipboardWrites:
+          allowRemoteClipboardWrites ?? this.allowRemoteClipboardWrites,
     );
   }
 }

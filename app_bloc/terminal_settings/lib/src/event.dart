@@ -71,3 +71,12 @@ class TerminalSettingsUpdateDownloadDirectory extends TerminalSettingsEvent {
   @override
   List<Object?> get props => [downloadDirectory];
 }
+
+class TerminalSettingsUpdateRemoteClipboard extends TerminalSettingsEvent {
+  const TerminalSettingsUpdateRemoteClipboard({required this.allowed});
+
+  final bool allowed;
+
+  @override
+  List<Object?> get props => [allowed];
+}

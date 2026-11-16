@@ -10,14 +10,22 @@ import 'package:xterm/src/utils/lookup_table.dart';
 /// function calls that the terminal can handle.
 ///
 /// Design goals:
-///  * Zero object allocation during processing.
-///  * No internal state. Same input will always produce same output.
+///  * Minimize allocation for ordinary terminal output.
+///  * Bounded streaming control strings across arbitrary input chunks.
 class EscapeParser {
   final EscapeHandler handler;
 
-  EscapeParser(this.handler);
+  EscapeParser(this.handler, {bool allowTmuxPassthrough = true})
+      : _allowTmuxPassthrough = allowTmuxPassthrough;
+
+  final bool _allowTmuxPassthrough;
+  EscapeParser? _passthroughParser;
+
+  /// Bounds encoded control strings, including OSC 52 and tmux envelopes.
+  static const maxControlStringLength = 256 * 1024;
 
   final _queue = ByteConsumer();
+  bool _pendingEscape = false;
 
   /// Start of sequence or character being processed. Useful for debugging.
   var tokenBegin = 0;
@@ -33,6 +41,20 @@ class EscapeParser {
 
   void _process() {
     while (_queue.isNotEmpty) {
+      if (_stringKind != null) {
+        _consumeControlString();
+        continue;
+      }
+      if (_pendingEscape) {
+        tokenBegin = _queue.totalConsumed;
+        _pendingEscape = false;
+        if (!_processEscape()) {
+          _queue.rollback(tokenEnd - tokenBegin);
+          _pendingEscape = true;
+          return;
+        }
+        continue;
+      }
       tokenBegin = _queue.totalConsumed;
       final char = _queue.consume();
 
@@ -100,7 +122,7 @@ class EscapeParser {
     'E'.charCode: _escHandleNextLine,
     'H'.charCode: _escHandleTabSet,
     'M'.charCode: _escHandleReverseIndex,
-    'P'.charCode: _escHandleControlString,
+    'P'.charCode: _escHandleDCS,
     'X'.charCode: _escHandleControlString,
     '^'.charCode: _escHandleControlString,
     '_'.charCode: _escHandleControlString,
@@ -116,25 +138,18 @@ class EscapeParser {
 
   /// `ESC P`, `ESC X`, `ESC ^`, `ESC _` Control strings (DCS, SOS, PM, APC)
   ///
-  /// None of them are supported, so their body is discarded up to the string
-  /// terminator instead of being printed. CAN and SUB abort the string, and an
-  /// ESC that does not start ST aborts it and begins a new sequence.
+  /// Only tmux's escaped OSC 52 envelope is interpreted. Other strings are
+  /// discarded. CAN and SUB abort a string; ESC begins ST or a new sequence.
   bool _escHandleControlString() {
-    while (true) {
-      if (_queue.isEmpty) return false;
+    _stringKind = _ControlStringKind.other;
+    _consumeControlString();
+    return true;
+  }
 
-      final char = _queue.consume();
-      if (char == Ascii.CAN || char == Ascii.SUB) return true;
-      if (char != Ascii.ESC) continue;
-
-      if (_queue.isEmpty) return false;
-      if (_queue.peek() == Ascii.backslash) {
-        _queue.consume();
-      } else {
-        _queue.rollback();
-      }
-      return true;
-    }
+  bool _escHandleDCS() {
+    _stringKind = _ControlStringKind.dcs;
+    _consumeControlString();
+    return true;
   }
 
   /// `ESC 7` Save Cursor (DECSC)
@@ -1164,83 +1179,137 @@ class EscapeParser {
   /// Parse a OSC sequence from the queue. Returns true if a sequence was
   /// found and handled.
   bool _escHandleOSC() {
-    final consumed = _consumeOsc();
-    if (!consumed) {
-      return false;
-    }
+    _stringKind = _ControlStringKind.osc;
+    _consumeControlString();
+    return true;
+  }
 
-    if (_osc.isEmpty) {
-      return true;
-    }
+  void _dispatchOsc(String body) {
+    final osc = body.split(';');
 
     // Common OSCs
-    if (_osc.length >= 2) {
-      final ps = _osc[0];
-      final pt = _osc[1];
+    if (osc.length >= 2) {
+      final ps = osc[0];
+      final pt = osc[1];
 
       switch (ps) {
         case '0':
           handler.setTitle(pt);
           handler.setIconName(pt);
-          return true;
+          return;
         case '1':
           handler.setIconName(pt);
-          return true;
+          return;
         case '2':
           handler.setTitle(pt);
-          return true;
+          return;
       }
     }
 
     // Private extensions
-    handler.unknownOSC(_osc[0], _osc.sublist(1));
-
-    return true;
+    handler.unknownOSC(osc[0], osc.sublist(1));
   }
 
-  final _osc = <String>[];
+  _ControlStringKind? _stringKind;
+  final _stringBody = StringBuffer();
+  bool _stringEscaped = false;
+  bool _stringOverflow = false;
+  bool _tmuxEnvelope = false;
 
-  bool _consumeOsc() {
-    _osc.clear();
-    final param = StringBuffer();
-
-    while (true) {
-      if (_queue.isEmpty) {
-        return false;
-      }
-
+  void _consumeControlString() {
+    while (_queue.isNotEmpty) {
       final char = _queue.consume();
-
-      // OSC terminates with BEL
-      if (char == Ascii.BEL) {
-        _osc.add(param.toString());
-        return true;
+      if (char == Ascii.CAN || char == Ascii.SUB) {
+        _resetControlString();
+        return;
       }
-
-      /// OSC terminates with ST
+      if (_stringEscaped) {
+        _stringEscaped = false;
+        if (char == Ascii.backslash) {
+          _finishControlString();
+          return;
+        }
+        if (_tmuxEnvelope && char == Ascii.ESC) {
+          _appendControlChar(Ascii.ESC);
+          continue;
+        }
+        _resetControlString();
+        _pendingEscape = true;
+        _queue.rollback();
+        return;
+      }
       if (char == Ascii.ESC) {
-        if (_queue.isEmpty) {
-          return false;
-        }
-
-        if (_queue.consume() == Ascii.backslash) {
-          _osc.add(param.toString());
-        }
-
-        return true;
-      }
-
-      /// Parse next parameter
-      if (char == Ascii.semicolon) {
-        _osc.add(param.toString());
-        param.clear();
+        _stringEscaped = true;
         continue;
       }
-
-      param.writeCharCode(char);
+      if (_stringKind == _ControlStringKind.osc && char == Ascii.BEL) {
+        _finishControlString();
+        return;
+      }
+      _appendControlChar(char);
     }
   }
+
+  void _appendControlChar(int char) {
+    if (_stringOverflow) return;
+    if (_stringBody.length >= maxControlStringLength) {
+      _stringOverflow = true;
+      _stringBody.clear();
+      return;
+    }
+    _stringBody.writeCharCode(char);
+    if (_stringKind == _ControlStringKind.dcs && _stringBody.length == 5) {
+      _tmuxEnvelope = _stringBody.toString() == 'tmux;';
+    }
+  }
+
+  void _finishControlString() {
+    final kind = _stringKind;
+    final body = _stringBody.toString();
+    final overflow = _stringOverflow;
+    _resetControlString();
+    if (overflow) return;
+    if (kind == _ControlStringKind.osc) {
+      _dispatchOsc(body);
+    } else if (kind == _ControlStringKind.dcs &&
+        _allowTmuxPassthrough &&
+        body.startsWith('tmux;\x1b]52;')) {
+      final inner = body.substring(5);
+      final end = inner.endsWith('\x1b\\')
+          ? inner.length - 2
+          : inner.endsWith('\x07')
+              ? inner.length - 1
+              : null;
+      if (end == null ||
+          RegExp(r'[\x00-\x1f]').hasMatch(inner.substring(2, end))) {
+        return;
+      }
+      final parser = _passthroughParser ??=
+          EscapeParser(handler, allowTmuxPassthrough: false);
+      parser.reset();
+      parser.write(inner);
+      parser.reset();
+    }
+  }
+
+  void _resetControlString() {
+    _stringKind = null;
+    _stringEscaped = false;
+    _stringOverflow = false;
+    _tmuxEnvelope = false;
+    _stringBody.clear();
+  }
+
+  /// Drops incomplete input at a transport/session boundary.
+  void reset() {
+    _queue.reset();
+    _pendingEscape = false;
+    _resetControlString();
+    _passthroughParser?.reset();
+  }
 }
+
+enum _ControlStringKind { osc, dcs, other }
 
 const _maxCsiParam = 65535;
 

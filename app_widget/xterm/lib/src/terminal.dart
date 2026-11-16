@@ -294,6 +294,15 @@ class Terminal with Observable implements TerminalState, EscapeHandler {
     _flushWriteBuffer();
   }
 
+  /// Drops pending output and incomplete sequences when changing sessions.
+  /// Rendered text and scrollback are preserved.
+  void resetInput() {
+    _flushTimer?.cancel();
+    _writeBuffer.clear();
+    _hasPendingWrite = false;
+    _parser.reset();
+  }
+
   /// Sends a key event to the underlying program.
   ///
   /// See also:

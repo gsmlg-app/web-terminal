@@ -86,6 +86,23 @@ class SettingsSectionTerminal extends AbstractSettingsSection {
             if (onShellProfilesPressed != null)
               _ShellProfilesTile(onPressed: onShellProfilesPressed!),
             if (isMacOS) _optionKeyBehaviorTile(context, optionKeyBehavior),
+            SettingsTile(
+              leading: const Icon(Icons.content_paste),
+              title: Text(context.l10n.remoteClipboardAllow),
+              description: Text(context.l10n.remoteClipboardDescription),
+              trailing: Switch(
+                key: const Key('remoteClipboardSwitch'),
+                value: state is TerminalSettingsLoaded &&
+                    state.allowRemoteClipboardWrites,
+                onChanged: state is TerminalSettingsLoaded
+                    ? (allowed) => context.read<TerminalSettingsBloc>().add(
+                          TerminalSettingsUpdateRemoteClipboard(
+                            allowed: allowed,
+                          ),
+                        )
+                    : null,
+              ),
+            ),
             if (isDesktop) _downloadModeTile(context, downloadMode),
             if (isDesktop) _downloadDirectoryTile(context, downloadDirectory),
           ],

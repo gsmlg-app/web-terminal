@@ -46,6 +46,65 @@ class MockVaultRepository implements VaultRepository {
 
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
+
+  group('remote clipboard policy', () {
+    test(
+      'defaults to disabled and persists explicit changes across reloads',
+      () async {
+        final vault = MockVaultRepository();
+        final bloc = TerminalSettingsBloc(vault: vault);
+        addTearDown(bloc.close);
+        bloc.add(const TerminalSettingsLoad());
+        var loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isFalse);
+
+        bloc.add(const TerminalSettingsUpdateRemoteClipboard(allowed: true));
+        loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isTrue);
+        expect(await vault.readAll(), isEmpty);
+
+        bloc.add(const TerminalSettingsLoad());
+        loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isTrue);
+
+        bloc.add(const TerminalSettingsUpdateRemoteClipboard(allowed: false));
+        loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isFalse);
+        bloc.add(const TerminalSettingsLoad());
+        loaded = await bloc.stream
+            .where((state) => state is TerminalSettingsLoaded)
+            .cast<TerminalSettingsLoaded>()
+            .first;
+        expect(loaded.allowRemoteClipboardWrites, isFalse);
+      },
+    );
+
+    test('unknown stored values fail closed', () async {
+      SharedPreferences.setMockInitialValues({
+        'terminal_allow_remote_clipboard_writes': 'unexpected',
+      });
+      final bloc = TerminalSettingsBloc(vault: MockVaultRepository());
+      addTearDown(bloc.close);
+      bloc.add(const TerminalSettingsLoad());
+      final state = await bloc.stream
+          .where((state) => state is TerminalSettingsLoaded)
+          .cast<TerminalSettingsLoaded>()
+          .first;
+      expect(state.allowRemoteClipboardWrites, isFalse);
+    });
+  });
   group('TerminalSettingsBloc', () {
     late MockVaultRepository mockVault;
 

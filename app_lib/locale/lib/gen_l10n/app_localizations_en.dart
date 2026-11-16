@@ -439,4 +439,30 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get sessionPreferenceError =>
       'Settings could not be saved. Check storage access and retry.';
+
+  @override
+  String get remoteClipboardAllow => 'Allow remote clipboard writes';
+
+  @override
+  String get remoteClipboardDescription =>
+      'Allow trusted sessions to replace your clipboard. Also trust each session in its clipboard menu. Remote clipboard reads are always denied.';
+
+  @override
+  String get remoteClipboardTrust => 'Trust this session for clipboard writes';
+
+  @override
+  String get remoteClipboardRevoke => 'Revoke this session\'s clipboard access';
+
+  @override
+  String get remoteClipboardEnableFirst =>
+      'Enable remote clipboard writes in Terminal settings first.';
+
+  @override
+  String get terminalClipboardActions => 'Terminal clipboard and selection';
+
+  @override
+  String get terminalSelectText => 'Select text (pause mouse reporting)';
+
+  @override
+  String get terminalMouseInteraction => 'Resume application mouse interaction';
 }

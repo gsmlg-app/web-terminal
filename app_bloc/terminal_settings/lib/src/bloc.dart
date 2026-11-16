@@ -25,6 +25,7 @@ class TerminalSettingsBloc
   /// Keys for where `sz` downloads are saved.
   static const _downloadModeKey = 'terminal_download_mode';
   static const _downloadDirectoryKey = 'terminal_download_directory';
+  static const _remoteClipboardKey = 'terminal_allow_remote_clipboard_writes';
 
   final VaultRepository _vault;
   final SharedPreferences? _preferences;
@@ -58,6 +59,17 @@ class TerminalSettingsBloc
             await _onUpdateDownloadMode(event, emit);
           case TerminalSettingsUpdateDownloadDirectory():
             await _onUpdateDownloadDirectory(event, emit);
+          case TerminalSettingsUpdateRemoteClipboard():
+            final current = state;
+            if (current is TerminalSettingsLoaded) {
+              await _writePreference(_remoteClipboardKey, '${event.allowed}');
+              emit(
+                current.copyWith(
+                  allowRemoteClipboardWrites: event.allowed,
+                  clearPreferenceError: true,
+                ),
+              );
+            }
         }
       } catch (error) {
         final current = state;
@@ -108,6 +120,7 @@ class TerminalSettingsBloc
         _optionKeyBehaviorKey,
         _downloadModeKey,
         _downloadDirectoryKey,
+        _remoteClipboardKey,
       ]) {
         final configuration = _configuration;
         if (configuration != null && configuration.containsKey(key)) {
@@ -148,6 +161,7 @@ class TerminalSettingsBloc
           secureStorageError: secureStorageError,
           optionKeyBehavior: optionKeyBehavior,
           downloadMode: downloadMode,
+          allowRemoteClipboardWrites: options[_remoteClipboardKey] == 'true',
           downloadDirectory:
               downloadDirectory == null || downloadDirectory.isEmpty
               ? null

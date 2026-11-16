@@ -11,6 +11,11 @@ class _RecordingTerminalSettingsBloc
   _RecordingTerminalSettingsBloc([
     super.initialState = const TerminalSettingsLoaded(),
   ]) {
+    on<TerminalSettingsUpdateRemoteClipboard>((event, emit) {
+      events.add(event);
+      emit((state as TerminalSettingsLoaded)
+          .copyWith(allowRemoteClipboardWrites: event.allowed));
+    });
     on<TerminalSettingsUpdateDownloadMode>(
       (event, emit) {
         events.add(event);
@@ -73,6 +78,20 @@ Future<void> _pumpSection(
 }
 
 void main() {
+  testWidgets('remote clipboard switch is opt in and updates its policy',
+      (tester) async {
+    final bloc = _RecordingTerminalSettingsBloc();
+    addTearDown(bloc.close);
+    await _pumpSection(tester, bloc);
+    final toggle = find.byKey(const Key('remoteClipboardSwitch'));
+    await tester.ensureVisible(toggle);
+    expect(tester.widget<Switch>(toggle).value, isFalse);
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<Switch>(toggle).value, isTrue);
+    expect(bloc.events.single,
+        const TerminalSettingsUpdateRemoteClipboard(allowed: true));
+  });
   testWidgets('obsolete session limit and restore toggle are absent',
       (tester) async {
     final bloc = _RecordingTerminalSettingsBloc();

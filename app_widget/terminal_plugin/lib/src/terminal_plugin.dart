@@ -10,6 +10,7 @@ import 'package:app_locale/app_locale.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as p;
 import 'package:terminal_core/terminal_core.dart';
+import 'package:terminal_plugin/src/remote_clipboard.dart';
 import 'package:terminal_plugin/src/terminal_extra_keys.dart';
 import 'package:terminal_plugin/src/terminal_menu.dart';
 import 'package:terminal_plugin/src/terminal_shortcut_handler.dart';
@@ -28,7 +29,13 @@ class TerminalPlugin extends Plugin {
     int scrollbackLines = 10000,
     ZmodemFileAccess? fileAccess,
     this.startDirectory,
-  })  : fileAccess = fileAccess ??
+    bool Function()? remoteClipboardWritesAllowed,
+    Future<void> Function(String text)? writeClipboard,
+  })  : remoteClipboard = RemoteClipboard(
+          writesAllowed: remoteClipboardWritesAllowed ?? () => false,
+          writeClipboard: writeClipboard,
+        ),
+        fileAccess = fileAccess ??
             IoZmodemFileAccess(
               settings: () =>
                   (mode: ZmodemDownloadMode.saveToFolder, directory: null),
@@ -40,6 +47,8 @@ class TerminalPlugin extends Plugin {
         );
 
   final Terminal terminal;
+
+  final RemoteClipboard remoteClipboard;
 
   /// File access for `sz`/`rz` transfers.
   final ZmodemFileAccess fileAccess;
@@ -72,6 +81,49 @@ class TerminalPlugin extends Plugin {
   final TerminalCursorType profileCursorType;
 
   final terminalController = TerminalController();
+
+  Future<void> copySelection() async {
+    final selection = terminalController.selection;
+    if (selection == null) return;
+    try {
+      await Clipboard.setData(
+        ClipboardData(text: terminal.buffer.getText(selection)),
+      );
+    } catch (_) {
+      // Clipboard access may be unavailable while the terminal remains usable.
+    }
+  }
+
+  Future<void> pasteClipboard() async {
+    final activeSession = session;
+    try {
+      final data = await Clipboard.getData(Clipboard.kTextPlain);
+      final text = data?.text;
+      if (text != null && identical(session, activeSession)) {
+        terminal.paste(text);
+      }
+    } catch (_) {
+      // Local clipboard access is best effort.
+    }
+  }
+
+  void selectAll() {
+    if (terminal.buffer.lines.length == 0) return;
+    terminalController.setSelection(
+      terminal.buffer.createAnchor(0, 0),
+      terminal.buffer.createAnchor(
+        terminal.viewWidth,
+        terminal.buffer.lines.length - 1,
+      ),
+      mode: SelectionMode.line,
+    );
+  }
+
+  void setRemoteClipboardTrusted(bool trusted) {
+    remoteClipboard.setTrusted(false);
+    terminal.flush();
+    remoteClipboard.setTrusted(trusted);
+  }
 
   /// Error message from connection failure, displayed as selectable text.
   final connectionError = ValueNotifier<String?>(null);
@@ -135,6 +187,7 @@ class TerminalPlugin extends Plugin {
     };
 
     terminal.onPrivateOSC = (code, args) {
+      remoteClipboard.handleOSC(code, args);
       if (code == '7' && args.isNotEmpty) {
         final workingDirectory = _workingDirectoryFromFileUri(args.first);
         if (workingDirectory != null) {
@@ -198,9 +251,14 @@ class TerminalPlugin extends Plugin {
 
   /// Runs [debugAttachSession]'s wiring for a freshly opened session.
   void _attachSession(ExecutionSession openedSession) {
+    remoteClipboard.endSession();
+    terminal.resetInput();
     session = openedSession;
+    remoteClipboard.startSession();
     final decoder = const Utf8Decoder(allowMalformed: true)
-        .startChunkedConversion(_TerminalTextSink(terminal.write));
+        .startChunkedConversion(_TerminalTextSink((text) {
+      if (identical(session, openedSession)) terminal.write(text);
+    }));
     final zmodem = ZmodemTransferController(
       onTerminalOutput: decoder.add,
       writeToSession: openedSession.write,
@@ -241,6 +299,7 @@ class TerminalPlugin extends Plugin {
 
     openedSession.exitCode.then((code) {
       if (!identical(session, openedSession)) return;
+      remoteClipboard.endSession();
       session = null;
       unawaited(_outputSubscription?.cancel());
       _outputSubscription = null;
@@ -274,6 +333,7 @@ class TerminalPlugin extends Plugin {
   @override
   Future<void> closeForAppExit() async {
     _sessionGeneration++;
+    remoteClipboard.endSession();
     final activeSession = session;
     session = null;
     await _outputSubscription?.cancel();
@@ -288,6 +348,7 @@ class TerminalPlugin extends Plugin {
 
   void _closeSession() {
     _sessionGeneration++;
+    remoteClipboard.endSession();
     final activeSession = session;
     session = null;
     unawaited(_outputSubscription?.cancel());

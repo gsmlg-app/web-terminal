@@ -852,6 +852,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Settings could not be saved. Check storage access and retry.'**
   String get sessionPreferenceError;
+
+  /// No description provided for @remoteClipboardAllow.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow remote clipboard writes'**
+  String get remoteClipboardAllow;
+
+  /// No description provided for @remoteClipboardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow trusted sessions to replace your clipboard. Also trust each session in its clipboard menu. Remote clipboard reads are always denied.'**
+  String get remoteClipboardDescription;
+
+  /// No description provided for @remoteClipboardTrust.
+  ///
+  /// In en, this message translates to:
+  /// **'Trust this session for clipboard writes'**
+  String get remoteClipboardTrust;
+
+  /// No description provided for @remoteClipboardRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke this session\'s clipboard access'**
+  String get remoteClipboardRevoke;
+
+  /// No description provided for @remoteClipboardEnableFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable remote clipboard writes in Terminal settings first.'**
+  String get remoteClipboardEnableFirst;
+
+  /// No description provided for @terminalClipboardActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Terminal clipboard and selection'**
+  String get terminalClipboardActions;
+
+  /// No description provided for @terminalSelectText.
+  ///
+  /// In en, this message translates to:
+  /// **'Select text (pause mouse reporting)'**
+  String get terminalSelectText;
+
+  /// No description provided for @terminalMouseInteraction.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume application mouse interaction'**
+  String get terminalMouseInteraction;
 }
 
 class _AppLocalizationsDelegate

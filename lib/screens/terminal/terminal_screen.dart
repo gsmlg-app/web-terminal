@@ -181,6 +181,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
           )],
       scrollbackLines: effectiveProfile?.scrollbackLines ?? 10000,
       fileAccess: IoZmodemFileAccess(settings: _zmodemDownloadSettings),
+      remoteClipboardWritesAllowed: () {
+        final state = _terminalSettingsBloc.state;
+        return state is TerminalSettingsLoaded &&
+            state.allowRemoteClipboardWrites;
+      },
       startDirectory: startDirectory,
     );
   }
@@ -749,6 +754,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
                     ValueListenableBuilder<String?>(
                       valueListenable: activePlugin.title,
                       builder: (context, _, _) => TerminalAppBar(
+                        terminalActions: activePlugin is TerminalPlugin
+                            ? TerminalClipboardMenu(plugin: activePlugin)
+                            : null,
                         currentSessionName: _getCurrentSessionName(state),
                         sessions: _buildSessionList(state),
                         onShowTabSwitcher: _showTabSwitcher,

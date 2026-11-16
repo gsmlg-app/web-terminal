@@ -23,6 +23,7 @@ class TerminalAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.onSaveWorkspace,
     this.onSaveGroup,
     this.onManageSnapshots,
+    this.terminalActions,
   });
 
   /// Name of the currently active session
@@ -45,6 +46,7 @@ class TerminalAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onSaveWorkspace;
   final VoidCallback? onSaveGroup;
   final VoidCallback? onManageSnapshots;
+  final Widget? terminalActions;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -56,6 +58,7 @@ class TerminalAppBar extends StatelessWidget implements PreferredSizeWidget {
       title: _buildSessionSelector(context),
       centerTitle: true,
       actions: [
+        ?terminalActions,
         if (onManageSnapshots != null)
           PopupMenuButton<VoidCallback>(
             tooltip: context.l10n.sessionSnapshots,
