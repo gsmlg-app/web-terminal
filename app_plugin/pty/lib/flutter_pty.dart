@@ -200,6 +200,8 @@ class Pty {
   }
 
   /// Write data to the pseudo-terminal.
+  /// On Unix, data is copied into an ordered queue and written by a native
+  /// worker so a full terminal input buffer cannot block the calling isolate.
   void write(Uint8List data) {
     if (_handle == nullptr || _closeFuture != null) return;
     final buf = malloc<Int8>(data.length);

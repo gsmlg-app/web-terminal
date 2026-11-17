@@ -125,6 +125,33 @@ static void await_exits(int count) {
 
 int main(int argc, char **argv) {
     assert(argc == 2);
+    if (strcmp(argv[1], "duplex-input") == 0) {
+        struct termios raw;
+        assert(tcgetattr(STDIN_FILENO, &raw) == 0);
+        cfmakeraw(&raw);
+        assert(tcsetattr(STDIN_FILENO, TCSANOW, &raw) == 0);
+        assert(write(STDOUT_FILENO, "ready", 5) == 5);
+        const char *packets[] = {"\033[<64;92;39M", "\033[<65;92;39M"};
+        const size_t packet_length = strlen(packets[0]);
+        size_t received = 0;
+        char buffer[4096];
+        while (received < packet_length * 8192) {
+            ssize_t length = read(STDIN_FILENO, buffer, sizeof(buffer));
+            if (length < 0 && errno == EINTR) continue;
+            assert(length > 0);
+            for (ssize_t i = 0; i < length; i++, received++)
+                assert(buffer[i] == packets[(received / packet_length) % 2]
+                                          [received % packet_length]);
+            ssize_t sent = 0;
+            while (sent < length) {
+                ssize_t written = write(STDOUT_FILENO, buffer + sent, length - sent);
+                if (written < 0 && errno == EINTR) continue;
+                assert(written > 0);
+                sent += written;
+            }
+        }
+        _exit(0);
+    }
     if (strcmp(argv[1], "read-input") == 0) {
         struct termios raw;
         assert(tcgetattr(STDIN_FILENO, &raw) == 0);
@@ -238,6 +265,32 @@ int main(int argc, char **argv) {
         assert(pty_working_directory(handle, path, sizeof path) == -1);
         destroy(handle);
         assert_resources_released(before_fds, before_threads);
+    } else if (strcmp(argv[1], "write-backpressure") == 0 ||
+               strcmp(argv[1], "write-close") == 0) {
+        char *args[] = {argv[0], "duplex-input", NULL};
+        PtyHandle *handle = spawn(argv[0], args, true, NULL);
+        assert(handle != NULL);
+        for (int i = 0; i < 3000 && atomic_load(&bytes) < 5; i++) usleep(1000);
+        assert(atomic_load(&bytes) == 5);
+        char packet[] = "\033[<64;92;39M";
+        for (int i = 0; i < 8192; i++) {
+            packet[4] = i % 2 ? '5' : '4';
+            pty_write(handle, packet, strlen(packet));
+        }
+        memset(packet, 0, sizeof packet);
+        bool closing = strcmp(argv[1], "write-close") == 0;
+        if (closing) terminate(handle, SIGKILL);
+        for (int i = 0; i < 3000 && atomic_load(&exits) == 0; i++) {
+            if (!closing) pty_ack_read(handle);
+            usleep(1000);
+        }
+        await_exits(1);
+        if (!closing) {
+            assert(atomic_load(&last_exit_code) == 0);
+            assert(atomic_load(&bytes) == 5 + 8192 * (sizeof packet - 1));
+        }
+        destroy(handle);
+        assert_resources_released(before_fds, before_threads);
     } else if (strcmp(argv[1], "full-write") == 0) {
         char *args[] = {argv[0], "read-input", NULL};
         PtyHandle *handle = spawn(argv[0], args, false, NULL);
@@ -286,6 +339,7 @@ int main(int argc, char **argv) {
         kill(-pid, SIGKILL);
         assert_resources_released(before_fds, before_threads);
     } else if (strcmp(argv[1], "reader-failure") == 0 ||
+               strcmp(argv[1], "writer-failure") == 0 ||
                strcmp(argv[1], "waiter-failure") == 0 ||
                strcmp(argv[1], "fd-failure") == 0) {
         struct rlimit original;
@@ -296,7 +350,8 @@ int main(int argc, char **argv) {
             limited.rlim_cur = 5;
             assert(setrlimit(RLIMIT_NOFILE, &limited) == 0);
         } else {
-            fail_thread = strcmp(argv[1], "reader-failure") == 0 ? 1 : 2;
+            fail_thread = strcmp(argv[1], "reader-failure") == 0 ? 1 :
+                          strcmp(argv[1], "writer-failure") == 0 ? 2 : 3;
         }
         char *args[] = {"sh", "-c", "sleep 60", NULL};
         assert(spawn("/bin/sh", args, true, NULL) == NULL);
