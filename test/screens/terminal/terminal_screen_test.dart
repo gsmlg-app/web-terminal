@@ -475,6 +475,60 @@ void main() {
       return (tabBloc: tabBloc, grouped: grouped, other: other, spec: spec);
     }
 
+    testWidgets(
+      'tab shortcuts still work while the active SSH terminal is composing',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        final setup = await pumpGroupedScreen(tester);
+        setup.tabBloc.add(
+          TerminalTabUngroup(setup.grouped.hashCode.toString()),
+        );
+        await tester.pump();
+        final output = <String>[];
+        for (final tab in [setup.other, setup.grouped]) {
+          (tab.plugin as TerminalPlugin).terminal.onOutput = output.add;
+        }
+        final view = tester.widget<TerminalView>(find.byType(TerminalView));
+        view.focusNode!.requestFocus();
+        await tester.pump();
+        Future<void> switchTab(LogicalKeyboardKey key) async {
+          await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+          await tester.sendKeyEvent(key);
+          await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+          await tester.pump();
+          await tester.pump();
+        }
+
+        await switchTab(LogicalKeyboardKey.bracketRight);
+        expect(
+          (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+          setup.other,
+        );
+        await switchTab(LogicalKeyboardKey.bracketLeft);
+        expect(
+          (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+          setup.grouped,
+        );
+
+        tester.testTextInput.updateEditingValue(
+          const TextEditingValue(
+            text: 'ni',
+            selection: TextSelection.collapsed(offset: 2),
+            composing: TextRange(start: 0, end: 2),
+          ),
+        );
+        await tester.pump();
+
+        await switchTab(LogicalKeyboardKey.bracketRight);
+
+        expect(
+          (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+          setup.other,
+        );
+        expect(output, isEmpty);
+      },
+    );
+
     for (final shortcut in [
       (
         platform: TargetPlatform.macOS,
