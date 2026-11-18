@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:hive_ce/hive_ce.dart';
 
@@ -7,6 +6,7 @@ import 'package:app_database/app_database.dart';
 import 'package:app_locale/app_locale.dart';
 import 'package:app_secure_storage/app_secure_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -149,8 +149,7 @@ class _Harness {
   }
 
   Future<void> restore(WidgetTester tester, {bool append = false}) async {
-    await tester.tap(find.text('Restore').first);
-    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsOneWidget);
     if (append) {
       await tester.tap(find.text('Append'));
       await tester.pump();
@@ -240,22 +239,52 @@ void main() {
     return h;
   }
 
-  sessionTest(
-    'startup prompt is nonblocking and unused launch preserves history',
-    (tester) async {
-      final h = await setup(tester, previous: _layout());
-      expect(find.text('Restore tabs from your last session?'), findsOneWidget);
-      expect((h.tabs.state as TerminalTabLoaded).tabCount, 1);
-      expect(h.sessions.store.current, isNull);
-      await tester.tap(find.text('Later'));
-      await tester.pump();
-      expect(find.text('Restore tabs from your last session?'), findsNothing);
-      await tester.runAsync(h.sessions.prepareExit);
-      await tester.runAsync(h.sessions.finishExit);
-      expect(h.sessions.store.history, hasLength(1));
-      expect(h.sessions.store.latest!.layout['tabs'], hasLength(2));
-    },
-  );
+  sessionTest('startup without history does not show a restore dialog', (
+    tester,
+  ) async {
+    final h = await setup(tester);
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(MaterialBanner), findsNothing);
+    expect((h.tabs.state as TerminalTabLoaded).tabCount, 1);
+  });
+  for (final escape in [false, true]) {
+    sessionTest(
+      'startup restore dialog dismisses once and preserves history escape=$escape',
+      (tester) async {
+        final h = await setup(tester, previous: _layout());
+        expect(find.byType(AlertDialog), findsOneWidget);
+        expect(find.byType(MaterialBanner), findsNothing);
+        expect(
+          find.descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text('Restore tabs from your last session?'),
+          ),
+          findsOneWidget,
+        );
+        expect((h.tabs.state as TerminalTabLoaded).tabCount, 1);
+        expect(h.sessions.store.current, isNull);
+        if (escape) {
+          await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+        } else {
+          await tester.tap(find.text('Later'));
+        }
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(h.sessions.startupPromptDismissed, isTrue);
+        h.sessions.dismissStartupPrompt();
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+        await tester.pumpWidget(const SizedBox());
+        await tester.pump();
+        await h.mount(tester);
+        expect(find.byType(AlertDialog), findsNothing);
+        await tester.runAsync(h.sessions.prepareExit);
+        await tester.runAsync(h.sessions.finishExit);
+        expect(h.sessions.store.history, hasLength(1));
+        expect(h.sessions.store.latest!.layout['tabs'], hasLength(2));
+      },
+    );
+  }
   for (final append in [false, true]) {
     sessionTest(
       'workspace restore append=$append preserves profiles, groups and selection',

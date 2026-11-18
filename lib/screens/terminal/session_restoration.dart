@@ -8,11 +8,20 @@ extension _SessionRestoration on _TerminalScreenState {
       return;
     }
     final sessions = _sessions;
-    if (sessions?.requestedRestore == null || _restoring) return;
+    if (sessions == null || _restoring) return;
+    final hasStartupPrompt =
+        !sessions.startupPromptDismissed && sessions.store.latest != null;
+    if (sessions.requestedRestore == null && !hasStartupPrompt) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _restoring) return;
-      final snapshot = sessions?.takeRestoreRequest();
-      if (snapshot != null) unawaited(_restoreSnapshot(snapshot));
+      final requested = sessions.takeRestoreRequest();
+      final startupPrompt =
+          requested == null && !sessions.startupPromptDismissed;
+      final snapshot =
+          requested ?? (startupPrompt ? sessions.store.latest : null);
+      if (snapshot != null) {
+        unawaited(_restoreSnapshot(snapshot, startupPrompt: startupPrompt));
+      }
     });
     WidgetsBinding.instance.scheduleFrame();
   }
@@ -23,31 +32,15 @@ extension _SessionRestoration on _TerminalScreenState {
     return ListenableBuilder(
       listenable: sessions,
       builder: (context, _) {
-        if (sessions.persistenceError != null) {
-          return MaterialBanner(
-            content: Text(context.l10n.sessionPersistenceError),
-            actions: [
-              TextButton(
-                onPressed: () => sessions.capture(force: true),
-                child: Text(context.l10n.retry),
-              ),
-            ],
-          );
-        }
-        final latest = sessions.store.latest;
-        if (latest == null || sessions.startupPromptDismissed) {
+        if (sessions.persistenceError == null) {
           return const SizedBox.shrink();
         }
         return MaterialBanner(
-          content: Text(context.l10n.sessionRestorePrompt),
+          content: Text(context.l10n.sessionPersistenceError),
           actions: [
             TextButton(
-              onPressed: sessions.dismissStartupPrompt,
-              child: Text(context.l10n.sessionLater),
-            ),
-            TextButton(
-              onPressed: () => _restoreSnapshot(latest),
-              child: Text(context.l10n.sessionRestore),
+              onPressed: () => sessions.capture(force: true),
+              child: Text(context.l10n.retry),
             ),
           ],
         );
@@ -134,12 +127,16 @@ extension _SessionRestoration on _TerminalScreenState {
     }
   }
 
-  Future<void> _restoreSnapshot(SessionSnapshot snapshot) async {
+  Future<void> _restoreSnapshot(
+    SessionSnapshot snapshot, {
+    bool startupPrompt = false,
+  }) async {
     if (_restoring) return;
     _restoring = true;
     try {
       final current = _terminalTabBloc.state;
       if (current is! TerminalTabLoaded) return;
+      if (startupPrompt) _sessions?.dismissStartupPrompt();
       final groupOnly = snapshot.kind == SessionSnapshotKind.group;
       var append = false;
       String? target = current.activeTab == null
@@ -151,7 +148,11 @@ extension _SessionRestoration on _TerminalScreenState {
         builder: (context) {
           return StatefulBuilder(
             builder: (context, setState) => AlertDialog(
-              title: Text(snapshot.name ?? context.l10n.sessionRestore),
+              title: Text(
+                startupPrompt
+                    ? context.l10n.sessionRestorePrompt
+                    : snapshot.name ?? context.l10n.sessionRestore,
+              ),
               content: SizedBox(
                 width: 420,
                 child: Column(
@@ -200,7 +201,11 @@ extension _SessionRestoration on _TerminalScreenState {
               actions: [
                 TextButton(
                   onPressed: () => Navigator.pop(context, false),
-                  child: Text(context.l10n.cancel),
+                  child: Text(
+                    startupPrompt
+                        ? context.l10n.sessionLater
+                        : context.l10n.cancel,
+                  ),
                 ),
                 FilledButton(
                   onPressed: () => Navigator.pop(context, true),
