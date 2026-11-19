@@ -55,6 +55,28 @@ void main() {
   }
 
   testWidgets(
+    'Ctrl+/ sends the terminal control byte without a text commit',
+    variant: desktopPlatforms,
+    (tester) async {
+      final output = <String>[];
+      final terminal = Terminal(onOutput: output.add);
+      final focusNode = FocusNode();
+      addTearDown(terminal.dispose);
+      addTearDown(focusNode.dispose);
+      await _pumpTerminal(tester, terminal, focusNode);
+
+      await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+      await tester.sendKeyEvent(LogicalKeyboardKey.slash, character: '/');
+      await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+
+      expect(output, ['\x1f']);
+      tester.testTextInput.enterText('/');
+      await tester.pump();
+      expect(output, ['\x1f', '/']);
+    },
+  );
+
+  testWidgets(
     'unhandled keys remain with the IME until text is committed',
     variant: desktopPlatforms,
     (tester) async {
