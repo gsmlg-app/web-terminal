@@ -5,24 +5,28 @@ This applies to any application that emits OSC 52, including suitable Codex CLI,
 Vim/Neovim and tmux configurations. It does not install clipboard tools on the
 remote machine or change remote configuration.
 
-## Enable and trust a session
+## Configuration and session trust
 
 1. **Allow remote clipboard writes** in Settings → Terminal defaults to on.
    An explicitly saved off setting is preserved. The preference is stored with
-   ordinary terminal settings, separately from credentials.
-2. Open an interactive terminal session. In the top bar's **Terminal clipboard
-   and selection** menu, choose **Trust this session for clipboard writes**.
-   The terminal context menu provides the same action.
-3. Run the clipboard test below. Choose **Revoke this session's clipboard access**
-   to stop allowing writes in that session.
+   ordinary terminal settings, separately from credentials. Disabling the global
+   setting blocks remote clipboard writes immediately across all open tabs and
+   drops queued pending writes.
+2. Each new interactive terminal session starts trusted by default while the
+   global setting is enabled, so SSH workflows (such as Codex CLI, Vim/Neovim,
+   and tmux) work out of the box.
+3. To revoke remote clipboard writes for a specific session, open the top bar's
+   **Terminal clipboard and selection** menu (or the terminal context menu) and
+   choose **Revoke this session's clipboard access**. Manual revocation lasts
+   until you explicitly choose **Trust this session for clipboard writes** again
+   or start a new session.
 
-Connecting to a host, accepting an SSH host key, or restoring a saved tab does
-not grant clipboard trust. Each new/reconnected shell starts untrusted. Closing,
-exiting or disconnecting a session revokes its trust and drops queued clipboard
-work. Disabling the global setting blocks writes immediately; per-session trust
-otherwise lasts until revoked or the connection ends. Trust authorizes all
-processes producing output in that session, including commands whose output you
-print. An OS clipboard operation already dispatched cannot be recalled.
+Closing, exiting, or disconnecting a session ends clipboard trust, discards
+pending queued clipboard work, and resets incomplete parser input so stale
+output cannot complete an OSC 52 command in a later session. Trust authorizes
+all processes producing output in that interactive session, including commands
+whose output you print. An OS clipboard operation already dispatched cannot be
+recalled.
 
 ## Supported operations and security policy
 
@@ -30,20 +34,22 @@ print. An OS clipboard operation already dispatched cannot be recalled.
 | --- | --- |
 | `ESC ] 52 ; c ; BASE64 BEL` | Write UTF-8 text to the local system clipboard |
 | The same sequence ending in `ESC \` (ST) | Same behavior |
-| Empty selection (`52;;...`) | Use the system clipboard |
+| Empty selection (`52;;...`) or multi-target selection containing `c` (e.g., `52;cp;...`, `52;pc;...`, `52;c0;...`) | Write UTF-8 text to the local system clipboard |
 | Empty payload | Clear the clipboard to an empty string |
 | Payload `?` (clipboard query) | Ignore; never read the clipboard or reply |
-| Other selection targets, extra arguments, malformed Base64 or invalid UTF-8 | Ignore |
+| Primary-only/cut-buffer-only targets (`p`, `s`, `q`, `0`–`7` without `c`), invalid target characters, extra arguments, malformed Base64, or invalid UTF-8 | Ignore |
 | Decoded payload larger than 100 KiB (102400 bytes) | Ignore |
-| Writes disabled, no active interactive session, or untrusted session | Ignore |
+| Writes disabled, no active interactive session, or revoked session | Ignore |
 | Flutter Clipboard API failure | Discard that write; keep the terminal running |
 
-Only the standard Base64 alphabet and up to two trailing padding characters are
-accepted. The decoder also accepts valid unpadded Base64. Size is checked before
-Base64 decoding and again on the decoded bytes. Clipboard contents are never
-logged. The remote-write component has no clipboard-read API or SSH-write API.
-Local clipboard contents are sent to a session only by an explicit native Paste
-menu action or paste shortcut.
+Only the standard Base64 alphabet (`A-Z`, `a-z`, `0-9`, `+`, `/`) and up to two
+trailing `=` padding characters are accepted. Valid unpadded Base64 is
+normalized before decoding; malformed partial padding (such as `YQ=` or `a=`)
+and length `mod 4 == 1` are rejected. Size is checked before Base64 decoding
+and again on the decoded bytes. Clipboard contents are never logged. The
+remote-write component has no clipboard-read API or SSH-write API. Local
+clipboard contents are sent to a session only by an explicit native Paste menu
+action or paste shortcut.
 
 Clipboard writes run asynchronously, outside output parsing. A slow OS clipboard
 does not pause SSH reads, acknowledgments, input or rendering. Writes are
@@ -186,8 +192,8 @@ been validated in this change.
 
 ## Reproduce and diagnose
 
-On a directly connected NixOS or macOS SSH host, after enabling the setting and
-trusting the session:
+On a directly connected NixOS or macOS SSH host (with **Allow remote clipboard
+writes** enabled and the session not revoked):
 
 ```bash
 printf '\033]52;c;%s\a' \
@@ -204,12 +210,15 @@ printf '\033]52;c;%s\033\\' \
 If direct SSH works but tmux does not, check the tmux options above and repeat
 inside tmux. If this test works but Codex or Vim/Neovim copying does not, verify
 that application's documented OSC 52 clipboard configuration and emitted
-protocol. Check `printf '%s\n' "$TERM" "$TMUX"` and, where available,
-`infocmp "$TERM"`. Avoid recording clipboard payloads or dumping session output
-containing private data into diagnostics.
+protocol:
+
+- Check `printf 'TERM=%s TMUX=%s SSH_TTY=%s SSH_CONNECTION=%s\n' "$TERM" "$TMUX" "$SSH_TTY" "$SSH_CONNECTION"` and, where available, `infocmp -x "$TERM" | grep Ms`.
+- Codex CLI selects OSC 52 over SSH when remote session environment variables such as `SSH_TTY` or `SSH_CONNECTION` are present; inside tmux it also checks `set-clipboard` and the outer terminal's `Ms` capability.
+- Neovim's built-in `vim.ui.clipboard.osc52` provider emits `ESC ] 52 ; c ; BASE64 ESC \` for register `+` (`p` for `*`). Plugins such as `vim-oscyank` or `osc52.nvim` may emit multi-target selections like `cp`, which WebTerminal accepts because the target list includes `c`.
+- Avoid recording clipboard payloads or dumping session output containing private data into diagnostics.
 
 Consult the remote application's shortcut help when diagnosing a missing answer
-or transcript window. In the locally tested Codex CLI 0.169.0, `?` lists Ctrl+T
+or transcript window. In tested Codex CLI 0.169.0 / 0.170.0, `?` lists Ctrl+T
 for opening the transcript; `/copy` opens a picker and Enter selects **Whole
 response**. Shortcuts can differ between application versions. Terminal key
 forwarding and an application's chosen shortcut are separate checks.
@@ -217,17 +226,22 @@ forwarding and an application's chosen shortcut are separate checks.
 For manual acceptance, repeat on both remote OSes: the direct printf test,
 Codex copy and ordinary input/fullscreen/mouse interaction, native selection and
 Copy, local Paste, and Vim/Neovim OSC 52 copying. Then repeat the clipboard tests
-inside tmux. Reconnect and confirm that explicit trust is required again.
+inside tmux. Also verify that revoking session trust or disabling the global
+setting blocks subsequent remote OSC 52 writes while preserving native Copy and
+Paste.
 
 ## Verification and limits
 
 Focused automated tests cover the native Flutter clipboard method channel and an
-injected clipboard writer; BEL/ST; arbitrary fragmentation; Unicode/multiline
-and empty text; invalid, cancelled and oversized input; read denial; disabled
-and untrusted policy; API failures; bounded asynchronous writes and revocation;
-session boundaries; tmux envelopes; selection, shortcuts and bracketed paste.
-Desktop widget tests simulate macOS, Linux and Windows key mappings. They do not
-prove OS clipboard behavior on those three operating systems.
+injected clipboard writer; BEL/ST; arbitrary fragmentation; unpadded and padded
+Base64; multi-target selections containing `c` (`cp`, `pc`, `c0`, `cs`);
+Unicode/multiline and empty text; invalid, cancelled, consecutive-ESC aborted,
+and oversized input; read denial; disabled and revoked policy; clipboard API
+failures (both remote OSC 52 and native keyboard Copy/Paste); bounded
+asynchronous writes and revocation; session boundaries; tmux envelopes (split at
+every byte boundary); selection, shortcuts, and bracketed paste. Desktop widget
+tests simulate macOS, Linux, and Windows key mappings. They do not prove OS
+clipboard behavior on those three operating systems.
 
 The focused keyboard, terminal input and clipboard regression run passed 137
 tests. Shift+Left/Right coverage includes Flutter key events, normal/alternate

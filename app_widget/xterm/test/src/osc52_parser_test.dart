@@ -56,6 +56,39 @@ void main() {
     expect(terminal.buffer.getText().trim(), 'AB');
   });
 
+  test('consecutive ESC after aborted OSC starts a fresh OSC cleanly', () {
+    terminal.write('A\x1b]52;c;aborted\x1b\x1b]52;c;aGVsbG8=\x07B');
+    expect(events, [
+      [
+        '52',
+        ['c', 'aGVsbG8=']
+      ]
+    ]);
+    expect(terminal.buffer.getText().trim(), 'AB');
+  });
+
+  for (final terminator in ['\x07', '\x1b\\']) {
+    test('tmux passthrough OSC 52 survives every two-chunk split ($terminator)',
+        () {
+      final inner =
+          '\x1b]52;c;aGVsbG8=$terminator'.replaceAll('\x1b', '\x1b\x1b');
+      final sequence = '\x1bPtmux;$inner\x1b\\';
+      for (var split = 1; split < sequence.length; split++) {
+        events.clear();
+        terminal.write(sequence.substring(0, split));
+        expect(events, isEmpty);
+        terminal.write(sequence.substring(split));
+        expect(events, [
+          [
+            '52',
+            ['c', 'aGVsbG8=']
+          ]
+        ]);
+      }
+      expect(terminal.buffer.getText().trim(), isEmpty);
+    });
+  }
+
   test('malformed OSC cannot invoke a partially collected clipboard command',
       () {
     terminal.write('\x1b]52;c;aGVsbG8=\x1b[31mred');

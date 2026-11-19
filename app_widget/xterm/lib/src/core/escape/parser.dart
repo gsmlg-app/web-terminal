@@ -1235,7 +1235,9 @@ class EscapeParser {
         }
         _resetControlString();
         _pendingEscape = true;
-        _queue.rollback();
+        if (char != Ascii.ESC) {
+          _queue.rollback();
+        }
         return;
       }
       if (char == Ascii.ESC) {

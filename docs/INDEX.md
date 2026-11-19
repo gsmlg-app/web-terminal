@@ -11,6 +11,7 @@ This directory contains detailed documentation for the Flutter App Template proj
 | [DOCUMENTATION.md](DOCUMENTATION.md) | Error handling and logging system architecture |
 | [FORM_BLOC.md](FORM_BLOC.md) | Comprehensive guide for form management with BLoC pattern |
 | [TERMINAL.md](TERMINAL.md) | Terminal feature documentation - shell sessions, SSH, settings |
+| [REMOTE_CLIPBOARD.md](REMOTE_CLIPBOARD.md) | Native terminal OSC 52 remote clipboard integration, security policy, and tmux configuration |
 | [IOS_SHELL_EMULATOR.md](IOS_SHELL_EMULATOR.md) | iOS shell emulator architecture, limitations, and roadmap |
 | [TESTING.md](TESTING.md) | Testing guide for running tests across the monorepo |
 | [USAGE.md](USAGE.md) | Error handling system usage and setup guide |

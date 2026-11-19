@@ -114,6 +114,10 @@ void main() {
       '***',
       'a',
       'a=',
+      '=',
+      '==',
+      'YQ=',
+      'a==',
       'YQ===',
       'Y Q==',
       '%59Q==',
@@ -126,6 +130,58 @@ void main() {
     await _settle();
     expect(writes, isEmpty);
     expect(plugin.terminal.buffer.getText().trim(), isEmpty);
+  });
+
+  test('accepts valid unpadded Base64 up to 100 KiB and rejects larger',
+      () async {
+    send('\x1b]52;c;YQ\x07');
+    await _settle();
+    expect(writes, ['a']);
+    writes.clear();
+
+    send('\x1b]52;c;YWI\x07');
+    await _settle();
+    expect(writes, ['ab']);
+    writes.clear();
+
+    final unpaddedHello =
+        base64.encode(utf8.encode('hello')).replaceAll('=', '');
+    send('\x1b]52;c;$unpaddedHello\x1b\\');
+    await _settle();
+    expect(writes, ['hello']);
+    writes.clear();
+
+    final maxUnpadded = base64
+        .encode(utf8.encode('x' * RemoteClipboard.maxDecodedBytes))
+        .replaceAll('=', '');
+    send('\x1b]52;c;$maxUnpadded\x07');
+    await _settle();
+    expect(writes.single.length, RemoteClipboard.maxDecodedBytes);
+    writes.clear();
+
+    final oversizedUnpadded = base64
+        .encode(utf8.encode('x' * (RemoteClipboard.maxDecodedBytes + 1)))
+        .replaceAll('=', '');
+    send('\x1b]52;c;$oversizedUnpadded\x07');
+    await _settle();
+    expect(writes, isEmpty);
+  });
+
+  test('accepts multi-target selection lists that include c', () async {
+    for (final target in ['c', 'cp', 'pc', 'c0', 'cs', '0c7']) {
+      writes.clear();
+      send('\x1b]52;$target;${base64.encode(utf8.encode(target))}\x07');
+      await _settle();
+      expect(writes, [target]);
+    }
+  });
+
+  test('ignores unsupported or malformed selection targets', () async {
+    for (final target in ['p', 's', 'q', '0', 'ps', 'z', 'cx', 'cp?']) {
+      send('\x1b]52;$target;aGVsbG8=\x07');
+    }
+    await _settle();
+    expect(methods, isEmpty);
   });
 
   test('accepts exactly 100 KiB and rejects larger decoded payloads', () async {
@@ -151,16 +207,10 @@ void main() {
 
   test('never reads or replies to clipboard queries, even in trusted sessions',
       () async {
-    send('\x1b]52;c;?\x07\x1b]52;;?\x1b\\');
+    send('\x1b]52;c;?\x07\x1b]52;;?\x1b\\\x1b]52;cp;?\x07');
     await _settle();
     expect(methods, isEmpty);
     expect(session.input, isEmpty);
-  });
-
-  test('ignores unsupported selection targets', () async {
-    send('\x1b]52;p;aGVsbG8=\x07');
-    await _settle();
-    expect(methods, isEmpty);
   });
 
   test('global configuration is checked for each write', () async {
@@ -350,14 +400,24 @@ void main() {
 
   test('clipboard writer can be injected without an OS clipboard', () async {
     final injected = <String>[];
-    final clipboard = RemoteClipboard(
-      writesAllowed: () => true,
+    final injectedPlugin = TerminalPlugin(
+      remoteClipboardWritesAllowed: () => true,
       writeClipboard: (text) async => injected.add(text),
     );
-    clipboard.startSession();
-    clipboard.handleOSC('52', ['c', 'aGk=']);
+    final injectedManager = PluginManager(MockHostSpec());
+    injectedManager.add(injectedPlugin);
+    final injectedSession = _Session();
+    injectedPlugin.debugAttachSession(injectedSession);
+    addTearDown(() {
+      if (injectedPlugin.mounted) injectedManager.remove(injectedPlugin);
+    });
+
+    injectedSession.controller.add(
+      Uint8List.fromList(utf8.encode('\x1b]52;cp;aGk\x1b\\')),
+    );
+    injectedPlugin.terminal.flush();
     await _settle();
     expect(injected, ['hi']);
-    clipboard.endSession();
+    expect(methods, isEmpty);
   });
 }

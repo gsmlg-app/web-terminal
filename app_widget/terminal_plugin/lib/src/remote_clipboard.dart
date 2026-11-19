@@ -17,6 +17,7 @@ class RemoteClipboard {
   static const maxDecodedBytes = 100 * 1024;
   static const _maxEncodedLength = ((maxDecodedBytes + 2) ~/ 3) * 4;
   static final _base64Pattern = RegExp(r'^[A-Za-z0-9+/]*={0,2}$');
+  static final _selectionPattern = RegExp(r'^[cpqs0-7]+$');
 
   final bool Function() writesAllowed;
   final Future<void> Function(String text) _writeClipboard;
@@ -56,16 +57,11 @@ class RemoteClipboard {
     if (code != '52' || !_canWrite || args.length != 2) return;
     final selection = args[0];
     final payload = args[1];
-    if (selection != 'c' && selection.isNotEmpty) return;
-    if (payload == '?' ||
-        payload.length > _maxEncodedLength ||
-        !_base64Pattern.hasMatch(payload)) {
-      return;
-    }
+    if (!_targetsClipboard(selection)) return;
+    final bytes = _decodeBase64Payload(payload);
+    if (bytes == null) return;
 
     try {
-      final bytes = base64.decode(payload);
-      if (bytes.length > maxDecodedBytes) return;
       final text = utf8.decode(bytes);
       _pending = (text, _generation);
       if (!_writing) {
@@ -73,7 +69,41 @@ class RemoteClipboard {
         unawaited(Future<void>.microtask(_drain));
       }
     } on FormatException {
-      // Invalid Base64 or UTF-8 is not clipboard text.
+      // Invalid UTF-8 is not clipboard text.
+    }
+  }
+
+  static bool _targetsClipboard(String selection) {
+    if (selection.isEmpty) return true;
+    return _selectionPattern.hasMatch(selection) && selection.contains('c');
+  }
+
+  static Uint8List? _decodeBase64Payload(String payload) {
+    if (payload == '?' ||
+        payload.length > _maxEncodedLength ||
+        !_base64Pattern.hasMatch(payload)) {
+      return null;
+    }
+
+    final String normalized;
+    if (payload.contains('=')) {
+      if (payload.length % 4 != 0) return null;
+      normalized = payload;
+    } else {
+      final remainder = payload.length % 4;
+      if (remainder == 1) return null;
+      normalized =
+          remainder == 0 ? payload : '$payload${'=' * (4 - remainder)}';
+    }
+
+    if (normalized.length > _maxEncodedLength) return null;
+
+    try {
+      final bytes = base64.decode(normalized);
+      if (bytes.length > maxDecodedBytes) return null;
+      return bytes;
+    } on FormatException {
+      return null;
     }
   }
 
