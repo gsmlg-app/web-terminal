@@ -76,6 +76,37 @@ void main() {
     expect(sessions.store.history.single.layout['tabs'], isEmpty);
   });
   test(
+    'group reorder is saved with membership and active tab intact',
+    () async {
+      final second = PluginTab(
+        _Plugin(),
+        PluginManager(LocalHostSpec(workingDirectory: '/tmp')),
+      );
+      tabs.add(TerminalTabOpenTab(second));
+      tabs.add(TerminalTabCreateGroup(first.hashCode.toString(), 'one'));
+      tabs.add(TerminalTabCreateGroup(second.hashCode.toString(), 'two'));
+      await settle();
+      final state = tabs.state as TerminalTabLoaded;
+      final groups = state.grouping.groups;
+      final previous = sessions.store.current!.layout;
+
+      tabs.add(TerminalTabMoveGroupBefore(groups[1].id, groups[0].id));
+      await settle();
+
+      final layout = sessions.store.current!.layout;
+      expect((layout['groups'] as List).map((group) => group['name']), [
+        'two',
+        'one',
+      ]);
+      expect(layout['tabs'], previous['tabs']);
+      expect(layout['activeIndex'], previous['activeIndex']);
+      await sessions.prepareExit();
+      await sessions.finishExit();
+      expect(sessions.store.history.single.layout['groups'], layout['groups']);
+    },
+  );
+
+  test(
     'SFTP records the full path including a change with the same basename',
     () async {
       final plugin = FileManagerPlugin();

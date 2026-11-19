@@ -506,6 +506,11 @@ class _TerminalScreenState extends State<TerminalScreen> {
           onRenameGroup: (groupId, name) {
             _terminalTabBloc.add(TerminalTabRenameGroup(groupId, name));
           },
+          onMoveGroupBefore: (groupId, targetGroupId) {
+            _terminalTabBloc.add(
+              TerminalTabMoveGroupBefore(groupId, targetGroupId),
+            );
+          },
           onToggleCollapsed: (groupId) {
             _terminalTabBloc.add(TerminalTabToggleGroupCollapsed(groupId));
           },

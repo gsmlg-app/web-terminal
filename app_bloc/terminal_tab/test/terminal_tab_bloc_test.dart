@@ -1062,6 +1062,49 @@ void main() {
         expect(loaded().version, greaterThan(version));
       });
 
+      test('MoveGroupBefore preserves tabs, membership and active selection',
+          () async {
+        final tabs = await openTabs(3);
+        for (var index = 0; index < tabs.length; index++) {
+          groupBloc
+              .add(TerminalTabCreateGroup(id(tabs[index]), 'group $index'));
+        }
+        await settle();
+        final previous = loaded();
+
+        groupBloc.add(TerminalTabMoveGroupBefore('g2', 'g0'));
+        await settle();
+
+        expect(loaded().grouping.groups.map((group) => group.id),
+            ['g2', 'g0', 'g1']);
+        expect(loaded().grouping.membership, previous.grouping.membership);
+        expect(loaded().allTabs, tabs);
+        expect(loaded().activeTab, same(previous.activeTab));
+        expect(loaded().version, previous.version + 1);
+
+        groupBloc.add(TerminalTabMoveGroupBefore('g2', null));
+        await settle();
+
+        expect(loaded().grouping.groups.map((group) => group.id),
+            ['g0', 'g1', 'g2']);
+      });
+
+      test('MoveGroupBefore ignores missing and unchanged groups', () async {
+        final tabs = await openTabs(2);
+        groupBloc.add(TerminalTabCreateGroup(id(tabs[0]), 'one'));
+        groupBloc.add(TerminalTabCreateGroup(id(tabs[1]), 'two'));
+        await settle();
+        final previous = loaded();
+
+        groupBloc.add(TerminalTabMoveGroupBefore('missing', 'g0'));
+        groupBloc.add(TerminalTabMoveGroupBefore('g0', 'missing'));
+        groupBloc.add(TerminalTabMoveGroupBefore('g0', 'g1'));
+        groupBloc.add(TerminalTabMoveGroupBefore('g0', 'g0'));
+        await settle();
+
+        expect(loaded(), same(previous));
+      });
+
       test('new tabs are ungrouped even when the active tab is grouped',
           () async {
         final tabs = await openTabs(1);

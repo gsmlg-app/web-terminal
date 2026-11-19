@@ -41,6 +41,7 @@ class TabSwitcherCallbacks {
     this.onMoveToGroup,
     this.onUngroup,
     this.onRenameGroup,
+    this.onMoveGroupBefore,
     this.onToggleCollapsed,
     this.onCloseGroup,
     this.onMoveSessionsToGroup,
@@ -54,6 +55,7 @@ class TabSwitcherCallbacks {
   final void Function(String sessionId, String groupId)? onMoveToGroup;
   final ValueChanged<String>? onUngroup;
   final void Function(String groupId, String name)? onRenameGroup;
+  final void Function(String groupId, String? targetGroupId)? onMoveGroupBefore;
   final ValueChanged<String?>? onToggleCollapsed;
   final ValueChanged<String>? onCloseGroup;
   final void Function(List<String> sessionIds, String groupId)?
@@ -130,6 +132,12 @@ enum _CardAction { rename, moveTo, newGroup, ungroup }
 
 enum _GroupAction { rename, close }
 
+class _GroupDragData {
+  const _GroupDragData(this.groupId);
+
+  final String groupId;
+}
+
 class _TabSwitcherDialog extends StatefulWidget {
   const _TabSwitcherDialog({
     required this.data,
@@ -162,6 +170,12 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
   bool _currentSectionReleased = false;
 
   TabSwitcherCallbacks get _callbacks => widget.callbacks;
+
+  bool get _canReorderGroups =>
+      _mode == _TabSwitcherMode.reorder &&
+      !widget.currentGroupOnly &&
+      _data.groups.length > 1 &&
+      _callbacks.onMoveGroupBefore != null;
 
   @override
   void initState() {
@@ -207,18 +221,17 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
       currentGroupOnly: widget.currentGroupOnly,
     );
     if (!_currentSectionReleased || sections.isEmpty) return sections;
-    final current = sections.first;
-    if (!current.sessions.any((s) => s.id == _data.currentSessionId)) {
-      return sections;
-    }
     return [
-      TabSwitcherSection(
-        groupId: current.groupId,
-        name: current.name,
-        sessions: current.sessions,
-        collapsed: _storedCollapsed(current.groupId),
-      ),
-      ...sections.skip(1),
+      for (final section in sections)
+        if (section.sessions.any((s) => s.id == _data.currentSessionId))
+          TabSwitcherSection(
+            groupId: section.groupId,
+            name: section.name,
+            sessions: section.sessions,
+            collapsed: _storedCollapsed(section.groupId),
+          )
+        else
+          section,
     ];
   }
 
@@ -793,10 +806,16 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
                         slivers: [
                           for (final section in sections) ...[
                             SliverToBoxAdapter(
+                              key: ValueKey(
+                                'section-header-${section.groupId}',
+                              ),
                               child: _buildSectionHeader(context, section),
                             ),
                             if (!section.collapsed)
                               SliverPadding(
+                                key: ValueKey(
+                                  'section-cards-${section.groupId}',
+                                ),
                                 padding: const EdgeInsets.fromLTRB(
                                   _gridPadding,
                                   0,
@@ -848,18 +867,28 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
   Widget _buildSectionHeader(BuildContext context, TabSwitcherSection section) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    return GestureDetector(
+    final groupId = section.groupId;
+    final header = GestureDetector(
       key: ValueKey('tab-switcher-section-${section.groupId ?? 'ungrouped'}'),
       behavior: HitTestBehavior.opaque,
       onTap: () => _toggleSection(section),
       onSecondaryTapUp: (details) =>
           _showGroupMenu(section, details.globalPosition),
-      onLongPressStart: (details) =>
-          _showGroupMenu(section, details.globalPosition),
+      onLongPressStart: _mode == _TabSwitcherMode.reorder
+          ? null
+          : (details) => _showGroupMenu(section, details.globalPosition),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 6),
         child: Row(
           children: [
+            if (_canReorderGroups && groupId != null) ...[
+              Icon(
+                Icons.drag_indicator,
+                size: 18,
+                color: colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 4),
+            ],
             Icon(
               section.collapsed ? Icons.chevron_right : Icons.expand_more,
               size: 18,
@@ -878,6 +907,39 @@ class _TabSwitcherDialogState extends State<_TabSwitcherDialog> {
           ],
         ),
       ),
+    );
+    if (!_canReorderGroups) return header;
+
+    return DragTarget<_GroupDragData>(
+      onWillAcceptWithDetails: (details) => details.data.groupId != groupId,
+      onAcceptWithDetails: (details) =>
+          _callbacks.onMoveGroupBefore?.call(details.data.groupId, groupId),
+      builder: (context, candidateData, rejectedData) {
+        final target = DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(
+                color: candidateData.isNotEmpty
+                    ? colorScheme.tertiary
+                    : colorScheme.surfaceContainer,
+                width: 2,
+              ),
+            ),
+          ),
+          child: header,
+        );
+        if (groupId == null) return target;
+
+        return Draggable<_GroupDragData>(
+          data: _GroupDragData(groupId),
+          feedback: SizedBox(
+            width: 240,
+            child: Material(color: colorScheme.surfaceContainer, child: header),
+          ),
+          childWhenDragging: Opacity(opacity: 0.45, child: target),
+          child: target,
+        );
+      },
     );
   }
 

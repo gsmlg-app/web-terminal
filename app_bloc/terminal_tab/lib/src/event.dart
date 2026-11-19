@@ -97,6 +97,14 @@ class TerminalTabRenameGroup extends TerminalTabEvent {
   TerminalTabRenameGroup(this.groupId, this.name);
 }
 
+/// Moves [groupId] before [targetGroupId], or to the end when null.
+class TerminalTabMoveGroupBefore extends TerminalTabEvent {
+  final String groupId;
+  final String? targetGroupId;
+
+  TerminalTabMoveGroupBefore(this.groupId, this.targetGroupId);
+}
+
 /// Toggles collapse of the group [groupId], or of the ungrouped section when
 /// [groupId] is null.
 class TerminalTabToggleGroupCollapsed extends TerminalTabEvent {

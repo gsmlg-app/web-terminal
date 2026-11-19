@@ -33,6 +33,7 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     on<TerminalTabCreateGroupWithSessions>(_onCreateGroupWithSessions);
     on<TerminalTabUngroupSessions>(_onUngroupSessions);
     on<TerminalTabRenameGroup>(_onRenameGroup);
+    on<TerminalTabMoveGroupBefore>(_onMoveGroupBefore);
     on<TerminalTabToggleGroupCollapsed>(_onToggleGroupCollapsed);
     on<TerminalTabMoveTabBefore>(_onMoveTabBefore);
     on<TerminalTabRestoreGroups>(_onRestoreGroups);
@@ -410,6 +411,19 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     final tab = _findTabById(current.tabs, event.sessionId);
     if (tab == null) return;
     _emitGrouping(emit, current, current.grouping.assign(tab, null));
+  }
+
+  void _onMoveGroupBefore(
+    TerminalTabMoveGroupBefore event,
+    Emitter<TerminalTabState> emit,
+  ) {
+    final current = state;
+    if (current is! TerminalTabLoaded) return;
+    _emitGrouping(
+      emit,
+      current,
+      current.grouping.moveGroupBefore(event.groupId, event.targetGroupId),
+    );
   }
 
   void _onRenameGroup(

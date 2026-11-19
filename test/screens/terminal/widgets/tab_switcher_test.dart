@@ -80,6 +80,21 @@ void main() {
     groups: [TabSwitcherGroup(id: 'g1', name: 'api', collapsed: false)],
   );
 
+  const reorderGroups = TabSwitcherData(
+    sessions: [
+      SessionInfo(id: '1', name: 'one', groupId: 'g1'),
+      SessionInfo(id: '2', name: 'two', groupId: 'g2'),
+      SessionInfo(id: '3', name: 'three', groupId: 'g3'),
+      SessionInfo(id: '4', name: 'four'),
+    ],
+    currentSessionId: '4',
+    groups: [
+      TabSwitcherGroup(id: 'g1', name: 'api', collapsed: true),
+      TabSwitcherGroup(id: 'g2', name: 'web', collapsed: true),
+      TabSwitcherGroup(id: 'g3', name: 'logs', collapsed: true),
+    ],
+  );
+
   group('Tab switcher', () {
     testWidgets('confirms and returns selected tabs to close', (tester) async {
       final result = await pumpTabSwitcher(tester);
@@ -149,6 +164,131 @@ void main() {
       expect(find.text('Switch Tab'), findsOneWidget);
     });
 
+    for (final collapsed in [true, false]) {
+      testWidgets(
+        'dragging a group header preserves order, collapsed=$collapsed',
+        (tester) async {
+          final initialGroups = [
+            for (final group in reorderGroups.groups)
+              TabSwitcherGroup(
+                id: group.id,
+                name: group.name,
+                collapsed: collapsed,
+              ),
+          ];
+          final data = ValueNotifier<TabSwitcherData>(
+            TabSwitcherData(
+              sessions: reorderGroups.sessions,
+              currentSessionId: '1',
+              groups: initialGroups,
+            ),
+          );
+          final moves = <(String, String?)>[];
+          final tabMoves = <(String, String)>[];
+          await pumpTabSwitcher(
+            tester,
+            data: data,
+            callbacks: TabSwitcherCallbacks(
+              onMoveGroupBefore: (groupId, targetGroupId) {
+                moves.add((groupId, targetGroupId));
+                data.value = TabSwitcherData(
+                  sessions: reorderGroups.sessions,
+                  currentSessionId: '1',
+                  groups: [initialGroups[2], ...initialGroups.take(2)],
+                );
+              },
+              onMoveBefore: (id, target) => tabMoves.add((id, target)),
+            ),
+          );
+
+          await tester.tap(find.byTooltip('Reorder tabs'));
+          await tester.pumpAndSettle();
+          final start = tester.getCenter(header('g3'));
+          final target = tester.getCenter(header('g1'));
+          final gesture = await tester.startGesture(start);
+          await gesture.moveTo(target);
+          await tester.pump();
+          await gesture.up();
+          await tester.pumpAndSettle();
+
+          expect(moves, [('g3', 'g1')]);
+          expect(tabMoves, isEmpty);
+          expect(card('3'), collapsed ? findsNothing : findsOneWidget);
+          expect(
+            tester.getTopLeft(header('g3')).dy,
+            lessThan(tester.getTopLeft(header('g1')).dy),
+          );
+          expect(tester.takeException(), isNull);
+
+          await tester.tap(find.byTooltip('Done reordering'));
+          await tester.pumpAndSettle();
+          await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+          await tester.pumpAndSettle();
+          data.value = TabSwitcherData(
+            sessions: reorderGroups.sessions,
+            currentSessionId: '2',
+            groups: data.value.groups,
+          );
+          await tester.tap(find.text('Open switcher'));
+          await tester.pumpAndSettle();
+
+          expect(
+            tester.getTopLeft(header('g3')).dy,
+            lessThan(tester.getTopLeft(header('g1')).dy),
+          );
+          expect(
+            tester.getTopLeft(header('g1')).dy,
+            lessThan(tester.getTopLeft(header('g2')).dy),
+          );
+          expect(moves, hasLength(1));
+        },
+      );
+    }
+
+    testWidgets('group drags ignore tab cards and can move before ungrouped', (
+      tester,
+    ) async {
+      final moves = <(String, String?)>[];
+      final tabMoves = <(String, String)>[];
+      await pumpTabSwitcher(
+        tester,
+        data: ValueNotifier<TabSwitcherData>(reorderGroups),
+        callbacks: TabSwitcherCallbacks(
+          onMoveGroupBefore: (id, target) => moves.add((id, target)),
+          onMoveBefore: (id, target) => tabMoves.add((id, target)),
+        ),
+      );
+
+      await tester.tap(find.byTooltip('Reorder tabs'));
+      await tester.pumpAndSettle();
+      var gesture = await tester.startGesture(tester.getCenter(header('g1')));
+      await gesture.moveTo(tester.getCenter(card('4')));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(moves, isEmpty);
+      expect(tabMoves, isEmpty);
+
+      gesture = await tester.startGesture(tester.getCenter(card('4')));
+      await gesture.moveTo(tester.getCenter(header('g2')));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(moves, isEmpty);
+      expect(tabMoves, isEmpty);
+
+      gesture = await tester.startGesture(tester.getCenter(header('g1')));
+      await gesture.moveTo(tester.getCenter(header(null)));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+
+      expect(moves, [('g1', null)]);
+      expect(tabMoves, isEmpty);
+    });
+
     testWidgets('long press opens a menu whose Rename updates title', (
       tester,
     ) async {
@@ -188,19 +328,69 @@ void main() {
       expect(find.text('Build logs'), findsOneWidget);
     });
 
-    testWidgets('shows sections with name and count, current group first', (
+    testWidgets(
+      'shows sections in stored order with the current group second',
+      (tester) async {
+        await pumpTabSwitcher(
+          tester,
+          data: ValueNotifier<TabSwitcherData>(
+            const TabSwitcherData(
+              sessions: [
+                SessionInfo(id: '1', name: 'one', groupId: 'g1'),
+                SessionInfo(id: '2', name: 'two', groupId: 'g2'),
+                SessionInfo(id: '3', name: 'three'),
+              ],
+              currentSessionId: '2',
+              groups: [
+                TabSwitcherGroup(id: 'g1', name: 'api', collapsed: false),
+                TabSwitcherGroup(id: 'g2', name: 'web', collapsed: false),
+              ],
+            ),
+          ),
+        );
+
+        expect(find.text('api · 1'), findsOneWidget);
+        expect(find.text('web · 1'), findsOneWidget);
+        expect(find.text('Ungrouped · 1'), findsOneWidget);
+        expect(
+          tester.getTopLeft(header('g1')).dy,
+          lessThan(tester.getTopLeft(header('g2')).dy),
+        );
+        expect(
+          tester.getTopLeft(header('g2')).dy,
+          lessThan(tester.getTopLeft(header(null)).dy),
+        );
+      },
+    );
+
+    testWidgets('the current group can collapse without moving to the front', (
       tester,
     ) async {
       await pumpTabSwitcher(
         tester,
-        data: ValueNotifier<TabSwitcherData>(grouped),
+        data: ValueNotifier<TabSwitcherData>(
+          const TabSwitcherData(
+            sessions: [
+              SessionInfo(id: '1', name: 'one', groupId: 'g1'),
+              SessionInfo(id: '2', name: 'two', groupId: 'g2'),
+            ],
+            currentSessionId: '2',
+            groups: [
+              TabSwitcherGroup(id: 'g1', name: 'api', collapsed: false),
+              TabSwitcherGroup(id: 'g2', name: 'web', collapsed: true),
+            ],
+          ),
+        ),
       );
 
-      expect(find.text('api · 1'), findsOneWidget);
-      expect(find.text('Ungrouped · 2'), findsOneWidget);
+      expect(card('2'), findsOneWidget);
+      await tester.tap(header('g2'));
+      await tester.pumpAndSettle();
+
+      expect(card('2'), findsNothing);
       expect(
         tester.getTopLeft(header('g1')).dy,
-        lessThan(tester.getTopLeft(header(null)).dy),
+        lessThan(tester.getTopLeft(header('g2')).dy),
       );
     });
 
