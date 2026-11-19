@@ -1307,7 +1307,27 @@ void main() {
         expect(loaded().activeTab, same(group.last));
       });
 
-      test('GoToTab and NextTab follow global order with groups', () async {
+      test('NextTab and PreviousTab stay inside ungrouped tabs', () async {
+        final t = await openTabs(4);
+        groupBloc.add(TerminalTabCreateGroup(id(t[1]), 'web'));
+        groupBloc.add(TerminalTabCreateGroup(id(t[3]), 'api'));
+        await settle();
+        t[0].activate();
+
+        groupBloc.add(TerminalTabNextTab());
+        await settle();
+        expect(loaded().activeTab, same(t[2]));
+
+        groupBloc.add(TerminalTabNextTab());
+        await settle();
+        expect(loaded().activeTab, same(t[0]));
+
+        groupBloc.add(TerminalTabPreviousTab());
+        await settle();
+        expect(loaded().activeTab, same(t[2]));
+      });
+
+      test('GoToTab follows global order with groups', () async {
         final t = await openTabs(3);
         groupBloc.add(TerminalTabCreateGroup(id(t[2]), 'web'));
         await settle();
@@ -1316,7 +1336,7 @@ void main() {
         await settle();
         expect(loaded().activeTab, same(t[0]));
 
-        groupBloc.add(TerminalTabNextTab());
+        groupBloc.add(TerminalTabGoToTab(1));
         await settle();
         expect(loaded().activeTab, same(t[1]));
       });

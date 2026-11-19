@@ -613,7 +613,9 @@ class _TerminalScreenState extends State<TerminalScreen> {
   /// This runs before the terminal processes the key, so Ctrl+T, Ctrl+Shift+T,
   /// Cmd+T, etc. are intercepted without being sent to the shell.
   KeyEventResult _handleTerminalKeyEvent(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) {
+      return KeyEventResult.ignored;
+    }
 
     final key = event.logicalKey;
     final ctrl = HardwareKeyboard.instance.isControlPressed;
@@ -622,6 +624,14 @@ class _TerminalScreenState extends State<TerminalScreen> {
     final isApple =
         defaultTargetPlatform == TargetPlatform.macOS ||
         defaultTargetPlatform == TargetPlatform.iOS;
+
+    if (event is KeyRepeatEvent &&
+        key != LogicalKeyboardKey.bracketRight &&
+        key != LogicalKeyboardKey.braceRight &&
+        key != LogicalKeyboardKey.bracketLeft &&
+        key != LogicalKeyboardKey.braceLeft) {
+      return KeyEventResult.ignored;
+    }
 
     // New tab: Cmd+T (macOS/iOS) or Ctrl+T / Ctrl+Shift+T (other platforms)
     if (key == LogicalKeyboardKey.keyT && (isApple ? meta : ctrl)) {

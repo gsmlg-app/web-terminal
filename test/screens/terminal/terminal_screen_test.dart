@@ -476,6 +476,85 @@ void main() {
     }
 
     testWidgets(
+      'held tab shortcut continues cycling on key repeat events',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        final setup = await pumpGroupedScreen(tester);
+        setup.tabBloc.add(
+          TerminalTabUngroup(setup.grouped.hashCode.toString()),
+        );
+        await tester.pump();
+        final output = <String>[];
+        for (final tab in [setup.grouped, setup.other]) {
+          (tab.plugin as TerminalPlugin).terminal.onOutput = output.add;
+        }
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.bracketRight);
+        await tester.pump();
+        await tester.pump();
+        expect(
+          (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+          setup.other,
+        );
+
+        await tester.sendKeyRepeatEvent(LogicalKeyboardKey.bracketRight);
+        await tester.pump();
+        await tester.pump();
+        expect(
+          (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+          setup.grouped,
+        );
+
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.bracketRight);
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+        expect(output, isEmpty);
+      },
+    );
+
+    testWidgets(
+      'repeated tab switches preserve focus and shifted text input',
+      variant: TargetPlatformVariant.only(TargetPlatform.macOS),
+      (tester) async {
+        final setup = await pumpGroupedScreen(tester);
+        setup.tabBloc.add(
+          TerminalTabUngroup(setup.grouped.hashCode.toString()),
+        );
+        await tester.pump();
+        final outputs = <PluginTab, List<String>>{};
+        for (final tab in [setup.grouped, setup.other]) {
+          final output = <String>[];
+          outputs[tab] = output;
+          (tab.plugin as TerminalPlugin).terminal.onOutput = output.add;
+        }
+
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.metaLeft);
+        for (var index = 0; index < 6; index++) {
+          await tester.sendKeyEvent(LogicalKeyboardKey.bracketRight);
+          await tester.pump();
+          await tester.pump();
+          final expected = index.isEven ? setup.other : setup.grouped;
+          expect(
+            (setup.tabBloc.state as TerminalTabLoaded).activeTab,
+            expected,
+          );
+          final view = tester.widget<TerminalView>(find.byType(TerminalView));
+          expect(view.focusNode!.hasPrimaryFocus, isTrue);
+          expect(tester.testTextInput.hasAnyClients, isTrue);
+        }
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.metaLeft);
+        await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.sendKeyEvent(LogicalKeyboardKey.semicolon, character: ':');
+        tester.testTextInput.enterText(':');
+        await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+        await tester.pump();
+
+        expect(outputs[setup.grouped], [':']);
+        expect(outputs[setup.other], isEmpty);
+      },
+    );
+
+    testWidgets(
       'tab shortcuts still work while the active SSH terminal is composing',
       variant: TargetPlatformVariant.only(TargetPlatform.macOS),
       (tester) async {

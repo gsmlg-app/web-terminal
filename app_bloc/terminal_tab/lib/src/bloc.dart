@@ -249,7 +249,7 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
   }
 
   /// Activates the tab [step] places away, wrapping within the active tab's
-  /// group, or across all tabs when the active tab is ungrouped.
+  /// group, or within ungrouped tabs when the active tab is ungrouped.
   void _cycleTab(Emitter<TerminalTabState> emit, int step) {
     if (state is! TerminalTabLoaded) return;
     final currentState = state as TerminalTabLoaded;
@@ -257,11 +257,9 @@ class TerminalTabBloc extends Bloc<TerminalTabEvent, TerminalTabState> {
     if (activeTab == null) return;
     final grouping = currentState.grouping;
     final groupId = grouping.groupIdOf(activeTab);
-    final candidates = groupId == null
-        ? currentState.tabs.children
-        : currentState.tabs.children
-            .where((TabItem tab) => grouping.groupIdOf(tab) == groupId)
-            .toList();
+    final candidates = currentState.tabs.children
+        .where((TabItem tab) => grouping.groupIdOf(tab) == groupId)
+        .toList();
     final idx = candidates.indexOf(activeTab);
     if (idx < 0) return;
     final length = candidates.length;
